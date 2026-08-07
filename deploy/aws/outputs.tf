@@ -29,15 +29,32 @@ output "alb_dns_name" {
 
 output "app_url" {
   value = (
-    var.acm_certificate_arn != ""
-    ? "https://${aws_lb.app.dns_name}"
-    : "http://${aws_lb.app.dns_name}"
+    local.domain_enabled && local.https_on
+    ? "https://${var.domain_name}"
+    : (
+      local.https_on
+      ? "https://${aws_lb.app.dns_name}"
+      : "http://${aws_lb.app.dns_name}"
+    )
   )
-  description = "Review URL (HTTPS when acm_certificate_arn is set)"
+  description = "Review URL (custom domain HTTPS when configured)"
 }
 
 output "https_enabled" {
-  value = var.acm_certificate_arn != ""
+  value = local.https_on
+}
+
+output "domain_name" {
+  value = var.domain_name
+}
+
+output "route53_nameservers" {
+  value       = try(aws_route53_zone.app[0].name_servers, [])
+  description = "Set these NS at Hostinger for ocotilloinnovation.in so ACM validates and HTTPS works"
+}
+
+output "acm_certificate_arn_effective" {
+  value = local.effective_cert_arn
 }
 
 output "eip_allocation_id" {

@@ -18,6 +18,11 @@ app_desired_count  = 1
 # acm_certificate_arn = "arn:aws:acm:ap-south-1:ACCOUNT:certificate/UUID"
 # https_redirect      = true
 
+# Custom domain (creates Route53 zone + ACM DNS validation + ALB aliases)
+# After apply: set the output route53_nameservers at your registrar (Hostinger).
+# domain_name = "ocotilloinnovation.in"
+# manage_dns  = true
+
 # Local scheduler (also in docker-compose `scheduler`):
 # INTELLENS_REFRESH_HOURS=6
 # INTELLENS_CRAWL_LIVE=1

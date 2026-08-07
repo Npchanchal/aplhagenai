@@ -80,3 +80,15 @@ variable "https_redirect" {
   default     = true
   description = "When ACM is set, redirect HTTP→HTTPS"
 }
+
+variable "domain_name" {
+  type        = string
+  default     = ""
+  description = "Optional apex domain for HTTPS (e.g. ocotilloinnovation.in). Empty = ALB DNS only."
+}
+
+variable "manage_dns" {
+  type        = bool
+  default     = true
+  description = "When domain_name is set, create Route53 zone + ACM validation + A/ALIAS records"
+}

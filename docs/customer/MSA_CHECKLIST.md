@@ -16,7 +16,7 @@ These Package / One-Stop lines stay **process & contract** — ship via order fo
 
 | Item | How |
 |---|---|
-| HTTPS custom domain | Set `acm_certificate_arn` in `deploy/aws` (ACM in ap-south-1) + DNS → ALB |
+| HTTPS custom domain | Hostinger → set Route53 NS (see `docs/DOMAIN_HTTPS.md`) then `terraform apply` |
 | Production OIDC | `SSO=true` + `OIDC_CLIENT_ID` / `ISSUER` / `REDIRECT_URI` / `CLIENT_SECRET` |
 | Live India EOD | `INTELLENS_FMP_API_KEY` (wired into ECS by `aws-deploy.sh` from `.env`) |
 | Live AlphaHunter feed | Vendor contract — product supports Facts JSON import today |

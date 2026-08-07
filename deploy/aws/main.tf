@@ -3,6 +3,15 @@ locals {
   # Task can live in one public subnet; ALB needs ≥2 AZs.
   app_subnets = slice(var.subnet_ids, 0, 1)
   alb_subnets = slice(var.subnet_ids, 0, min(2, length(var.subnet_ids)))
+
+  domain_enabled = var.domain_name != ""
+  # Prefer explicit cert ARN; else use ACM we manage for domain_name.
+  effective_cert_arn = (
+    var.acm_certificate_arn != ""
+    ? var.acm_certificate_arn
+    : (local.domain_enabled ? aws_acm_certificate_validation.app[0].certificate_arn : "")
+  )
+  https_on = local.effective_cert_arn != ""
 }
 
 data "aws_caller_identity" "current" {}
@@ -222,7 +231,7 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   dynamic "default_action" {
-    for_each = var.acm_certificate_arn != "" && var.https_redirect ? [1] : []
+    for_each = local.https_on && var.https_redirect ? [1] : []
     content {
       type = "redirect"
       redirect {
@@ -234,7 +243,7 @@ resource "aws_lb_listener" "http" {
   }
 
   dynamic "default_action" {
-    for_each = var.acm_certificate_arn != "" && var.https_redirect ? [] : [1]
+    for_each = local.https_on && var.https_redirect ? [] : [1]
     content {
       type             = "forward"
       target_group_arn = aws_lb_target_group.app.arn
@@ -243,16 +252,95 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_listener" "https" {
-  count             = var.acm_certificate_arn != "" ? 1 : 0
+  count             = local.https_on ? 1 : 0
   load_balancer_arn = aws_lb.app.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = var.acm_certificate_arn
+  certificate_arn   = local.effective_cert_arn
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+# --- Optional custom domain HTTPS (Route53 + ACM) ---
+
+resource "aws_route53_zone" "app" {
+  count = local.domain_enabled && var.manage_dns ? 1 : 0
+  name  = var.domain_name
+
+  tags = {
+    Name = "${local.name_prefix}-zone"
+  }
+}
+
+resource "aws_acm_certificate" "app" {
+  count                     = local.domain_enabled && var.manage_dns ? 1 : 0
+  domain_name               = var.domain_name
+  subject_alternative_names = ["www.${var.domain_name}"]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-cert"
+  }
+}
+
+resource "aws_route53_record" "cert_validation" {
+  for_each = local.domain_enabled && var.manage_dns ? {
+    for dvo in aws_acm_certificate.app[0].domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  } : {}
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = aws_route53_zone.app[0].zone_id
+}
+
+resource "aws_acm_certificate_validation" "app" {
+  count                   = local.domain_enabled && var.manage_dns ? 1 : 0
+  certificate_arn         = aws_acm_certificate.app[0].arn
+  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
+
+  timeouts {
+    create = "45m"
+  }
+}
+
+resource "aws_route53_record" "apex" {
+  count   = local.domain_enabled && var.manage_dns && local.https_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app.dns_name
+    zone_id                = aws_lb.app.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "www" {
+  count   = local.domain_enabled && var.manage_dns && local.https_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app.dns_name
+    zone_id                = aws_lb.app.zone_id
+    evaluate_target_health = true
   }
 }
 
