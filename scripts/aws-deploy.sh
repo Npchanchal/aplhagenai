@@ -52,6 +52,7 @@ _load_tf_env() {
         ;;
     esac
   done < "$envf"
+  return 0
 }
 _load_tf_env "$ROOT/.env"
 _load_tf_env "$ROOT/backend/.env"
@@ -71,10 +72,17 @@ fi
 echo "== AWS identity =="
 aws sts get-caller-identity --region "$REGION"
 
-echo "== Terraform init/apply (ALB + ECS) =="
+echo "== Terraform init/apply (ECS task env — skip ACM wait) =="
 cd "$AWS_DIR"
 terraform init -input=false
-terraform apply -input=false -auto-approve
+# Full apply can block 10m+ on ACM DNS validation until Hostinger NS cutover.
+# Default deploy only refreshes the task definition (and service when safe).
+if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
+  terraform apply -input=false -auto-approve
+else
+  terraform apply -input=false -auto-approve -target=aws_ecs_task_definition.app
+  echo "== Tip: TF_FULL_APPLY=1 for ALB/HTTPS/ACM; needs Route53 NS live =="
+fi
 
 ECR_API="$(terraform output -raw ecr_api_url)"
 ECR_WEB="$(terraform output -raw ecr_web_url)"

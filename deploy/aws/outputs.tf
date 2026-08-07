@@ -29,7 +29,7 @@ output "alb_dns_name" {
 
 output "app_url" {
   value = (
-    local.domain_enabled && local.https_on
+    local.domain_enabled
     ? "https://${var.domain_name}"
     : (
       local.https_on
@@ -37,7 +37,7 @@ output "app_url" {
       : "http://${aws_lb.app.dns_name}"
     )
   )
-  description = "Review URL (custom domain HTTPS when configured)"
+  description = "Desired review URL (custom domain needs ACM ISSUED after Hostinger NS)"
 }
 
 output "https_enabled" {
@@ -54,7 +54,7 @@ output "route53_nameservers" {
 }
 
 output "acm_certificate_arn_effective" {
-  value = local.effective_cert_arn
+  value = local.effective_cert_arn != "" ? local.effective_cert_arn : try(aws_acm_certificate.app[0].arn, "")
 }
 
 output "eip_allocation_id" {

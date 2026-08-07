@@ -5,13 +5,11 @@ locals {
   alb_subnets = slice(var.subnet_ids, 0, min(2, length(var.subnet_ids)))
 
   domain_enabled = var.domain_name != ""
-  # Prefer explicit cert ARN; else use ACM we manage for domain_name.
-  effective_cert_arn = (
-    var.acm_certificate_arn != ""
-    ? var.acm_certificate_arn
-    : (local.domain_enabled ? aws_acm_certificate_validation.app[0].certificate_arn : "")
-  )
-  https_on = local.effective_cert_arn != ""
+  # Explicit ACM ARN enables HTTPS immediately. Managed cert waits on validation
+  # but must NOT appear in locals used by ECS — otherwise every apply blocks on DNS.
+  effective_cert_arn = var.acm_certificate_arn != "" ? var.acm_certificate_arn : ""
+  https_on           = local.effective_cert_arn != ""
+  managed_https_on   = local.domain_enabled && var.manage_dns
 }
 
 data "aws_caller_identity" "current" {}
@@ -265,6 +263,21 @@ resource "aws_lb_listener" "https" {
   }
 }
 
+# HTTPS after ACM DNS validation (does not gate ECS task updates).
+resource "aws_lb_listener" "https_managed" {
+  count             = local.managed_https_on && !local.https_on ? 1 : 0
+  load_balancer_arn = aws_lb.app.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate_validation.app[0].certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
 # --- Optional custom domain HTTPS (Route53 + ACM) ---
 
 resource "aws_route53_zone" "app" {
@@ -314,12 +327,12 @@ resource "aws_acm_certificate_validation" "app" {
   validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
 
   timeouts {
-    create = "45m"
+    create = "10m"
   }
 }
 
 resource "aws_route53_record" "apex" {
-  count   = local.domain_enabled && var.manage_dns && local.https_on ? 1 : 0
+  count   = local.domain_enabled && var.manage_dns && (local.https_on || local.managed_https_on) ? 1 : 0
   zone_id = aws_route53_zone.app[0].zone_id
   name    = var.domain_name
   type    = "A"
@@ -332,7 +345,7 @@ resource "aws_route53_record" "apex" {
 }
 
 resource "aws_route53_record" "www" {
-  count   = local.domain_enabled && var.manage_dns && local.https_on ? 1 : 0
+  count   = local.domain_enabled && var.manage_dns && (local.https_on || local.managed_https_on) ? 1 : 0
   zone_id = aws_route53_zone.app[0].zone_id
   name    = "www.${var.domain_name}"
   type    = "A"
