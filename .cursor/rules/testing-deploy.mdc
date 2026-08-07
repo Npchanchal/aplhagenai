@@ -1,0 +1,14 @@
+---
+description: Testing and deployment standards for IntelLens
+globs: "{backend/tests/**,e2e/**,**/Dockerfile*,**/docker-compose*,scripts/**}"
+alwaysApply: false
+---
+
+# Testing & Deploy
+
+- Unit tests cover scoring edge cases (empty, all-miss, all-beat, mixed, vague guidance).
+- Functional API tests hit FastAPI `TestClient` without network.
+- E2E (Playwright) covers: list companies → open company → see score + evidence.
+- CI must run: `pytest` then `npm run build` then Playwright against docker-compose.
+- Deploy via Docker Compose: `api` + `web`. Health check `/health`.
+- Never skip failing tests with `--no-verify` style escapes in scripts.

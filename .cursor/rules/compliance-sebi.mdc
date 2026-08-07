@@ -1,0 +1,14 @@
+---
+description: SEBI / compliance — no investment advice, honest data quality
+globs: "{frontend/**/*.{ts,tsx},docs/customer/**,docs/PITCH*,docs/BUSINESS*}"
+alwaysApply: false
+---
+
+# Compliance
+
+- IntelLens is factual guidance-delivery research — **not** investment advice.
+- Never add Buy / Hold / Sell UI, tips, or recommendation language.
+- Show disclaimer on GCI and vernacular surfaces (`Disclaimer` / `/api/compliance/sebi-note`).
+- Keep `hand_labeled` vs `demo_structured` badges honest and visible.
+- Competitor names (AlphaSense, Bloomberg) only in internal docs — not product chrome.
+- Align customer claims with `docs/customer/COMPLIANCE.md` and labeled cohort reality.

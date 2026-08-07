@@ -1,0 +1,16 @@
+---
+description: Institutional UX rules for Tracker, Desk, Research, dossier
+globs: frontend/src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Frontend UX
+
+- Evidence-first on company dossiers; sticky section nav for long pages.
+- Universe table is the home hero job — do not bury it under demo charts.
+- Always show score **level + Δ** (MoM/QoQ/YoY/PoP) when history exists.
+- Desk/Research: sync tabs via `?tab=`; sticky company picker where multi-tab.
+- API only through `lib/api.ts`. Prefer `Toast` / `Skeleton` over bare muted status.
+- Mobile: usable nav (toggle); desktop-first dense tables OK with horizontal scroll.
+- Visual: Source Serif + IBM Plex; paper/ink palette; no purple glow / emoji chrome.
+- Full prompt: `docs/prompts/PROFESSIONAL_SITE_PROMPT.md` · kb `docs/kb/06-frontend-ux.md`.

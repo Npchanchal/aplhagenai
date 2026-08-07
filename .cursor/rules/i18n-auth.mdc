@@ -1,0 +1,13 @@
+---
+description: i18n, session auth, and multi-market scaffold honesty
+globs: "{frontend/src/i18n/**,frontend/src/lib/auth.tsx,backend/app/services/auth.py,backend/app/services/session_auth.py,docs/I18N*,docs/REGIONAL*}"
+alwaysApply: false
+---
+
+# i18n / Auth / Markets
+
+- Deep GCI is India Sensex path; other markets may be scaffold — show honest banners.
+- Vernacular blurbs always accompany disclaimer; do not imply advice.
+- Persist language/market/index prefs via auth preferences APIs when available.
+- SSO remains stub until OIDC is explicitly wired; do not fake production SSO.
+- See `docs/kb/09-i18n-auth-markets.md`.

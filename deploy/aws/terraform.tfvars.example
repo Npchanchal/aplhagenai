@@ -1,0 +1,24 @@
+aws_region   = "ap-south-1"
+project_name = "intellens-gci"
+environment  = "aws"
+vpc_id       = "vpc-xxxxxxxx"
+subnet_ids = [
+  "subnet-xxxxxxxx", # public subnet (first is used; ALB not required)
+]
+image_tag          = "latest"
+use_fargate_spot   = true
+log_retention_days = 7
+app_cpu            = 512
+app_memory         = 1024
+app_desired_count  = 1
+# Optional — do not commit real keys; pass via TF_VAR_fmp_api_key or .env
+# fmp_api_key      = ""
+
+# Optional HTTPS (ACM certificate in the same region as the ALB)
+# acm_certificate_arn = "arn:aws:acm:ap-south-1:ACCOUNT:certificate/UUID"
+# https_redirect      = true
+
+# Local scheduler (also in docker-compose `scheduler`):
+# INTELLENS_REFRESH_HOURS=6
+# INTELLENS_CRAWL_LIVE=1
+# INTELLENS_AUTO_EXTRACT_ON_REFRESH=1

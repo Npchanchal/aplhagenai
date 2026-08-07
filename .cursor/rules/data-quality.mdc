@@ -1,0 +1,13 @@
+---
+description: Seed and hand-labeled data quality honesty
+globs: backend/app/data/**/*
+alwaysApply: false
+---
+
+# Data Quality
+
+- Flags: `hand_labeled` | `demo_structured` | `market_scaffold` — never lie.
+- Hand-label: real sources, bands, quote_span; follow `docs/LABELING_PLAYBOOK.md`.
+- After label edits: delete `store.json`, rebuild, run pytest.
+- Do not invent actuals or overwrite hand_labeled with silent demo generators.
+- Update `docs/ACCURACY_ASSESSMENT.md` when cohort quality claims change.

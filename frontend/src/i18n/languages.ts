@@ -1,0 +1,49 @@
+export type LangCode =
+  | "en"
+  | "hi"
+  | "ta"
+  | "te"
+  | "kn"
+  | "ml"
+  | "mr"
+  | "gu"
+  | "bn"
+  | "pa"
+  | "ja"
+  | "zh"
+  | "ar"
+  | "es"
+  | "fr"
+  | "de"
+  | "pt";
+
+export type LangMeta = {
+  code: LangCode;
+  label: string;
+  native: string;
+  group: "indian" | "global";
+  dir?: "ltr" | "rtl";
+};
+
+export const LANGUAGES: LangMeta[] = [
+  { code: "en", label: "English", native: "English", group: "indian" },
+  { code: "hi", label: "Hindi", native: "हिन्दी", group: "indian" },
+  { code: "ta", label: "Tamil", native: "தமிழ்", group: "indian" },
+  { code: "te", label: "Telugu", native: "తెలుగు", group: "indian" },
+  { code: "kn", label: "Kannada", native: "ಕನ್ನಡ", group: "indian" },
+  { code: "ml", label: "Malayalam", native: "മലയാളം", group: "indian" },
+  { code: "mr", label: "Marathi", native: "मराठी", group: "indian" },
+  { code: "gu", label: "Gujarati", native: "ગુજરાતી", group: "indian" },
+  { code: "bn", label: "Bengali", native: "বাংলা", group: "indian" },
+  { code: "pa", label: "Punjabi", native: "ਪੰਜਾਬੀ", group: "indian" },
+  { code: "ja", label: "Japanese", native: "日本語", group: "global" },
+  { code: "zh", label: "Chinese", native: "中文", group: "global" },
+  { code: "ar", label: "Arabic", native: "العربية", group: "global", dir: "rtl" },
+  { code: "es", label: "Spanish", native: "Español", group: "global" },
+  { code: "fr", label: "French", native: "Français", group: "global" },
+  { code: "de", label: "German", native: "Deutsch", group: "global" },
+  { code: "pt", label: "Portuguese", native: "Português", group: "global" },
+];
+
+export const DEFAULT_LANG: LangCode = "en";
+export const LANG_STORAGE_KEY = "intellens.lang";

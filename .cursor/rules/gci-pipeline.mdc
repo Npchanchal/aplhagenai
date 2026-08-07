@@ -1,0 +1,14 @@
+---
+description: Extract, match, import, and review workflow conventions
+globs: backend/app/**/*.{py}
+alwaysApply: false
+---
+
+# Pipeline Practices
+
+- Extraction output must be structured statements (metric, band, period, speaker, confidence).
+- Matching keys: `(company_id, period, metric)` only.
+- AlphaHunter import maps `Facts_Extracted`-like rows via `/api/import/alphahunter`.
+- Mutations (`extract` persist, `review`, `import`, `reset`) require `X-API-Key`.
+- Review actions: `accept` | `edit` | `reject` — append to `reviews[]` corpus (moat).
+- Do not invent live filing numbers; mark `data_quality` honestly (`demo_structured` vs `hand_labeled`).

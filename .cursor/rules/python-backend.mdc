@@ -1,0 +1,23 @@
+---
+description: Python FastAPI backend conventions for IntelLens
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Python Backend
+
+- FastAPI routers in `app/api/`; business logic in `app/services/`; Pydantic models in `app/models/`.
+- Type-annotate public functions. Raise `HTTPException` only in API layer.
+- Scoring must be deterministic given the same inputs (no hidden randomness).
+- Prefer `pytest` + plain asserts. Put fixtures in `backend/tests/conftest.py`.
+- Do not log secrets. Config via env vars (`INTELLENS_*`).
+
+```python
+# ✅ GOOD — pure scoring
+def compute_gci(outcomes: list[GuidanceOutcome]) -> float:
+    ...
+
+# ❌ BAD — I/O inside scoring
+def compute_gci(company_id: str) -> float:
+    rows = db.query(...)  # keep DB in repository/API
+```

@@ -1,0 +1,11 @@
+# Example host crontab — live GCI refresh every 6 hours
+# Install: crontab -e  → paste the line (edit ROOT path)
+#
+# SHELL=/bin/bash
+# 0 */6 * * * /Users/navin/AlphaGenAI/scripts/gci-refresh.sh >> /Users/navin/AlphaGenAI/logs/gci-refresh.log 2>&1
+#
+# Prefer Docker Compose `scheduler` (POSTs to api every 6h):
+#   docker compose up -d scheduler
+#
+# AWS EventBridge: rate(6 hours) → target ECS RunTask or hit
+#   POST /api/ingest/refresh  with X-API-Key

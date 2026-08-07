@@ -1,0 +1,12 @@
+---
+description: Keep docs/kb knowledge base in sync with product changes
+globs: docs/kb/**/*
+alwaysApply: false
+---
+
+# Knowledge Base
+
+- `docs/kb/` is canonical agent memory — prefer it over chat folklore.
+- When changing scoring, APIs, routes, deploy, or scope: update the matching kb page.
+- Keep pages short and linked; deep narrative stays in existing `docs/*.md`.
+- Index: `docs/kb/README.md`. Routing: `docs/kb/AGENT_ROUTING.md`.

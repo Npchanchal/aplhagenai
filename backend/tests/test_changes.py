@@ -1,0 +1,59 @@
+"""Tests for MoM / QoQ / YoY change helpers."""
+
+from app.services.changes import (
+    change_bundle,
+    enrich_metric_rows,
+    enrich_value_series,
+    infer_horizon,
+    pct_change,
+)
+
+
+def test_pct_change():
+    assert pct_change(110, 100) == 10.0
+    assert pct_change(90, 100) == -10.0
+    assert pct_change(None, 100) is None
+
+
+def test_infer_horizon_fy_yoy():
+    assert infer_horizon("FY24", "FY25") == "YoY"
+
+
+def test_infer_horizon_qoq():
+    assert infer_horizon("Q1FY25", "Q2FY25") == "QoQ"
+
+
+def test_infer_horizon_mom():
+    assert infer_horizon("2025-01", "2025-02") == "MoM"
+
+
+def test_enrich_series_attaches_change():
+    rows = enrich_value_series(
+        [
+            {"period": "FY23", "value": 50},
+            {"period": "FY24", "value": 55},
+            {"period": "FY25", "value": 60},
+        ]
+    )
+    assert rows[0]["change_pct"] is None
+    assert rows[1]["change_horizon"] == "YoY"
+    assert rows[1]["change_pct"] == 10.0
+    assert rows[2]["change_pct"] == round(100 * 5 / 55, 2)
+
+
+def test_enrich_metric_rows():
+    rows = enrich_metric_rows(
+        [
+            {"period": "FY24", "metric": "rev", "actual": 10, "management_guidance": 9, "street_consensus": 9.5},
+            {"period": "FY25", "metric": "rev", "actual": 12, "management_guidance": 11, "street_consensus": 11.2},
+        ]
+    )
+    fy25 = next(r for r in rows if r["period"] == "FY25")
+    assert fy25["actual_change_horizon"] == "YoY"
+    assert fy25["actual_change_pct"] == 20.0
+
+
+def test_change_bundle_has_yoy():
+    b = change_bundle(12.0, [("FY23", 10.0), ("FY24", 11.0), ("FY25", 12.0)])
+    assert b["value"] == 12.0
+    assert b["yoy_pct"] == round(100 * 1 / 11, 2)

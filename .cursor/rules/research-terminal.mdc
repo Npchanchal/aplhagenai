@@ -1,0 +1,13 @@
+---
+description: Research Terminal cite-only and snapshot conventions
+globs: "{frontend/src/pages/ResearchPage.tsx,backend/app/services/research.py,docs/RESEARCH*}"
+alwaysApply: false
+---
+
+# Research Terminal
+
+- Chat is **cite-only**; refuse when evidence is missing — no hallucinated filings.
+- Label demo quote tape as demo. Prefer Δ (MoM/QoQ/YoY) alongside levels.
+- Wire UI to `/api/research/*` via `lib/api.ts` only.
+- Do not position UI as a Bloomberg/AlphaSense clone in copy.
+- Depth work (real doc store, LLM) follows `docs/IMPLEMENTATION_PLAN.md` Phases 2–3.

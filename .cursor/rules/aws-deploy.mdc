@@ -1,0 +1,13 @@
+---
+description: AWS ECS/ALB deploy and cost-control conventions
+globs: "{deploy/aws/**,scripts/aws-*,docs/AWS_*}"
+alwaysApply: false
+---
+
+# AWS Deploy
+
+- Use `scripts/aws-deploy.sh`, `aws-app-url.sh`, `aws-idle.sh`, `aws-wake.sh` — do not freestyle destructive terraform.
+- After push: wait ECS stable; verify `/health`, `/api/meta`, UI route HTTP 200.
+- Prefer documented region/stack in `docs/AWS_DEPLOYMENT.md` / `AWS_COST.md`.
+- Never force-push, hard-reset, or tear down prod resources unless the user explicitly asks.
+- Idle non-prod when appropriate; note URL changes if ALB/EIP shifts.

@@ -1,0 +1,57 @@
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      INTELLENS_CRAWL_LIVE: "1"
+      INTELLENS_REFRESH_HOURS: "6"
+      INTELLENS_AUTO_EXTRACT_ON_REFRESH: "1"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: ""
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # Live GCI refresh every 6 hours — hits API so store/crawl state stay in the api container
+  scheduler:
+    build: ./backend
+    command:
+      [
+        "python",
+        "-m",
+        "app.jobs.gci_refresh",
+        "--loop",
+        "--live",
+        "--limit",
+        "30",
+        "--via-api",
+        "http://api:8000",
+      ]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      INTELLENS_CRAWL_LIVE: "1"
+      INTELLENS_REFRESH_HOURS: "6"
+      INTELLENS_AUTO_EXTRACT_ON_REFRESH: "1"
+      INTELLENS_WARM_FMP_ON_REFRESH: "1"
+      INTELLENS_API_KEY: ${INTELLENS_API_KEY:-intellens-demo}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,14 @@
+---
+description: Frontend conventions for IntelLens Guidance Tracker UI
+globs: frontend/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Frontend
+
+- React + TypeScript + Vite. Fetch API via `frontend/src/lib/api.ts` only.
+- Show evidence trail for every GCI score (guidance quote → actual → delta).
+- No Buy/Hold recommendation UI in MVP. Display GCI 0–100, trend, metric breakdown.
+- Prefer accessible labels; keep charts simple and labeled with units.
+- Colocate page components under `pages/`; reusable widgets under `components/`.
+- UX detail rule: `frontend-ux.mdc`. KB: `docs/kb/06-frontend-ux.md`.

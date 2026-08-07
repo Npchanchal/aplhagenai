@@ -1,0 +1,14 @@
+---
+description: Keep API routes and frontend api.ts contracts in sync
+globs: "{backend/app/api/**,backend/app/models/**,frontend/src/lib/api.ts}"
+alwaysApply: false
+---
+
+# API Contracts
+
+- Routers stay thin; Pydantic models own request/response shapes.
+- Any new endpoint → update `frontend/src/lib/api.ts` types + callers in the same change.
+- Write paths require `X-API-Key`; document demo key only as `intellens-demo`.
+- Matching key remains `(company_id, period, metric)`.
+- Do not invent endpoints in the UI without a backend route (or explicit stub + flag).
+- Map lives in `docs/kb/05-api-map.md` — update it when routes change.

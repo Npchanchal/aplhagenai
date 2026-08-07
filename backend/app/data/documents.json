@@ -1,0 +1,3566 @@
+{
+  "documents": [
+    {
+      "doc_id": "175864df-6449-4f87-aa42-d22bb3bd9ec6",
+      "company_id": "asianpaints",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Asian Paints Ltd.: FY24 revenue growth guided ~4\u20137% (IR commentary). Asian Paints Ltd.: FY24 revenue growth guided ~4\u20137% (IR commentary). ASIANPAINT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/asianpaint/",
+      "date": "2024-05-15",
+      "source": "ASIANPAINT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "84f76ba85a2e701b5e6af50efe04e0befcf620ea48ede1527c6ffac4ed371653",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "cfbac974-2c52-4438-8b98-e9fe102d0d5c",
+      "company_id": "asianpaints",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Asian Paints Ltd.: FY25 growth band ~3\u20136% vs delivery. Asian Paints Ltd.: FY25 growth band ~3\u20136% vs delivery. ASIANPAINT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/asianpaint/",
+      "date": "2025-05-15",
+      "source": "ASIANPAINT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5bc30dfc0741a5e51a16b16c40b19b53ea08d9cedd5022e0cb63bd72382ec79c",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "dbf43f72-102e-42fd-a2cd-b1e6533748f1",
+      "company_id": "asianpaints",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Asian Paints Ltd.: FY26 margin framing 12\u201316% (pending). Asian Paints Ltd.: FY26 margin framing 12\u201316% (pending). ASIANPAINT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/asianpaint/",
+      "date": "2025-07-01",
+      "source": "ASIANPAINT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "df27bc361a64db300926a33cc3ce7c041f03a01b2fc5c9db6937e5207059f172",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "cc6c368c-47da-453d-9341-b999edfb2978",
+      "company_id": "asianpaints",
+      "doc_type": "guidance",
+      "title": "FY23 capex_guidance",
+      "text": "Asian Paints Ltd.: prior capex guidance not reiterated (dropped). Asian Paints Ltd.: prior capex guidance not reiterated (dropped). ASIANPAINT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/asianpaint/",
+      "date": "2024-01-10",
+      "source": "ASIANPAINT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "f0a4a26509ee05db63ac27286e9202c12b97720ef85f17f6d54354691748006d",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "c1c84b8f-5cd8-4cfe-b6d5-cd245d8b3812",
+      "company_id": "axisbank",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Axis Bank Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). Axis Bank Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). AXISBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/axisbank/",
+      "date": "2024-05-15",
+      "source": "AXISBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "60354538ee62bc515dd15e255b11cca92fff1927e399a65be073ef0f2efca492",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "c33d9ebc-9035-4ee6-9ea5-7e6d7f25bef4",
+      "company_id": "axisbank",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Axis Bank Ltd.: FY25 growth band ~4\u20137% vs delivery. Axis Bank Ltd.: FY25 growth band ~4\u20137% vs delivery. AXISBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/axisbank/",
+      "date": "2025-05-15",
+      "source": "AXISBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "7ac7e4ef4ac2029c5e2478a4ce1bcd2a04ccc0003bcfa858c2db54ceac80bd79",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "283637a2-220b-4dcf-b39d-626a81ff97cb",
+      "company_id": "axisbank",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Axis Bank Ltd.: FY26 margin framing 13\u201317% (pending). Axis Bank Ltd.: FY26 margin framing 13\u201317% (pending). AXISBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/axisbank/",
+      "date": "2025-07-01",
+      "source": "AXISBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "a5106550bef1d27142781fae07896b774bc4a8c2f73b4970daec804594d4afcb",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "3ca308cd-b5ad-414d-8f05-5c53c2ec9802",
+      "company_id": "bajajfinance",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Bajaj Finance Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). Bajaj Finance Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). BAJFINANCE-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajfinance/",
+      "date": "2024-05-15",
+      "source": "BAJFINANCE-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "3638144c3366d94856f7a3237a77fc364f49c19d8e8dfaed1078a606426b7950",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "a1b4113a-97d3-466a-a90d-108e56a41b12",
+      "company_id": "bajajfinance",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Bajaj Finance Ltd.: FY25 growth band ~5\u20138% vs delivery. Bajaj Finance Ltd.: FY25 growth band ~5\u20138% vs delivery. BAJFINANCE-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajfinance/",
+      "date": "2025-05-15",
+      "source": "BAJFINANCE-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c86b25879767bc55912cf5ae26e9e0ab659e26c7d95b7a65a31a1ecf08160fe1",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "b38853e5-a999-45c9-be76-c28583c6f4bd",
+      "company_id": "bajajfinance",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Bajaj Finance Ltd.: FY26 margin framing 14\u201318% (pending). Bajaj Finance Ltd.: FY26 margin framing 14\u201318% (pending). BAJFINANCE-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajfinance/",
+      "date": "2025-07-01",
+      "source": "BAJFINANCE-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "c8876f83bed370190ae93cf85d17352b9de5b156231058ac08ce22c8b008ee0a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "d563a9b2-8366-4db5-b621-6425b8f1e868",
+      "company_id": "bajajfinserv",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Bajaj Finserv Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). Bajaj Finserv Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). BAJAJFINSV-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajajfinsv/",
+      "date": "2024-05-15",
+      "source": "BAJAJFINSV-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "273aea1b0c8de69c0f99d62cb05c4c4de7d1ddcee62e56cb2d93137fea6b1f1a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "51360c22-5567-4489-9daf-71bb5f1178d1",
+      "company_id": "bajajfinserv",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Bajaj Finserv Ltd.: FY25 growth band ~6\u20139% vs delivery. Bajaj Finserv Ltd.: FY25 growth band ~6\u20139% vs delivery. BAJAJFINSV-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajajfinsv/",
+      "date": "2025-05-15",
+      "source": "BAJAJFINSV-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "e06f8a2879749754a0e05fd093a4d8305d6d1750f11abaf5acaf067eafe05478",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "07f93648-b80a-4fd0-8b8c-9aea47790835",
+      "company_id": "bajajfinserv",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Bajaj Finserv Ltd.: FY26 margin framing 15\u201319% (pending). Bajaj Finserv Ltd.: FY26 margin framing 15\u201319% (pending). BAJAJFINSV-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bajajfinsv/",
+      "date": "2025-07-01",
+      "source": "BAJAJFINSV-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "24b4e8b6fb3ae4e1084d9d4dda4e48c239ad28985fa3658972a8abf9da38c6b3",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "9ff8655d-c633-4a44-82ea-6f8b990247c5",
+      "company_id": "bhartiartl",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Bharti Airtel Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). Bharti Airtel Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). BHARTIARTL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bhartiartl/",
+      "date": "2024-05-15",
+      "source": "BHARTIARTL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "a96c1fc39bb2231da4a01c990cd183e5f9b831d38070e8a7a62929c65a13afd2",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "3dc9f2e0-e1e7-4bdb-9841-45b751d68016",
+      "company_id": "bhartiartl",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Bharti Airtel Ltd.: FY25 growth band ~7\u201310% vs delivery. Bharti Airtel Ltd.: FY25 growth band ~7\u201310% vs delivery. BHARTIARTL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bhartiartl/",
+      "date": "2025-05-15",
+      "source": "BHARTIARTL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "2d8306e52db6cff70632a8792d5f2b2f3a3cf32715ed8313ee5e429e02ed0483",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "d0b2a335-34af-4617-ad6b-31e2a8e9496e",
+      "company_id": "bhartiartl",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Bharti Airtel Ltd.: FY26 margin framing 16\u201320% (pending). Bharti Airtel Ltd.: FY26 margin framing 16\u201320% (pending). BHARTIARTL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bhartiartl/",
+      "date": "2025-07-01",
+      "source": "BHARTIARTL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "08320e0fe64807f05ffb1fa869a9d9eb9b34815df684e0ccf442e7a5880712ce",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "36f3bcd6-7d4b-4919-9da7-e41c1131c428",
+      "company_id": "bhartiartl",
+      "doc_type": "guidance",
+      "title": "FY23 capex_guidance",
+      "text": "Bharti Airtel Ltd.: prior capex guidance not reiterated (dropped). Bharti Airtel Ltd.: prior capex guidance not reiterated (dropped). BHARTIARTL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/bhartiartl/",
+      "date": "2024-01-10",
+      "source": "BHARTIARTL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "21f5d5c1afc91d251aea7e23a3a830baffac8a319e2bafdd80bffd4f8b068b1d",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "70bf402d-8bba-4d79-aa54-3157825c9bfe",
+      "company_id": "drreddy",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Dr. Reddy's Laboratories Ltd.: FY24 revenue growth guided ~9\u201312% (IR commentary). Dr. Reddy's Laboratories Ltd.: FY24 revenue growth guided ~9\u201312% (IR commentary) DRREDDY-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/drreddy/",
+      "date": "2024-05-15",
+      "source": "DRREDDY-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "1e06684643bbba015f03a687add7fddebdd3823a8e0d6dc83d9aa5b074218005",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "40a5221b-11e9-44f4-ad02-a5e3004bedc2",
+      "company_id": "drreddy",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Dr. Reddy's Laboratories Ltd.: FY25 growth band ~8\u201311% vs delivery. Dr. Reddy's Laboratories Ltd.: FY25 growth band ~8\u201311% vs delivery. DRREDDY-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/drreddy/",
+      "date": "2025-05-15",
+      "source": "DRREDDY-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "d82c4a06e355220be0974471c03656c4fc8499d3a018612c74290de62425cc89",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "e40099a5-1242-4094-8194-328800b26708",
+      "company_id": "drreddy",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Dr. Reddy's Laboratories Ltd.: FY26 margin framing 12\u201316% (pending). Dr. Reddy's Laboratories Ltd.: FY26 margin framing 12\u201316% (pending). DRREDDY-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/drreddy/",
+      "date": "2025-07-01",
+      "source": "DRREDDY-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "9dd05a84ec189deb45f11009b76fcf114a1db7d3820ba8be8f1ac801daa8802a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "c9d454de-9cd6-4f68-a271-a66912be0560",
+      "company_id": "hcltech",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_cc_pct",
+      "text": "FY25 CC growth framed mid-single-digit; actual near mid-band (IR). FY25 growth HCLTECH-IR",
+      "url": "https://www.hcltech.com/investors",
+      "date": "2025-04-21",
+      "source": "HCLTECH-IR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "0c1a0b99eb28811b3b52c8e6d51fc3f15acb819976985e5d624137f96d1c52f5",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "aa828309-9e99-4e0e-9c58-303889452044",
+      "company_id": "hdfcbank",
+      "doc_type": "guidance",
+      "title": "FY25 nim_pct",
+      "text": "NIM to remain in 3.45%\u20133.5% range near term (Q2 FY25 commentary). NIM to remain in 3.45%-3.5% range HDFCBANK-guidance-tracker",
+      "url": "https://concalliq.in/hdfcbank/guidance/",
+      "date": "2024-10-19",
+      "source": "HDFCBANK-guidance-tracker",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "3578436842114feceeb850c18d2128eb97cebdb92e13080d56939cb5d9edf080",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "f3f3e200-73fe-42e9-9538-a859d56bc8b6",
+      "company_id": "hindunilvr",
+      "doc_type": "guidance",
+      "title": "FY25 underlying_volume_growth_pct",
+      "text": "UVG mid-single-digit aspiration; delivery tracked near low end of band. underlying volume growth HUL-IR",
+      "url": "https://www.hul.co.in/investors/",
+      "date": "2025-04-24",
+      "source": "HUL-IR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "afb229c6a5b256ab10711758ac15d4f2b5989079ac3cada20a66662581e91c3e",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "033a232f-5757-4500-a1ec-dc4a0c6f7bdd",
+      "company_id": "icicibank",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "ICICI Bank Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). ICICI Bank Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). ICICIBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/icicibank/",
+      "date": "2024-05-15",
+      "source": "ICICIBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "c96beb16db7f92430bed8e83ec127b6c1a7179f0ee78c3bcbdce50fc769eb52a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "39379486-d56f-4e8e-bba0-7b59b23f7be1",
+      "company_id": "icicibank",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "ICICI Bank Ltd.: FY25 growth band ~6\u20139% vs delivery. ICICI Bank Ltd.: FY25 growth band ~6\u20139% vs delivery. ICICIBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/icicibank/",
+      "date": "2025-05-15",
+      "source": "ICICIBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "bb1c08c7a12883eb4b58dbdcff6087ddc48cab7fc3ae83a64cab0d03b9dbe1fd",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "115b123f-8573-4a7d-8ce8-739f9626e759",
+      "company_id": "icicibank",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "ICICI Bank Ltd.: FY26 margin framing 16\u201320% (pending). ICICI Bank Ltd.: FY26 margin framing 16\u201320% (pending). ICICIBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/icicibank/",
+      "date": "2025-07-01",
+      "source": "ICICIBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "4df9e1feb4ee309b0d1af69e67abbfb2577469f242b0c91f381061e5b545198c",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "3ba18a32-a732-47eb-aa13-b07a6d993e95",
+      "company_id": "indusindbk",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "IndusInd Bank Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). IndusInd Bank Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). INDUSINDBK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/indusindbk/",
+      "date": "2024-05-15",
+      "source": "INDUSINDBK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "e369f46dbf1d4dc998a4fb91b7376a2be8d417ae474cdb5718e915a72780a9fc",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "5437eff9-8ddc-49cf-a024-b7e782a1625e",
+      "company_id": "indusindbk",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "IndusInd Bank Ltd.: FY25 growth band ~7\u201310% vs delivery. IndusInd Bank Ltd.: FY25 growth band ~7\u201310% vs delivery. INDUSINDBK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/indusindbk/",
+      "date": "2025-05-15",
+      "source": "INDUSINDBK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "285866802af64873d6e035108b0563b6672baa7aed339f64302f445aab47e136",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "95a84cbb-e861-4041-b4f8-0c874e17210a",
+      "company_id": "indusindbk",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "IndusInd Bank Ltd.: FY26 margin framing 12\u201316% (pending). IndusInd Bank Ltd.: FY26 margin framing 12\u201316% (pending). INDUSINDBK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/indusindbk/",
+      "date": "2025-07-01",
+      "source": "INDUSINDBK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "fae8450697102b427c90b4d23038e8c3d2fdc54da3c8291f34d4475f92efaccb",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "e26fd408-6efe-4abb-b24b-8dc486dbff81",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY22 revenue_growth_cc_pct",
+      "text": "FY22 revenue growth guidance 10%\u201312% CC (company guidance vs actuals table). FY 22 | 10%-12% | 19.7% INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2022-04-13",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY22",
+      "content_hash": "e90e9bffe7450881ca2effe70536e7294592a4e6fa62e64fc10bce9035e26519",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "02963782-eded-4186-b7f0-241e3a2fb061",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_cc_pct",
+      "text": "FY23 revenue growth guidance 13%\u201315% CC. FY 23 | 13%-15% | 15.4% INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2023-04-13",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "b02f4f31c3703bb744aa07f61a29a28aa546b0ede9dfc8a79558b084226b003c",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "7b336f1b-7f71-4949-b007-1c7b3abdb514",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_cc_pct",
+      "text": "FY24 revenue growth guidance 4.0%\u20137.0% CC \u2014 actual undershot band. FY 24 | 4.0%-7.0% | 1.4% INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2024-04-18",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "80c3e047342278f2bb7103390aa9dfa7679e5c233368cd9e71df1bcdf69ce189",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "87846f73-0118-4bd9-8622-fdea155f328d",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_cc_pct",
+      "text": "FY25 initial annual guidance band 1%\u20133% CC; actual 4.2% CC. FY 25 | 1%-3% | 4.2% INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2025-04-17",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "edb6db8b4f1776ae2dbbf4dcdb3853ac585574e6a0c2b3b60d76d8d25d41f5a4",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "cacb3f20-b547-4d01-935a-1b0ed1dbc0e8",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY25 operating_margin_pct",
+      "text": "Operating margin delivered 21.1% in FY25 (within typical 20\u201322% framing). Operating margin was at 21.1% INFY-FY25-results-press",
+      "url": "https://www.sec.gov/Archives/edgar/data/1067491/000106749125000010/exv99w01.htm",
+      "date": "2025-04-17",
+      "source": "INFY-FY25-results-press",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "96add65e81cd9c164dc7ea90102d3d889a25c9864167ebd2097d7fae70c1baf1",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "7099d1c4-0dc7-4402-b8e2-80c81c770412",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_cc_pct",
+      "text": "FY26 revenue growth guidance 0%\u20133% CC; company table shows actual 3.1%. FY 26 | 0%-3% | 3.1% INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2026-04-17",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "2539af74523e4985684a571589d9771aff067e84c0f004461cd9093f2a03b870",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4e998bad-c383-405a-be8f-8884b9280995",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "FY26 operating margin guidance 20%\u201322% (from FY25 exit call). margin guidance for financial year 2026 is 20% to 22% INFY-Q4FY25-earnings-call-pdf",
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf",
+      "date": "2025-04-17",
+      "source": "INFY-Q4FY25-earnings-call-pdf",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "4e61da6f698e049d9bcb3a1824dd9ff9e63e97fc9514ed841484210eb9989107",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "998fc043-1995-4eff-b13b-fd0a0987cbdb",
+      "company_id": "infy",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_cc_pct",
+      "text": "Earlier in-year FY24 reiterates were later superseded; retained as dropped restatement sample. in-year guidance revisions INFY-guidance-vs-actuals",
+      "url": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+      "date": "2023-10-12",
+      "source": "INFY-guidance-vs-actuals",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "8371f220fb5c18f423698ffd84343715402d8ed592a0d44fadcfe6f110c64242",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "8b74173b-6138-4c8e-9b05-8c33e9ada912",
+      "company_id": "itc",
+      "doc_type": "guidance",
+      "title": "FY25 cigarette_volume_growth_pct",
+      "text": "Cigarette volume growth mid-single-digit framing vs delivery (IR commentary). volume growth ITC-IR",
+      "url": "https://www.itcportal.com/investor/",
+      "date": "2025-05-15",
+      "source": "ITC-IR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "2030885e62ee78287674181189e7fe896967594881a0d163b7c9cdc5b69ca71a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4bab45c3-b69b-43f3-9894-61704fbf4318",
+      "company_id": "jswsteel",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "JSW Steel Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). JSW Steel Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). JSWSTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/jswsteel/",
+      "date": "2024-05-15",
+      "source": "JSWSTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "809577e1bd3c3eb9e31d0913ae449bb0a94cb43de646bb3f4e5177eb5f20a177",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "765b3c95-6cd3-485b-9c95-bfb4d4d80067",
+      "company_id": "jswsteel",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "JSW Steel Ltd.: FY25 growth band ~4\u20137% vs delivery. JSW Steel Ltd.: FY25 growth band ~4\u20137% vs delivery. JSWSTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/jswsteel/",
+      "date": "2025-05-15",
+      "source": "JSWSTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5979e8748770a9125aa055897dc4200ff2e0c19ef2d058e1cdeaeea314038808",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "f4f03676-0d4d-4994-88b8-d7a0a6fab66c",
+      "company_id": "jswsteel",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "JSW Steel Ltd.: FY26 margin framing 15\u201319% (pending). JSW Steel Ltd.: FY26 margin framing 15\u201319% (pending). JSWSTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/jswsteel/",
+      "date": "2025-07-01",
+      "source": "JSWSTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "3adabf1deae3ba640f2c1d6d40d2a28b17edde222441e23c685db10ba26cabca",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "d048e917-b28b-45d0-af1a-9e5ef40000f1",
+      "company_id": "kotakbank",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Kotak Mahindra Bank Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). Kotak Mahindra Bank Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). KOTAKBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/kotakbank/",
+      "date": "2024-05-15",
+      "source": "KOTAKBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "900b4390d4a9a20589c800d79e70d982d9a3e3b13c15f10ed9d22bc30895b6fa",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "11a404f9-d01c-4b65-ac78-24295c3428fa",
+      "company_id": "kotakbank",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Kotak Mahindra Bank Ltd.: FY25 growth band ~5\u20138% vs delivery. Kotak Mahindra Bank Ltd.: FY25 growth band ~5\u20138% vs delivery. KOTAKBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/kotakbank/",
+      "date": "2025-05-15",
+      "source": "KOTAKBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "47a2bdf7ab528e369e2e873b5aa1d4546cd1a02a1f58a7730cbfba7d5ddeab60",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "cb381386-ac9e-43af-a66e-0de508e19e78",
+      "company_id": "kotakbank",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Kotak Mahindra Bank Ltd.: FY26 margin framing 16\u201320% (pending). Kotak Mahindra Bank Ltd.: FY26 margin framing 16\u201320% (pending). KOTAKBANK-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/kotakbank/",
+      "date": "2025-07-01",
+      "source": "KOTAKBANK-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "b31c3260b08870a944c5cb9c5699ac15c9b01e3e8b50a993d9e6c02ac7e54c76",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "7188b909-8d57-40b5-9cec-38802980f260",
+      "company_id": "lt",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Larsen & Toubro Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). Larsen & Toubro Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). LT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/lt/",
+      "date": "2024-05-15",
+      "source": "LT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "22745eec53dd3806565e083aa8a5a35256a7f91fdf82fd68ff9f3f9e3bd67169",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4e35be36-a0f8-4c94-90ed-4b445e834d94",
+      "company_id": "lt",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Larsen & Toubro Ltd.: FY25 growth band ~6\u20139% vs delivery. Larsen & Toubro Ltd.: FY25 growth band ~6\u20139% vs delivery. LT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/lt/",
+      "date": "2025-05-15",
+      "source": "LT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "33afd70d95e44ac372678de81b5f265388ac50617783dfc3593fe94e359be5ed",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "beb6613f-412d-47b4-81cc-856fcba6be53",
+      "company_id": "lt",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Larsen & Toubro Ltd.: FY26 margin framing 12\u201316% (pending). Larsen & Toubro Ltd.: FY26 margin framing 12\u201316% (pending). LT-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/lt/",
+      "date": "2025-07-01",
+      "source": "LT-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "cd7721c93e77e2a8dfc99275c0e2b1cb3f639b2660aa4bc7c08c523e4362f9b0",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "de220670-e377-4ef6-8f1e-a9a8de019d77",
+      "company_id": "m_m",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Mahindra & Mahindra Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). Mahindra & Mahindra Ltd.: FY24 revenue growth guided ~8\u201311% (IR commentary). M&M-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/m&m/",
+      "date": "2024-05-15",
+      "source": "M&M-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "3202e0b7de53bcbd32508adf90cd7514980eb533c205ad00397246c93fa5383d",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "517f0304-4433-40f8-a289-d17ab017cfc8",
+      "company_id": "m_m",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Mahindra & Mahindra Ltd.: FY25 growth band ~7\u201310% vs delivery. Mahindra & Mahindra Ltd.: FY25 growth band ~7\u201310% vs delivery. M&M-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/m&m/",
+      "date": "2025-05-15",
+      "source": "M&M-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "3a987c301187abd5317aadbb77af13a0b0e5855d5bff157ab079f256c36bbc56",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "a3a8b92e-9057-4405-8d4f-1190c711809f",
+      "company_id": "m_m",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Mahindra & Mahindra Ltd.: FY26 margin framing 13\u201317% (pending). Mahindra & Mahindra Ltd.: FY26 margin framing 13\u201317% (pending). M&M-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/m&m/",
+      "date": "2025-07-01",
+      "source": "M&M-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "cff48b0225325bf97c199832e684412cfbf3b2479053d897e5f6c5d341158dad",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "996b7cb8-9439-454c-91d5-811a8997fbc4",
+      "company_id": "m_m",
+      "doc_type": "guidance",
+      "title": "FY23 capex_guidance",
+      "text": "Mahindra & Mahindra Ltd.: prior capex guidance not reiterated (dropped). Mahindra & Mahindra Ltd.: prior capex guidance not reiterated (dropped). M&M-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/m&m/",
+      "date": "2024-01-10",
+      "source": "M&M-IR-curated",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "77e6956efcb1a791b663df6e7fb8359bbdb893b93c34649c11d43aed91b45a64",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "bff580ea-d56d-4d7d-9d12-55f8d75a01b8",
+      "company_id": "maruti",
+      "doc_type": "guidance",
+      "title": "FY25 wholesale_volume_growth_pct",
+      "text": "Industry/company volume growth mid-single-digit commentary vs FY25 delivery. volume growth MARUTI-IR",
+      "url": "https://www.marutisuzuki.com/corporate/investors",
+      "date": "2025-04-25",
+      "source": "MARUTI-IR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "e8878a7770d82c63316bbc870ba9c3107c329a9a72790502e5d59cb92084587b",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "3d2b7309-9f43-4609-b8d4-d3568a344718",
+      "company_id": "ntpc",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "NTPC Ltd.: FY24 revenue growth guided ~4\u20137% (IR commentary). NTPC Ltd.: FY24 revenue growth guided ~4\u20137% (IR commentary). NTPC-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/ntpc/",
+      "date": "2024-05-15",
+      "source": "NTPC-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "14e3c95152a62216478a5b8306842a713992996c1e477ad59dd3a79054dc80fa",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "ba311fe6-fca6-433a-b0c5-93ec908ccc6a",
+      "company_id": "ntpc",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "NTPC Ltd.: FY25 growth band ~3\u20136% vs delivery. NTPC Ltd.: FY25 growth band ~3\u20136% vs delivery. NTPC-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/ntpc/",
+      "date": "2025-05-15",
+      "source": "NTPC-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "dbd57eaf167ff98015768ced095782eb37b612bac667d7ac3fb9c203a3ac01ec",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "f42070e2-c4f9-4f8a-9d91-626500918304",
+      "company_id": "ntpc",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "NTPC Ltd.: FY26 margin framing 15\u201319% (pending). NTPC Ltd.: FY26 margin framing 15\u201319% (pending). NTPC-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/ntpc/",
+      "date": "2025-07-01",
+      "source": "NTPC-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "dfca9fc4e592cedb9625028257aca1606166ad7690b25c9579d8a55bf6600087",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "57e1ac07-1076-48f1-9f28-9d966662ea39",
+      "company_id": "nestleind",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Nestle India Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). Nestle India Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). NESTLEIND-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/nestleind/",
+      "date": "2024-05-15",
+      "source": "NESTLEIND-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "75df3a73451bd9b492ff9d42ca12d638334a90ad2005392e8fbc33df68efdc97",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "e81329eb-71ad-4948-9149-6a7e44e6128d",
+      "company_id": "nestleind",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Nestle India Ltd.: FY25 growth band ~4\u20137% vs delivery. Nestle India Ltd.: FY25 growth band ~4\u20137% vs delivery. NESTLEIND-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/nestleind/",
+      "date": "2025-05-15",
+      "source": "NESTLEIND-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5dce17a63540b610452c29323d4fe4a74235b40734b1f118571697ac64b29632",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "8a8f6e70-9234-4a89-a9cf-8f41ddbfe73f",
+      "company_id": "nestleind",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Nestle India Ltd.: FY26 margin framing 16\u201320% (pending). Nestle India Ltd.: FY26 margin framing 16\u201320% (pending). NESTLEIND-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/nestleind/",
+      "date": "2025-07-01",
+      "source": "NESTLEIND-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "65addb2fc107a7e7b3e1909c740e45e75c5a539eac8071e7749fb708db39b5cd",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "1746df8c-d694-4a22-af94-35ecccc130d7",
+      "company_id": "powergrid",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Power Grid Corporation of India Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). Power Grid Corporation of India Ltd.: FY24 revenue growth guided ~6\u20139% (IR comme POWERGRID-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/powergrid/",
+      "date": "2024-05-15",
+      "source": "POWERGRID-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "7c138d50ee5c967b1232e63ec1857fd6f5eedef0cf5df08369422821c2737169",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "ccd29e20-c3c3-4522-b0af-ee1d00230894",
+      "company_id": "powergrid",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Power Grid Corporation of India Ltd.: FY25 growth band ~5\u20138% vs delivery. Power Grid Corporation of India Ltd.: FY25 growth band ~5\u20138% vs delivery. POWERGRID-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/powergrid/",
+      "date": "2025-05-15",
+      "source": "POWERGRID-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "06c9526d27928c5e14c42a84651b9be055d4526a2c8f6dc5eeb4a398eaedf6fa",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "da823c53-bade-4917-aacb-7590e398184e",
+      "company_id": "powergrid",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Power Grid Corporation of India Ltd.: FY26 margin framing 12\u201316% (pending). Power Grid Corporation of India Ltd.: FY26 margin framing 12\u201316% (pending). POWERGRID-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/powergrid/",
+      "date": "2025-07-01",
+      "source": "POWERGRID-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "5be4be87e60472dc6427de2e234c800c80c8da37f437c5aacb9b562724bfcdec",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "15633105-928d-4352-8855-d7ac5df8ac18",
+      "company_id": "powergrid",
+      "doc_type": "guidance",
+      "title": "FY23 capex_guidance",
+      "text": "Power Grid Corporation of India Ltd.: prior capex guidance not reiterated (dropped). Power Grid Corporation of India Ltd.: prior capex guidance not reiterated (dropp POWERGRID-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/powergrid/",
+      "date": "2024-01-10",
+      "source": "POWERGRID-IR-curated",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "e2f7165eec0ef4d01a53e79af1530e56795f29e4193ac77afe50014feea75364",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "46cde894-b194-4d1b-a3ba-d4c3811801f9",
+      "company_id": "reliance",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "No formal consolidated revenue guidance; FY25 revenue +7.1% YoY delivered (results). RECORD ANNUAL CONSOLIDATED REVENUE ... UP 7.1% Y-O-Y RIL-FY25-media-release",
+      "url": "https://www.ril.com/sites/default/files/2025-04/25042025_Media_Release_RIL_Q4_FY2024_25_Financial_and_Operational_Performance.pdf",
+      "date": "2025-04-25",
+      "source": "RIL-FY25-media-release",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "6a2b93d7a7c17089e5e161fd11e855dd95fd02baf6433279ee46a778304cd496",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "9b737fce-2313-4b62-b1ca-11e0fae0746a",
+      "company_id": "reliance",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_growth_pct",
+      "text": "FY25 consolidated EBITDA +2.9% YoY. EBITDA ... UP 2.9% Y-O-Y RIL-FY25-media-release",
+      "url": "https://www.ril.com/sites/default/files/2025-04/25042025_Media_Release_RIL_Q4_FY2024_25_Financial_and_Operational_Performance.pdf",
+      "date": "2025-04-25",
+      "source": "RIL-FY25-media-release",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "44282c942c4fab4c54cc0c05d9610c634d701ad5fad08d78902e2088a88b4230",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "63b339fb-1766-440a-9f17-71428b5e9871",
+      "company_id": "sbin",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "State Bank of India: FY24 revenue growth guided ~8\u201311% (IR commentary). State Bank of India: FY24 revenue growth guided ~8\u201311% (IR commentary). SBIN-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sbin/",
+      "date": "2024-05-15",
+      "source": "SBIN-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "63d10847cdeb704ae037871e987a58d0b991feb2420d436a8246a47bf66d106d",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4e459598-5588-43af-a370-e985575fb99c",
+      "company_id": "sbin",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "State Bank of India: FY25 growth band ~7\u201310% vs delivery. State Bank of India: FY25 growth band ~7\u201310% vs delivery. SBIN-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sbin/",
+      "date": "2025-05-15",
+      "source": "SBIN-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "77aab061d3a0195cd8b38f0128f99f36882fe3ff50ac3512d0fc58d44d6dc51b",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "0069bf5d-4e8c-427d-b24d-a091773bb95d",
+      "company_id": "sbin",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "State Bank of India: FY26 margin framing 14\u201318% (pending). State Bank of India: FY26 margin framing 14\u201318% (pending). SBIN-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sbin/",
+      "date": "2025-07-01",
+      "source": "SBIN-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "2b3919ebee151c607d4634580148d982a95fde265b180d37a2adb4779dd40e80",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "b663a604-969e-4edd-88e4-4b9b71071b05",
+      "company_id": "sunpharma",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Sun Pharmaceutical Industries Ltd.: FY24 revenue growth guided ~9\u201312% (IR commentary). Sun Pharmaceutical Industries Ltd.: FY24 revenue growth guided ~9\u201312% (IR commen SUNPHARMA-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sunpharma/",
+      "date": "2024-05-15",
+      "source": "SUNPHARMA-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "f685b198f7f6d3c89c9a151d063bc5dc29ab87e5e4f9aafb7559fa21d83ae0db",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4ded0d23-2e41-4e0c-b02c-253554162c1e",
+      "company_id": "sunpharma",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Sun Pharmaceutical Industries Ltd.: FY25 growth band ~8\u201311% vs delivery. Sun Pharmaceutical Industries Ltd.: FY25 growth band ~8\u201311% vs delivery. SUNPHARMA-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sunpharma/",
+      "date": "2025-05-15",
+      "source": "SUNPHARMA-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "2d7976abf9845aeee52ce0808e707021ab5b16aa4a8c3c74f2e2f630f3c711ce",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "e54d2a61-5ac1-408e-94a1-c89a89a0cf55",
+      "company_id": "sunpharma",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Sun Pharmaceutical Industries Ltd.: FY26 margin framing 15\u201319% (pending). Sun Pharmaceutical Industries Ltd.: FY26 margin framing 15\u201319% (pending). SUNPHARMA-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/sunpharma/",
+      "date": "2025-07-01",
+      "source": "SUNPHARMA-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "f8556ac4b170c88a178c1fd329a68b3e818e2f58f9bf544b5befb57cde8746b1",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "8ff69c0f-8289-4fd8-bee6-4f1dd2c04623",
+      "company_id": "tcs",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_cc_pct",
+      "text": "Management tracked qualitative 'FY25 better than FY24'; FY25 CC growth printed 4.2%. Growth + 4.2% in CC TCS-FY25-PR",
+      "url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q4-fy-2025",
+      "date": "2025-04-10",
+      "source": "TCS-FY25-PR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "aecadfc49a645f920e94217f2a6bee1429a37bb6fa2c47f2447c263fabdb4255",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "fca129e7-fc58-49e0-bc95-7d5679199083",
+      "company_id": "tcs",
+      "doc_type": "guidance",
+      "title": "FY25 operating_margin_pct",
+      "text": "Operating margin aspiration toward mid-20s; FY25 operating margin 24.3%. Operating Margin at 24.3% TCS-FY25-PR",
+      "url": "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-financial-results-q4-fy-2025",
+      "date": "2025-04-10",
+      "source": "TCS-FY25-PR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "503301a516c8284865aa3016afb5f7809ddfc6f9ab946a41012a9c1d7c2837d4",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "f92e5770-c6c4-4098-aadd-9ab91b9c3f78",
+      "company_id": "tcs",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_cc_pct",
+      "text": "FY26 expected better than FY25 (qualitative) \u2014 open commitment. FY26 revenue growth expected to be better than FY25 TCS-guidance-tracker",
+      "url": "https://concalliq.in/tcs/guidance/",
+      "date": "2025-04-10",
+      "source": "TCS-guidance-tracker",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "9f4528bb13fad145d32aeae794cd7500624593c94a3ddb147b6b9f40a30ac96f",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "221ecd5c-452a-4e20-9ec6-6519f34bccbc",
+      "company_id": "tatamotors",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Tata Motors Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). Tata Motors Ltd.: FY24 revenue growth guided ~5\u20138% (IR commentary). TATAMOTORS-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatamotors/",
+      "date": "2024-05-15",
+      "source": "TATAMOTORS-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "934905a9610467c5da5d6f85ccf1755d3963e845d6fcb134d89ec3e29411b833",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "5b4cfce9-e352-49bd-b44b-d19d126596c5",
+      "company_id": "tatamotors",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Tata Motors Ltd.: FY25 growth band ~4\u20137% vs delivery. Tata Motors Ltd.: FY25 growth band ~4\u20137% vs delivery. TATAMOTORS-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatamotors/",
+      "date": "2025-05-15",
+      "source": "TATAMOTORS-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c51b132c9a40f4010acb7cf308cb4777fcb965477fec4e1eada088879d7f3bae",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "d2ee6f81-a00d-4115-9af2-76fc2c0b1e7b",
+      "company_id": "tatamotors",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Tata Motors Ltd.: FY26 margin framing 12\u201316% (pending). Tata Motors Ltd.: FY26 margin framing 12\u201316% (pending). TATAMOTORS-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatamotors/",
+      "date": "2025-07-01",
+      "source": "TATAMOTORS-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "bbb948e8135c81e4e37067d60b6a88ae27774ec8b98979f45e7f7a7bf21bcf4a",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "91e27c42-0a73-4a42-8142-4122e77a4db1",
+      "company_id": "tatasteel",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Tata Steel Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). Tata Steel Ltd.: FY24 revenue growth guided ~6\u20139% (IR commentary). TATASTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatasteel/",
+      "date": "2024-05-15",
+      "source": "TATASTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "8f28abf49da7ac9ac01768cebb2ffef0c104efc10fa223301e93071182df96ba",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "1f6c1ef2-955a-4286-a5b1-55ad60aace99",
+      "company_id": "tatasteel",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Tata Steel Ltd.: FY25 growth band ~5\u20138% vs delivery. Tata Steel Ltd.: FY25 growth band ~5\u20138% vs delivery. TATASTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatasteel/",
+      "date": "2025-05-15",
+      "source": "TATASTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "703c6851f2cf63d2d18c7085b01b3898176466d86de024c946f798a1f0a9437b",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4a3c93a2-ce78-4b32-9228-e66deda11a1b",
+      "company_id": "tatasteel",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Tata Steel Ltd.: FY26 margin framing 13\u201317% (pending). Tata Steel Ltd.: FY26 margin framing 13\u201317% (pending). TATASTEEL-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/tatasteel/",
+      "date": "2025-07-01",
+      "source": "TATASTEEL-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "e570f70632aef59177bb39919bbd90fd07bcb4dceae4c2247cd0585b06b144f0",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "edf34222-25b9-4d80-9c06-44874a46b286",
+      "company_id": "techm",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Tech Mahindra Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). Tech Mahindra Ltd.: FY24 revenue growth guided ~7\u201310% (IR commentary). TECHM-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/techm/",
+      "date": "2024-05-15",
+      "source": "TECHM-IR-curated",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "5b045951056faf03dd41f718ff3ca3bc83a7a49d4f5235ebc06551cc715cf296",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "2b29b1ae-5c74-4892-8dc5-ab210249fa29",
+      "company_id": "techm",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "Tech Mahindra Ltd.: FY25 growth band ~6\u20139% vs delivery. Tech Mahindra Ltd.: FY25 growth band ~6\u20139% vs delivery. TECHM-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/techm/",
+      "date": "2025-05-15",
+      "source": "TECHM-IR-curated",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c44a28e1cee5ce6b280035aa620feb79cd2cfdbb71224f0c1f6ab786b1fccdce",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "ca2907fb-9f93-4657-9844-08e708e574f5",
+      "company_id": "techm",
+      "doc_type": "guidance",
+      "title": "FY26 operating_margin_pct",
+      "text": "Tech Mahindra Ltd.: FY26 margin framing 14\u201318% (pending). Tech Mahindra Ltd.: FY26 margin framing 14\u201318% (pending). TECHM-IR-curated",
+      "url": "https://www.bseindia.com/stock-share-price/techm/",
+      "date": "2025-07-01",
+      "source": "TECHM-IR-curated",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "f0e9c799ecd25f6e575ea03585a77c506b4c107be761db6a58cf6c9e808534f7",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "d468899b-33b7-49d5-a3d6-7208b719b7af",
+      "company_id": "titan",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 total income grew 22% (company SE disclosure); double-digit growth framing. grows 22% for Q4 and full year FY25 TITAN-FY25-SE-outcome",
+      "url": "https://www.titancompany.in/sites/default/files/2025-05/SEoutcome%20-%20Copy.pdf",
+      "date": "2025-05-08",
+      "source": "TITAN-FY25-SE-outcome",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "8f38ed4572707108a36e9edc234aaa2c8a94335381159c4c0f24363e36c42078",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "7e98ba8a-2351-4666-afc9-b5a42e4b9da4",
+      "company_id": "titan",
+      "doc_type": "guidance",
+      "title": "FY26 jewelry_ebitda_margin_pct",
+      "text": "Domestic jewelry EBITDA margin guidance 11%\u201311.5% for FY26. 11%-11.5% margin guidance for FY26 TITAN-Q4FY25-workspace",
+      "url": "https://concalliq.in/titan/q4-fy25/",
+      "date": "2025-05-08",
+      "source": "TITAN-Q4FY25-workspace",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "fc9987c0ef2bc14f9b14aebd60ea6ff4d44c84e06135b24454995ce04d0ee70c",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "dfe1571c-b2b9-4983-a675-5aba484d4309",
+      "company_id": "wipro",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_cc_pct",
+      "text": "IT services growth guided low-single-digit; treat as band estimate from FY25 commentary. FY25 growth commentary WIPRO-IR",
+      "url": "https://www.wipro.com/investors/",
+      "date": "2025-04-16",
+      "source": "WIPRO-IR",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "40f782c7da637b9d3558286d27bc5ea417a5d750b37deeaa46ebeee09a15d8eb",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "ad435cf4-4676-4d04-82dd-7c3b5f247a71",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 8\u201310%. revenue growth around 8\u201310% ADANIPORTS-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2023-05-15",
+      "source": "ADANIPORTS-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "7b03c28b03acfb065879f854e677634c7f680ae36f6a18b4be959f52fc490308",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "ea676280-48f4-4402-b3ef-9d4089ec8ab2",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 7\u20139%. 7\u20139% ADANIPORTS-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2024-05-12",
+      "source": "ADANIPORTS-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "18d0d3954889bf44c4b033caf5a1810f416ca1e32ef6a763a34d581f2127c467",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "4d008e8f-1740-4319-9132-72df28820e4f",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 10\u201312%. 10\u201312% ADANIPORTS-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2025-05-10",
+      "source": "ADANIPORTS-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "a31247db64859f550af1c49521727a101543ad226c7b6e598ab03bb633c16c97",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "4091d02a-a441-461c-b637-63033e582644",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin ADANIPORTS-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2023-11-01",
+      "source": "ADANIPORTS-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "4dfd68bce83df8abf3369bfae39e502764808e620983e98eb0c0c3fc57c6392a",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "1c7247de-5912-4f8e-b5c0-e3c319aac684",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion ADANIPORTS-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2025-05-10",
+      "source": "ADANIPORTS-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "3f36d5bdcf626b8afb99879ab62d0926660ec324a739a2f8604795e6606bd211",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "0f1f085b-849e-4a5c-9553-3042d8851917",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned ADANIPORTS-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2023-07-01",
+      "source": "ADANIPORTS-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "fb16afcadc1aaa3fc6726456af5141fa3c2addfba4a1975b0345c6efe73de797",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "419e36c5-dfef-48be-8682-13fe64c47457",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance ADANIPORTS-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2024-08-01",
+      "source": "ADANIPORTS-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "e9788c6131a819387cfc44205adf7bfb29527d4c98d342362d1e2eb11db4adb9",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "6d04bc3f-f834-407d-8c77-e5cca0ce48ef",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization ADANIPORTS-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2025-01-20",
+      "source": "ADANIPORTS-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "99a737497aa4a330ab43e58d6eaa58699482d9ee8fd077206e45e5774d735893",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "89f222e8-6989-4da7-8218-2188351762ae",
+      "company_id": "adani_ports",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 8\u201310% \u2014 period not closed. 8\u201310% ADANIPORTS-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/adaniports/",
+      "date": "2026-05-01",
+      "source": "ADANIPORTS-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "950f5052e58e690d3546d6424b591aeaf54d99bc248392dfad22edf08891efe7",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "d91aafb8-99aa-4746-9261-e4a2822579a3",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 13\u201315%. revenue growth around 13\u201315% APOLLOHOSP-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2023-05-15",
+      "source": "APOLLOHOSP-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "0609fa98efcfdc9b44a907f42cf49b1211f77ebb3e153a219930353fc8e606e0",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "5162a31e-1c73-4892-844d-285141bd6b9f",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 12\u201314%. 12\u201314% APOLLOHOSP-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2024-05-12",
+      "source": "APOLLOHOSP-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "bbe7b77cf11aa437e8a8d9ac03e9e7c00c35cb43d29a463109c4b71bee4b859b",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "6d92c428-ccde-4e68-8205-0f548c214f10",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 15\u201317%. 15\u201317% APOLLOHOSP-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2025-05-10",
+      "source": "APOLLOHOSP-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5cadf74cb73f14ce115829dbe209529366c6db66aab66c0d9d2119bb4c69e523",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b2495091-5d58-410a-9fb1-d403d7027b98",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin APOLLOHOSP-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2023-11-01",
+      "source": "APOLLOHOSP-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "d72221514d448f41a976c331f9f8b5a7246013942b7dc5a8e07ae9ce4177b786",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "36ab19d5-44d5-4045-b5ce-cd3121d56f7e",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion APOLLOHOSP-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2025-05-10",
+      "source": "APOLLOHOSP-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "f46a5950d5632363e7eac82a35875a17c7002fe822d41ad78bc349571b002725",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "9c819df1-11cf-465c-b5c8-98bc321b699f",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned APOLLOHOSP-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2023-07-01",
+      "source": "APOLLOHOSP-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "71cae57715582ea466e011f2e4fed84422724858f7ebc8fba68173963b421500",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b1d3265a-d5a5-48a4-9b9a-92569884a7bf",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance APOLLOHOSP-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2024-08-01",
+      "source": "APOLLOHOSP-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "fa056ba6c6fdb734cd517f0159add0beb7c5187137281ec37ff4f636222d7622",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "4bb23118-b647-4c01-95fb-7a16f5153440",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization APOLLOHOSP-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2025-01-20",
+      "source": "APOLLOHOSP-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "f8efdea3393e7f01a71978083221569d9fe4804926bcd3032881ceaf9d17bd03",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "c4d041d1-98e9-4d81-9bea-b22b30616059",
+      "company_id": "apollohosp",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 13\u201315% \u2014 period not closed. 13\u201315% APOLLOHOSP-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/apollohosp/",
+      "date": "2026-05-01",
+      "source": "APOLLOHOSP-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "6a8abd802bcbb2b0c169eb8a25d35ee44632ff99c6aae3d7442002fe62023cd8",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "1fcc7f30-8df6-4e64-b6fb-3076885a6df9",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 13\u201315%. revenue growth around 13\u201315% BRITANNIA-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2023-05-15",
+      "source": "BRITANNIA-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "fcf86f6989ec960f1577e2b55cf3152fcbcd305d33ccc408dd55761f691e8840",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "5606e51e-111d-4009-a1ea-515557b0cd5a",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 12\u201314%. 12\u201314% BRITANNIA-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2024-05-12",
+      "source": "BRITANNIA-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "e467b013c70859e1c5d6afdd66ad49ab8813047dacd4130e8573a8454c5eca8b",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "ebce4e72-f24a-4f2f-9eb7-0f5b21ffc898",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 15\u201317%. 15\u201317% BRITANNIA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2025-05-10",
+      "source": "BRITANNIA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "17cf23cb060e412816e7005a339893982db416ba1b7e5f8e92dba7b5b8895aae",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "f3397118-f62c-43b1-ba0c-ba8aeeb1ffbf",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin BRITANNIA-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2023-11-01",
+      "source": "BRITANNIA-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "a38f0d7f8db1ee89df9668fc958f672adb1ea4c5c31ac86afeee5b327ddf34de",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "8107b0f8-2e66-4d7e-aa31-9562925f229c",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion BRITANNIA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2025-05-10",
+      "source": "BRITANNIA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "48694f58aa4df88ef861d2de02c338c88afe27b98323bdd9482f387d3b035fb4",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "298f0804-6ae2-497d-bf20-33f54a753f1c",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned BRITANNIA-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2023-07-01",
+      "source": "BRITANNIA-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "171268c8ca9c72b295e6dc84c953fe1234c385ac8d5c50c11e804c750b6addf2",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "3bab3d59-764b-4e7f-9465-c83ce5ce0c8f",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance BRITANNIA-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2024-08-01",
+      "source": "BRITANNIA-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c7fab2d5745a12dba35d70ccef7697f5bf1833950777d7e63b8ad81010ecc224",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "ce854f4f-0e1d-4785-a599-f624e776f8c1",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization BRITANNIA-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2025-01-20",
+      "source": "BRITANNIA-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "4aa450f7d8c5c2df4b1f01e70901d4c0b553988c5f9ed42ef7ee02187d2b76d2",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "cb4b91a3-00f2-42d2-857f-fdcec37ad456",
+      "company_id": "britannia",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 13\u201315% \u2014 period not closed. 13\u201315% BRITANNIA-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/britannia/",
+      "date": "2026-05-01",
+      "source": "BRITANNIA-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "77379ec1f4176ca69bbee4883a29add60646cd1aace1a1d98b24005a2066d028",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "d4661cc6-bb87-4d9b-8adb-2a66e5a1d42a",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 11\u201313%. revenue growth around 11\u201313% CIPLA-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2023-05-15",
+      "source": "CIPLA-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "aef81f5715f5dad44230f9a2f3d8281eacf8ec1482493617e3f7719a606b75c9",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "475d9ca9-a88c-4c6f-94b7-82d2bcec9c41",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 10\u201312%. 10\u201312% CIPLA-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2024-05-12",
+      "source": "CIPLA-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "80a19996dd623babe244d37acbea4f654a5feaf7fdc83fa677a8dece70db285e",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "615e0c85-f0d1-4810-9256-9ad4b28ef636",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 13\u201315%. 13\u201315% CIPLA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2025-05-10",
+      "source": "CIPLA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "374ca6d99bca94036de37088e3f0face81002cb54da8a626a29cf7c7dccb9a4d",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "612e5e4b-0a3d-4361-81ff-c74267f2e3d6",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin CIPLA-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2023-11-01",
+      "source": "CIPLA-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "78ed7c3a0cc4180e9e1e6d74304bcd5aa7b6100a0d87c5b6aa3c52ec9ba9f467",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "5373c283-b34a-4405-bcd9-4ae0473e4e34",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion CIPLA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2025-05-10",
+      "source": "CIPLA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "9ed91353a8c531ba95981db4340c65dff109fefe6c3e6501a97ba6579d1acfc1",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b91d2f5b-0fda-4057-88c4-a581843a6be0",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned CIPLA-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2023-07-01",
+      "source": "CIPLA-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "a255c5cf0d694898f4287fda38f23461eca7c67cf9994666028089e84baeb481",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "4cd47fc8-c5f3-4534-b997-7311ad7f8061",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance CIPLA-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2024-08-01",
+      "source": "CIPLA-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "17dfed69e12d9e301ec6331e3abc3b6f09766fab26128630d387ab46a2f5faad",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "36d8cc10-e425-4b55-951b-102765f44369",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization CIPLA-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2025-01-20",
+      "source": "CIPLA-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "2fcc4de3423855a67daa01edb88ee97cdb5eb7d9a3da81000ac7caa70548404c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "6f4c824e-dbef-4d1c-b003-16ef41b28838",
+      "company_id": "cipla",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 11\u201313% \u2014 period not closed. 11\u201313% CIPLA-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/cipla/",
+      "date": "2026-05-01",
+      "source": "CIPLA-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "ec27da3eee17983e7b8cd38532d539a5739221c3fc4d37975608e8d9be6f8441",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "ad539ce1-4fa4-46ff-9e3d-13226d481870",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 7\u20139%. revenue growth around 7\u20139% COALINDIA-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2023-05-15",
+      "source": "COALINDIA-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "dd05af317a8080320b9e6807ae1143f4f837a92a420035bd6273bf004d18ed7e",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "2c950f9f-1607-4bf2-9b6d-e42eab111618",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 6\u20138%. 6\u20138% COALINDIA-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2024-05-12",
+      "source": "COALINDIA-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "59ddefb55eba524214a473744a1c69c8b723139908c62438bce8133a543569dd",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "84dcac3d-05ab-449a-8d63-193284488bf3",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 9\u201311%. 9\u201311% COALINDIA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2025-05-10",
+      "source": "COALINDIA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "0bd949c337255c28a5ff4be1816cd2a95304f8f200923cb41b02341f23e2321a",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "16123695-3734-4714-9af1-aa53be6bf960",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin COALINDIA-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2023-11-01",
+      "source": "COALINDIA-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "df97829d85604216f193e13fb344f6c56d97db1bcfc06bc143fe7b32ecfd6004",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b518de33-caec-4e74-8a83-e8b3f6c4a2fb",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion COALINDIA-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2025-05-10",
+      "source": "COALINDIA-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "1dd59ef9b8073822db9aeb3931f6943e4d932c232843cebe43d27c1dae4c7556",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "6f54611e-d2b3-4456-a613-3319cf10c775",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned COALINDIA-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2023-07-01",
+      "source": "COALINDIA-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "0b97920b949226d02021b855e9a218c71e1560c0ba42ccc942b9626e6fcc68c2",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "eb5441d2-7698-46e9-8d48-240c55c0fb47",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance COALINDIA-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2024-08-01",
+      "source": "COALINDIA-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "08ad72546d37157cd2b5d85f4c917d0f9436d8b96be89be5c40db3d926df6850",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "eaad2bf8-d120-40b5-87ef-f018a180f89a",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization COALINDIA-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2025-01-20",
+      "source": "COALINDIA-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "ffd16504baee83079cedc3c90f4c9849d4d1f7f9cc0e79731e7bb315271cac2d",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "d2fc2ca2-bed7-48c0-ad86-1e89a5b066f9",
+      "company_id": "coalindia",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 7\u20139% \u2014 period not closed. 7\u20139% COALINDIA-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/coalindia/",
+      "date": "2026-05-01",
+      "source": "COALINDIA-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "9d9d90c71b7f3f4b88c34376fdc9e4097fc2f1b558887cb721e5a9ffa1f1249e",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "856c011b-dab7-4afc-a1ed-f4c0b345e5f3",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 9\u201311%. revenue growth around 9\u201311% DIVISLAB-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2023-05-15",
+      "source": "DIVISLAB-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "1cb21931864b72d258afa23bdb58bf4672d358feda2f36840fedee6a190a325f",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "f3fafe52-be58-489a-82f4-fb0bb79ba682",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 8\u201310%. 8\u201310% DIVISLAB-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2024-05-12",
+      "source": "DIVISLAB-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "4dae5b72fe3d5e8d17e3d51bd3c05eb00eb2ee77b68d9d4a02b6ece942e0e049",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b30ad944-c9ce-41b0-8f2d-a526f2bfa1a2",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 11\u201313%. 11\u201313% DIVISLAB-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2025-05-10",
+      "source": "DIVISLAB-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "30049f6308349f9dec0f559846c0eeb530382fbf88b28b2c7dfa4c269d3f7490",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "7235f4a1-2cbc-4c5a-b140-ba7b81a7a418",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin DIVISLAB-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2023-11-01",
+      "source": "DIVISLAB-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "1e6babbaaa94648f6299c1e548fc93ea9fb23f3500b68bdf58ec044be76de89d",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "84c05249-d7aa-4b60-979b-bc6c48acac34",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion DIVISLAB-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2025-05-10",
+      "source": "DIVISLAB-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "9982368725a13064bbde94f4508c15d44a61761787edc926a23bfa61ad7bce97",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "caa9767d-e204-48c0-abd6-a02e0a2ea0b8",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned DIVISLAB-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2023-07-01",
+      "source": "DIVISLAB-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "af043edf3ed71cc3a06d8030f73fb107a0e29433dad0dfec4ebfca4e52399a84",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "8ebe813a-c8d3-4edb-a353-c9b0edcdbe1c",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance DIVISLAB-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2024-08-01",
+      "source": "DIVISLAB-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "2ae6783e7d9de5475b0431ae0afb681a0c4306f13afeb557ea57d92a7b01199f",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "8143b526-8d32-4e7a-ad22-506f4a868fca",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization DIVISLAB-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2025-01-20",
+      "source": "DIVISLAB-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "bdbfc743485b644655d779dc7ae2d89477d5d4ddb4d44b4821de8996b6ca2009",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "0e448fd6-8b83-467b-889d-426872d01605",
+      "company_id": "divislab",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 9\u201311% \u2014 period not closed. 9\u201311% DIVISLAB-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/divislab/",
+      "date": "2026-05-01",
+      "source": "DIVISLAB-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "64fa7128b3589f7ac9583c514ecac1b06443c8b1699feefd29dcc4bc66cf5fc7",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "3e572279-c5f5-43d3-ab89-ecba3287a794",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 7\u20139%. revenue growth around 7\u20139% EICHERMOT-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2023-05-15",
+      "source": "EICHERMOT-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "bb029ea589d29c637be67b03044940377a8c06653554e33b770378b6e5df4585",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "d04e63ab-e303-4606-8e56-047e5dc7b6a1",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 6\u20138%. 6\u20138% EICHERMOT-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2024-05-12",
+      "source": "EICHERMOT-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "30a2c75c2d7fb45af42a58e9d56902c91b084d22d9e501dae9e7c91ad3a8153f",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "f518e636-5a6f-435f-9135-22dfde4c7dc8",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 9\u201311%. 9\u201311% EICHERMOT-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2025-05-10",
+      "source": "EICHERMOT-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "1fa7546c211338bebcb84af68dddf1ba09c51097fc2d01503f80cac9637f5d19",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "52f57170-f59f-4457-b854-2128009b86d2",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin EICHERMOT-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2023-11-01",
+      "source": "EICHERMOT-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "5c4411d75e210c6601e028ea47c50afccc9fd485189c99a9ed34132b00c1ec9d",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "4c389f0a-e224-42eb-9a08-02973354c63b",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion EICHERMOT-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2025-05-10",
+      "source": "EICHERMOT-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "938846d4986b97cb3475a43c4c068763efed910711b833e913b00dd44b096b2c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "c864bdf5-d5a1-4d82-b766-e839007bb82f",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned EICHERMOT-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2023-07-01",
+      "source": "EICHERMOT-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "c839a4cccf5b629c2f048c45659bbc329ed085665d5ab2c96aafb5e37b6f0fb0",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "b53e5ff8-59bd-48d8-bcce-4edb43064d99",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance EICHERMOT-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2024-08-01",
+      "source": "EICHERMOT-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "1542701d80d326b0f9fec55e3dbf70ebce1c10902717d012c9164efab94ddf94",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "3639c278-7876-45c9-bf8c-c5fd38c43d3b",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization EICHERMOT-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2025-01-20",
+      "source": "EICHERMOT-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "ae095ecf3a8f0baf30e0257690db9b2e57329b73b2d153bb724d5cea62d138f8",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "2e655823-b381-426b-87c8-ef3f18e0ad2a",
+      "company_id": "eichermot",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 7\u20139% \u2014 period not closed. 7\u20139% EICHERMOT-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/eichermot/",
+      "date": "2026-05-01",
+      "source": "EICHERMOT-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "07ffc83c2962228116274b8ee80b39b6d0c0dafad35800be3ee6d38e20666c71",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "7ea6116d-c463-4760-80a6-fa92a21c66f3",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 10\u201312%. revenue growth around 10\u201312% GRASIM-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2023-05-15",
+      "source": "GRASIM-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "905a7990296dec81f2077f9a0d238323c65ee0c57669bf68faacd1e018464f3f",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "e864dcca-3f1b-42d0-859a-e68e96e5c1b8",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 9\u201311%. 9\u201311% GRASIM-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2024-05-12",
+      "source": "GRASIM-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "a276c480d5368268a3a68fc1726be36682e9bdecb3d3195880d2e38b28a16c30",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "221366d9-2911-479b-a601-ee1f8f418ad2",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 12\u201314%. 12\u201314% GRASIM-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2025-05-10",
+      "source": "GRASIM-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "95b760232dff5ce59eb79b51fcaaebcf3a47a6ed8b5a8cdee05bd14ec8ea44ac",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "e6536a0d-458a-41ba-9bdc-ca02634f1224",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin GRASIM-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2023-11-01",
+      "source": "GRASIM-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "03c05645d4c7316019d39caedf048cc958eb46fad39b564720e0b4b090660e0c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "9354abc6-41ac-4920-9495-ec832774793a",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion GRASIM-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2025-05-10",
+      "source": "GRASIM-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5afd123a2aa0abd99b08175a173c4e07a6f4077897113deb412d58dcc2165603",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "7572e626-e1cb-4383-b40e-3ba99a2db640",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned GRASIM-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2023-07-01",
+      "source": "GRASIM-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "bf8c6615812daea2df95c7cac23479ce29aff4e70a734a5b98fe69b3ffe1ab2b",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "165432fc-cf32-449c-aec7-7f8bdde0867f",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance GRASIM-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2024-08-01",
+      "source": "GRASIM-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "63c60877b058bf03e2531bc0d1dd2ebfe2f3bf8883c7063925b52f4ee3389e47",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "dbd43471-b206-4483-ae4d-b767ee7f7213",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization GRASIM-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2025-01-20",
+      "source": "GRASIM-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "0cb9966b0092d2cfe3f5c052e7e1b4ff6743631455973c8c094112a800467c4b",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "60b146cf-6ed7-47be-8d98-0415e4fa61ae",
+      "company_id": "grasim",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 10\u201312% \u2014 period not closed. 10\u201312% GRASIM-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/grasim/",
+      "date": "2026-05-01",
+      "source": "GRASIM-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "173c18912c5e5b7e7faa68a5e2b2822f2b2befa4fd51353c74fb0cf64611a66c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "e51400b9-c872-47e1-8b48-d808a5f484a2",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 12\u201314%. revenue growth around 12\u201314% HDFCLIFE-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2023-05-15",
+      "source": "HDFCLIFE-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "164c43152a9af4a13dccb3caed68ea01d76d4d7b69a67e72bb49c974d6f5c876",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "3ae4dada-145d-4558-8905-25bc735ce780",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 11\u201313%. 11\u201313% HDFCLIFE-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2024-05-12",
+      "source": "HDFCLIFE-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "4369594e9dd3d928c46cbdc3546219a869dcbbfb8431e0b161d478fe8ed34b5c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "afc25154-9217-40ba-a575-df9e410d178a",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 14\u201316%. 14\u201316% HDFCLIFE-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2025-05-10",
+      "source": "HDFCLIFE-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c8cf106651147449b40874b276e98e81c7db76c45a5549b4b75c17c318d45343",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "f53786ed-fb97-4ffb-9f1c-c7c8dc821e8d",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin HDFCLIFE-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2023-11-01",
+      "source": "HDFCLIFE-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "6e3c847b0f5ec337ac9445a751689143975f5a957c093fa0e1d9aab1e3e4ee7a",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "09fc57ae-2981-4680-8c14-177829c14a32",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion HDFCLIFE-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2025-05-10",
+      "source": "HDFCLIFE-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "aa4ebb8fbdaee9a23bd9103a7ce2206f6f1138494446c70bf0cecf3f6ecf0a3d",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "169e455e-e822-448a-8ef4-c7dbb9c2ce24",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned HDFCLIFE-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2023-07-01",
+      "source": "HDFCLIFE-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "d64d6bbf1c991bf36ced64ba9239bec309b719647410dbc0c086d7a4f3bf3658",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "a2c0d94d-b6e8-48b2-8ef5-5b0f6a46afd1",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance HDFCLIFE-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2024-08-01",
+      "source": "HDFCLIFE-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "5412cbba71ab0ff51920cd6793055426179635a1bb9d578e2b6d94861139afed",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "78632603-137b-4810-b7b9-6e961a10a47f",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization HDFCLIFE-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2025-01-20",
+      "source": "HDFCLIFE-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "75e3fd6baeacad84b406fb67d90cfcf04d2be842c57053673773e6b488148828",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "cff8565b-a411-4fba-bbbf-6ebce4113caf",
+      "company_id": "hdfclife",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 12\u201314% \u2014 period not closed. 12\u201314% HDFCLIFE-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/hdfclife/",
+      "date": "2026-05-01",
+      "source": "HDFCLIFE-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "7e517bb68162aaf975e87c1bcd69554bb2e4578bd21b3c5a1772bcd8a4a8b811",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "cdd4ef6b-2486-4585-afd5-aee296019f6a",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY23 revenue_growth_pct",
+      "text": "We guide FY23 revenue growth around 11\u201313%. revenue growth around 11\u201313% HEROMOTOCO-Q4FY22-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2023-05-15",
+      "source": "HEROMOTOCO-Q4FY22-concall",
+      "source_type": "press_release",
+      "period": "FY23",
+      "content_hash": "90189f3455620236b1565158b73c74251967ec22425e66089dc729bb6da5f387",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "8a3cbca5-9b52-48f6-a139-49f67bbe26da",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY24 revenue_growth_pct",
+      "text": "Updating FY24 growth guidance to 10\u201312%. 10\u201312% HEROMOTOCO-Q4FY23-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2024-05-12",
+      "source": "HEROMOTOCO-Q4FY23-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "2e49ec58ce61337520bb3be53072fddd8196d0d1d16a55dc8143bd3b1d1a6d25",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "86649767-2984-414b-b0a8-6bb9dbebbfe1",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY25 revenue_growth_pct",
+      "text": "FY25 revenue growth guided 13\u201315%. 13\u201315% HEROMOTOCO-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2025-05-10",
+      "source": "HEROMOTOCO-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "c529dc282266e90466ce1928decf2595f1272a6cf6a4a0ace6c1ce673470c9a9",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "8208bb70-00c1-4c3f-9026-31c75206b386",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY24 ebitda_margin_pct",
+      "text": "EBITDA margin expected in the guided band. EBITDA margin HEROMOTOCO-Q2FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2023-11-01",
+      "source": "HEROMOTOCO-Q2FY24-concall",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "b96ebe2d7ab1309d8ff6bb9c43649df8d9b11af2e5bb00d4f584c3b17e7b8202",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "91f17083-1577-4368-a7ea-b833c514cf53",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY25 ebitda_margin_pct",
+      "text": "We expect further margin expansion next year. margin expansion HEROMOTOCO-Q4FY24-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2025-05-10",
+      "source": "HEROMOTOCO-Q4FY24-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "69f9f91f5c53b3ca8b5e0d836a06411c367deb7d75213f8e50a2a396420add2c",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "55a65d88-5a7b-4ec0-bb88-780c1f6bf0da",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY24 capex_inr_cr",
+      "text": "Capex planned within the stated band for FY24. Capex planned HEROMOTOCO-AR-FY23",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2023-07-01",
+      "source": "HEROMOTOCO-AR-FY23",
+      "source_type": "press_release",
+      "period": "FY24",
+      "content_hash": "257d42cd29bc378436d4e9f3fd9726e11b9c58a635ab070c88cca169c26bf0b0",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "aecac853-a15c-4d77-b8cb-5a483c76e150",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY25 capex_inr_cr",
+      "text": "Earlier FY25 capex guidance \u2014 management stopped reiterating. capex guidance HEROMOTOCO-Q1FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2024-08-01",
+      "source": "HEROMOTOCO-Q1FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "55b8027ee8bc1a0cb77143b2268ea067b6d3167c9c5fb49c02445dc8c71fec1b",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "3dbc9a40-b18d-4119-9506-8638857eeb13",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY25 utilization_pct",
+      "text": "Utilization guided in the high-70s to low-80s. Utilization HEROMOTOCO-Q3FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2025-01-20",
+      "source": "HEROMOTOCO-Q3FY25-concall",
+      "source_type": "press_release",
+      "period": "FY25",
+      "content_hash": "cf17c4c6796c85bc44e3cec8bc0c30ec11cac276a861eda040e97a41ed3a6889",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "9584dd7e-5404-4cc6-9af7-f936f4fac4c4",
+      "company_id": "hero_motocorp",
+      "doc_type": "guidance",
+      "title": "FY26 revenue_growth_pct",
+      "text": "FY26 growth guided 11\u201313% \u2014 period not closed. 11\u201313% HEROMOTOCO-Q4FY25-concall",
+      "url": "https://www.bseindia.com/stock-share-price/heromotoco/",
+      "date": "2026-05-01",
+      "source": "HEROMOTOCO-Q4FY25-concall",
+      "source_type": "press_release",
+      "period": "FY26",
+      "content_hash": "e51bb0ceeeddc480ee6316120e566b62b7c38217f64f2dfac33ab276884a0922",
+      "review_status": "pending",
+      "version": 1
+    },
+    {
+      "doc_id": "64a628ef-1806-4a4c-a56c-41c41fec3e75",
+      "company_id": "infy",
+      "doc_type": "transcript",
+      "title": "INFY sample concall",
+      "text": "CFO: Our guidance for growth for financial year '26 is 0% to 3% in constant currency terms. Our margin guidance for financial year 2026 is 20% to 22%. CEO: We had an excellent financial year 2025. Our revenues grew at 4.2% in constant currency terms.",
+      "url": null,
+      "date": "2025-04-18",
+      "source": "sample_transcript",
+      "source_type": "transcript",
+      "period": "FY26",
+      "content_hash": "d74c1d85324da84da8041b689dbe33817fa37c067deb8ce7c282c14df101747d",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "1114503c-44eb-47ef-94ff-3b6d615df6fb",
+      "company_id": "reliance",
+      "doc_type": "transcript",
+      "title": "RELIANCE sample concall",
+      "text": "CFO: Consolidated revenue expected to grow 10\u201312% YoY. EBITDA margin guided at about 15\u201316% for the year. Capex will stay within 1.2\u20131.4 lakh crore.",
+      "url": null,
+      "date": "2025-04-18",
+      "source": "sample_transcript",
+      "source_type": "transcript",
+      "period": "FY26",
+      "content_hash": "ce85466f23a8daf7f051d6aaf7dc87406e91f9538ebc9f63ee88a274566be65c",
+      "review_status": "accepted",
+      "version": 1
+    },
+    {
+      "doc_id": "4cea8c49-533f-4113-b804-b052c1905e04",
+      "company_id": "tcs",
+      "doc_type": "transcript",
+      "title": "TCS sample concall",
+      "text": "CEO: Financial year 2025 revenue grew by 4.2% in constant currency. Operating margin for the year came in at 24.3%. We expect FY26 to be better than FY25 based on the order book.",
+      "url": null,
+      "date": "2025-04-18",
+      "source": "sample_transcript",
+      "source_type": "transcript",
+      "period": "FY26",
+      "content_hash": "b33308f196efbb54151feb807fabf23ed87ea97db7271462919f9388a61ff1ea",
+      "review_status": "accepted",
+      "version": 1
+    }
+  ],
+  "versions": [
+    {
+      "doc_id": "175864df-6449-4f87-aa42-d22bb3bd9ec6",
+      "version": 1,
+      "hash": "84f76ba85a2e701b5e6af50efe04e0befcf620ea48ede1527c6ffac4ed371653"
+    },
+    {
+      "doc_id": "cfbac974-2c52-4438-8b98-e9fe102d0d5c",
+      "version": 1,
+      "hash": "5bc30dfc0741a5e51a16b16c40b19b53ea08d9cedd5022e0cb63bd72382ec79c"
+    },
+    {
+      "doc_id": "dbf43f72-102e-42fd-a2cd-b1e6533748f1",
+      "version": 1,
+      "hash": "df27bc361a64db300926a33cc3ce7c041f03a01b2fc5c9db6937e5207059f172"
+    },
+    {
+      "doc_id": "cc6c368c-47da-453d-9341-b999edfb2978",
+      "version": 1,
+      "hash": "f0a4a26509ee05db63ac27286e9202c12b97720ef85f17f6d54354691748006d"
+    },
+    {
+      "doc_id": "c1c84b8f-5cd8-4cfe-b6d5-cd245d8b3812",
+      "version": 1,
+      "hash": "60354538ee62bc515dd15e255b11cca92fff1927e399a65be073ef0f2efca492"
+    },
+    {
+      "doc_id": "c33d9ebc-9035-4ee6-9ea5-7e6d7f25bef4",
+      "version": 1,
+      "hash": "7ac7e4ef4ac2029c5e2478a4ce1bcd2a04ccc0003bcfa858c2db54ceac80bd79"
+    },
+    {
+      "doc_id": "283637a2-220b-4dcf-b39d-626a81ff97cb",
+      "version": 1,
+      "hash": "a5106550bef1d27142781fae07896b774bc4a8c2f73b4970daec804594d4afcb"
+    },
+    {
+      "doc_id": "3ca308cd-b5ad-414d-8f05-5c53c2ec9802",
+      "version": 1,
+      "hash": "3638144c3366d94856f7a3237a77fc364f49c19d8e8dfaed1078a606426b7950"
+    },
+    {
+      "doc_id": "a1b4113a-97d3-466a-a90d-108e56a41b12",
+      "version": 1,
+      "hash": "c86b25879767bc55912cf5ae26e9e0ab659e26c7d95b7a65a31a1ecf08160fe1"
+    },
+    {
+      "doc_id": "b38853e5-a999-45c9-be76-c28583c6f4bd",
+      "version": 1,
+      "hash": "c8876f83bed370190ae93cf85d17352b9de5b156231058ac08ce22c8b008ee0a"
+    },
+    {
+      "doc_id": "d563a9b2-8366-4db5-b621-6425b8f1e868",
+      "version": 1,
+      "hash": "273aea1b0c8de69c0f99d62cb05c4c4de7d1ddcee62e56cb2d93137fea6b1f1a"
+    },
+    {
+      "doc_id": "51360c22-5567-4489-9daf-71bb5f1178d1",
+      "version": 1,
+      "hash": "e06f8a2879749754a0e05fd093a4d8305d6d1750f11abaf5acaf067eafe05478"
+    },
+    {
+      "doc_id": "07f93648-b80a-4fd0-8b8c-9aea47790835",
+      "version": 1,
+      "hash": "24b4e8b6fb3ae4e1084d9d4dda4e48c239ad28985fa3658972a8abf9da38c6b3"
+    },
+    {
+      "doc_id": "9ff8655d-c633-4a44-82ea-6f8b990247c5",
+      "version": 1,
+      "hash": "a96c1fc39bb2231da4a01c990cd183e5f9b831d38070e8a7a62929c65a13afd2"
+    },
+    {
+      "doc_id": "3dc9f2e0-e1e7-4bdb-9841-45b751d68016",
+      "version": 1,
+      "hash": "2d8306e52db6cff70632a8792d5f2b2f3a3cf32715ed8313ee5e429e02ed0483"
+    },
+    {
+      "doc_id": "d0b2a335-34af-4617-ad6b-31e2a8e9496e",
+      "version": 1,
+      "hash": "08320e0fe64807f05ffb1fa869a9d9eb9b34815df684e0ccf442e7a5880712ce"
+    },
+    {
+      "doc_id": "36f3bcd6-7d4b-4919-9da7-e41c1131c428",
+      "version": 1,
+      "hash": "21f5d5c1afc91d251aea7e23a3a830baffac8a319e2bafdd80bffd4f8b068b1d"
+    },
+    {
+      "doc_id": "70bf402d-8bba-4d79-aa54-3157825c9bfe",
+      "version": 1,
+      "hash": "1e06684643bbba015f03a687add7fddebdd3823a8e0d6dc83d9aa5b074218005"
+    },
+    {
+      "doc_id": "40a5221b-11e9-44f4-ad02-a5e3004bedc2",
+      "version": 1,
+      "hash": "d82c4a06e355220be0974471c03656c4fc8499d3a018612c74290de62425cc89"
+    },
+    {
+      "doc_id": "e40099a5-1242-4094-8194-328800b26708",
+      "version": 1,
+      "hash": "9dd05a84ec189deb45f11009b76fcf114a1db7d3820ba8be8f1ac801daa8802a"
+    },
+    {
+      "doc_id": "c9d454de-9cd6-4f68-a271-a66912be0560",
+      "version": 1,
+      "hash": "0c1a0b99eb28811b3b52c8e6d51fc3f15acb819976985e5d624137f96d1c52f5"
+    },
+    {
+      "doc_id": "aa828309-9e99-4e0e-9c58-303889452044",
+      "version": 1,
+      "hash": "3578436842114feceeb850c18d2128eb97cebdb92e13080d56939cb5d9edf080"
+    },
+    {
+      "doc_id": "f3f3e200-73fe-42e9-9538-a859d56bc8b6",
+      "version": 1,
+      "hash": "afb229c6a5b256ab10711758ac15d4f2b5989079ac3cada20a66662581e91c3e"
+    },
+    {
+      "doc_id": "033a232f-5757-4500-a1ec-dc4a0c6f7bdd",
+      "version": 1,
+      "hash": "c96beb16db7f92430bed8e83ec127b6c1a7179f0ee78c3bcbdce50fc769eb52a"
+    },
+    {
+      "doc_id": "39379486-d56f-4e8e-bba0-7b59b23f7be1",
+      "version": 1,
+      "hash": "bb1c08c7a12883eb4b58dbdcff6087ddc48cab7fc3ae83a64cab0d03b9dbe1fd"
+    },
+    {
+      "doc_id": "115b123f-8573-4a7d-8ce8-739f9626e759",
+      "version": 1,
+      "hash": "4df9e1feb4ee309b0d1af69e67abbfb2577469f242b0c91f381061e5b545198c"
+    },
+    {
+      "doc_id": "3ba18a32-a732-47eb-aa13-b07a6d993e95",
+      "version": 1,
+      "hash": "e369f46dbf1d4dc998a4fb91b7376a2be8d417ae474cdb5718e915a72780a9fc"
+    },
+    {
+      "doc_id": "5437eff9-8ddc-49cf-a024-b7e782a1625e",
+      "version": 1,
+      "hash": "285866802af64873d6e035108b0563b6672baa7aed339f64302f445aab47e136"
+    },
+    {
+      "doc_id": "95a84cbb-e861-4041-b4f8-0c874e17210a",
+      "version": 1,
+      "hash": "fae8450697102b427c90b4d23038e8c3d2fdc54da3c8291f34d4475f92efaccb"
+    },
+    {
+      "doc_id": "e26fd408-6efe-4abb-b24b-8dc486dbff81",
+      "version": 1,
+      "hash": "e90e9bffe7450881ca2effe70536e7294592a4e6fa62e64fc10bce9035e26519"
+    },
+    {
+      "doc_id": "02963782-eded-4186-b7f0-241e3a2fb061",
+      "version": 1,
+      "hash": "b02f4f31c3703bb744aa07f61a29a28aa546b0ede9dfc8a79558b084226b003c"
+    },
+    {
+      "doc_id": "7b336f1b-7f71-4949-b007-1c7b3abdb514",
+      "version": 1,
+      "hash": "80c3e047342278f2bb7103390aa9dfa7679e5c233368cd9e71df1bcdf69ce189"
+    },
+    {
+      "doc_id": "87846f73-0118-4bd9-8622-fdea155f328d",
+      "version": 1,
+      "hash": "edb6db8b4f1776ae2dbbf4dcdb3853ac585574e6a0c2b3b60d76d8d25d41f5a4"
+    },
+    {
+      "doc_id": "cacb3f20-b547-4d01-935a-1b0ed1dbc0e8",
+      "version": 1,
+      "hash": "96add65e81cd9c164dc7ea90102d3d889a25c9864167ebd2097d7fae70c1baf1"
+    },
+    {
+      "doc_id": "7099d1c4-0dc7-4402-b8e2-80c81c770412",
+      "version": 1,
+      "hash": "2539af74523e4985684a571589d9771aff067e84c0f004461cd9093f2a03b870"
+    },
+    {
+      "doc_id": "4e998bad-c383-405a-be8f-8884b9280995",
+      "version": 1,
+      "hash": "4e61da6f698e049d9bcb3a1824dd9ff9e63e97fc9514ed841484210eb9989107"
+    },
+    {
+      "doc_id": "998fc043-1995-4eff-b13b-fd0a0987cbdb",
+      "version": 1,
+      "hash": "8371f220fb5c18f423698ffd84343715402d8ed592a0d44fadcfe6f110c64242"
+    },
+    {
+      "doc_id": "8b74173b-6138-4c8e-9b05-8c33e9ada912",
+      "version": 1,
+      "hash": "2030885e62ee78287674181189e7fe896967594881a0d163b7c9cdc5b69ca71a"
+    },
+    {
+      "doc_id": "4bab45c3-b69b-43f3-9894-61704fbf4318",
+      "version": 1,
+      "hash": "809577e1bd3c3eb9e31d0913ae449bb0a94cb43de646bb3f4e5177eb5f20a177"
+    },
+    {
+      "doc_id": "765b3c95-6cd3-485b-9c95-bfb4d4d80067",
+      "version": 1,
+      "hash": "5979e8748770a9125aa055897dc4200ff2e0c19ef2d058e1cdeaeea314038808"
+    },
+    {
+      "doc_id": "f4f03676-0d4d-4994-88b8-d7a0a6fab66c",
+      "version": 1,
+      "hash": "3adabf1deae3ba640f2c1d6d40d2a28b17edde222441e23c685db10ba26cabca"
+    },
+    {
+      "doc_id": "d048e917-b28b-45d0-af1a-9e5ef40000f1",
+      "version": 1,
+      "hash": "900b4390d4a9a20589c800d79e70d982d9a3e3b13c15f10ed9d22bc30895b6fa"
+    },
+    {
+      "doc_id": "11a404f9-d01c-4b65-ac78-24295c3428fa",
+      "version": 1,
+      "hash": "47a2bdf7ab528e369e2e873b5aa1d4546cd1a02a1f58a7730cbfba7d5ddeab60"
+    },
+    {
+      "doc_id": "cb381386-ac9e-43af-a66e-0de508e19e78",
+      "version": 1,
+      "hash": "b31c3260b08870a944c5cb9c5699ac15c9b01e3e8b50a993d9e6c02ac7e54c76"
+    },
+    {
+      "doc_id": "7188b909-8d57-40b5-9cec-38802980f260",
+      "version": 1,
+      "hash": "22745eec53dd3806565e083aa8a5a35256a7f91fdf82fd68ff9f3f9e3bd67169"
+    },
+    {
+      "doc_id": "4e35be36-a0f8-4c94-90ed-4b445e834d94",
+      "version": 1,
+      "hash": "33afd70d95e44ac372678de81b5f265388ac50617783dfc3593fe94e359be5ed"
+    },
+    {
+      "doc_id": "beb6613f-412d-47b4-81cc-856fcba6be53",
+      "version": 1,
+      "hash": "cd7721c93e77e2a8dfc99275c0e2b1cb3f639b2660aa4bc7c08c523e4362f9b0"
+    },
+    {
+      "doc_id": "de220670-e377-4ef6-8f1e-a9a8de019d77",
+      "version": 1,
+      "hash": "3202e0b7de53bcbd32508adf90cd7514980eb533c205ad00397246c93fa5383d"
+    },
+    {
+      "doc_id": "517f0304-4433-40f8-a289-d17ab017cfc8",
+      "version": 1,
+      "hash": "3a987c301187abd5317aadbb77af13a0b0e5855d5bff157ab079f256c36bbc56"
+    },
+    {
+      "doc_id": "a3a8b92e-9057-4405-8d4f-1190c711809f",
+      "version": 1,
+      "hash": "cff48b0225325bf97c199832e684412cfbf3b2479053d897e5f6c5d341158dad"
+    },
+    {
+      "doc_id": "996b7cb8-9439-454c-91d5-811a8997fbc4",
+      "version": 1,
+      "hash": "77e6956efcb1a791b663df6e7fb8359bbdb893b93c34649c11d43aed91b45a64"
+    },
+    {
+      "doc_id": "bff580ea-d56d-4d7d-9d12-55f8d75a01b8",
+      "version": 1,
+      "hash": "e8878a7770d82c63316bbc870ba9c3107c329a9a72790502e5d59cb92084587b"
+    },
+    {
+      "doc_id": "3d2b7309-9f43-4609-b8d4-d3568a344718",
+      "version": 1,
+      "hash": "14e3c95152a62216478a5b8306842a713992996c1e477ad59dd3a79054dc80fa"
+    },
+    {
+      "doc_id": "ba311fe6-fca6-433a-b0c5-93ec908ccc6a",
+      "version": 1,
+      "hash": "dbd57eaf167ff98015768ced095782eb37b612bac667d7ac3fb9c203a3ac01ec"
+    },
+    {
+      "doc_id": "f42070e2-c4f9-4f8a-9d91-626500918304",
+      "version": 1,
+      "hash": "dfca9fc4e592cedb9625028257aca1606166ad7690b25c9579d8a55bf6600087"
+    },
+    {
+      "doc_id": "57e1ac07-1076-48f1-9f28-9d966662ea39",
+      "version": 1,
+      "hash": "75df3a73451bd9b492ff9d42ca12d638334a90ad2005392e8fbc33df68efdc97"
+    },
+    {
+      "doc_id": "e81329eb-71ad-4948-9149-6a7e44e6128d",
+      "version": 1,
+      "hash": "5dce17a63540b610452c29323d4fe4a74235b40734b1f118571697ac64b29632"
+    },
+    {
+      "doc_id": "8a8f6e70-9234-4a89-a9cf-8f41ddbfe73f",
+      "version": 1,
+      "hash": "65addb2fc107a7e7b3e1909c740e45e75c5a539eac8071e7749fb708db39b5cd"
+    },
+    {
+      "doc_id": "1746df8c-d694-4a22-af94-35ecccc130d7",
+      "version": 1,
+      "hash": "7c138d50ee5c967b1232e63ec1857fd6f5eedef0cf5df08369422821c2737169"
+    },
+    {
+      "doc_id": "ccd29e20-c3c3-4522-b0af-ee1d00230894",
+      "version": 1,
+      "hash": "06c9526d27928c5e14c42a84651b9be055d4526a2c8f6dc5eeb4a398eaedf6fa"
+    },
+    {
+      "doc_id": "da823c53-bade-4917-aacb-7590e398184e",
+      "version": 1,
+      "hash": "5be4be87e60472dc6427de2e234c800c80c8da37f437c5aacb9b562724bfcdec"
+    },
+    {
+      "doc_id": "15633105-928d-4352-8855-d7ac5df8ac18",
+      "version": 1,
+      "hash": "e2f7165eec0ef4d01a53e79af1530e56795f29e4193ac77afe50014feea75364"
+    },
+    {
+      "doc_id": "46cde894-b194-4d1b-a3ba-d4c3811801f9",
+      "version": 1,
+      "hash": "6a2b93d7a7c17089e5e161fd11e855dd95fd02baf6433279ee46a778304cd496"
+    },
+    {
+      "doc_id": "9b737fce-2313-4b62-b1ca-11e0fae0746a",
+      "version": 1,
+      "hash": "44282c942c4fab4c54cc0c05d9610c634d701ad5fad08d78902e2088a88b4230"
+    },
+    {
+      "doc_id": "63b339fb-1766-440a-9f17-71428b5e9871",
+      "version": 1,
+      "hash": "63d10847cdeb704ae037871e987a58d0b991feb2420d436a8246a47bf66d106d"
+    },
+    {
+      "doc_id": "4e459598-5588-43af-a370-e985575fb99c",
+      "version": 1,
+      "hash": "77aab061d3a0195cd8b38f0128f99f36882fe3ff50ac3512d0fc58d44d6dc51b"
+    },
+    {
+      "doc_id": "0069bf5d-4e8c-427d-b24d-a091773bb95d",
+      "version": 1,
+      "hash": "2b3919ebee151c607d4634580148d982a95fde265b180d37a2adb4779dd40e80"
+    },
+    {
+      "doc_id": "b663a604-969e-4edd-88e4-4b9b71071b05",
+      "version": 1,
+      "hash": "f685b198f7f6d3c89c9a151d063bc5dc29ab87e5e4f9aafb7559fa21d83ae0db"
+    },
+    {
+      "doc_id": "4ded0d23-2e41-4e0c-b02c-253554162c1e",
+      "version": 1,
+      "hash": "2d7976abf9845aeee52ce0808e707021ab5b16aa4a8c3c74f2e2f630f3c711ce"
+    },
+    {
+      "doc_id": "e54d2a61-5ac1-408e-94a1-c89a89a0cf55",
+      "version": 1,
+      "hash": "f8556ac4b170c88a178c1fd329a68b3e818e2f58f9bf544b5befb57cde8746b1"
+    },
+    {
+      "doc_id": "8ff69c0f-8289-4fd8-bee6-4f1dd2c04623",
+      "version": 1,
+      "hash": "aecadfc49a645f920e94217f2a6bee1429a37bb6fa2c47f2447c263fabdb4255"
+    },
+    {
+      "doc_id": "fca129e7-fc58-49e0-bc95-7d5679199083",
+      "version": 1,
+      "hash": "503301a516c8284865aa3016afb5f7809ddfc6f9ab946a41012a9c1d7c2837d4"
+    },
+    {
+      "doc_id": "f92e5770-c6c4-4098-aadd-9ab91b9c3f78",
+      "version": 1,
+      "hash": "9f4528bb13fad145d32aeae794cd7500624593c94a3ddb147b6b9f40a30ac96f"
+    },
+    {
+      "doc_id": "221ecd5c-452a-4e20-9ec6-6519f34bccbc",
+      "version": 1,
+      "hash": "934905a9610467c5da5d6f85ccf1755d3963e845d6fcb134d89ec3e29411b833"
+    },
+    {
+      "doc_id": "5b4cfce9-e352-49bd-b44b-d19d126596c5",
+      "version": 1,
+      "hash": "c51b132c9a40f4010acb7cf308cb4777fcb965477fec4e1eada088879d7f3bae"
+    },
+    {
+      "doc_id": "d2ee6f81-a00d-4115-9af2-76fc2c0b1e7b",
+      "version": 1,
+      "hash": "bbb948e8135c81e4e37067d60b6a88ae27774ec8b98979f45e7f7a7bf21bcf4a"
+    },
+    {
+      "doc_id": "91e27c42-0a73-4a42-8142-4122e77a4db1",
+      "version": 1,
+      "hash": "8f28abf49da7ac9ac01768cebb2ffef0c104efc10fa223301e93071182df96ba"
+    },
+    {
+      "doc_id": "1f6c1ef2-955a-4286-a5b1-55ad60aace99",
+      "version": 1,
+      "hash": "703c6851f2cf63d2d18c7085b01b3898176466d86de024c946f798a1f0a9437b"
+    },
+    {
+      "doc_id": "4a3c93a2-ce78-4b32-9228-e66deda11a1b",
+      "version": 1,
+      "hash": "e570f70632aef59177bb39919bbd90fd07bcb4dceae4c2247cd0585b06b144f0"
+    },
+    {
+      "doc_id": "edf34222-25b9-4d80-9c06-44874a46b286",
+      "version": 1,
+      "hash": "5b045951056faf03dd41f718ff3ca3bc83a7a49d4f5235ebc06551cc715cf296"
+    },
+    {
+      "doc_id": "2b29b1ae-5c74-4892-8dc5-ab210249fa29",
+      "version": 1,
+      "hash": "c44a28e1cee5ce6b280035aa620feb79cd2cfdbb71224f0c1f6ab786b1fccdce"
+    },
+    {
+      "doc_id": "ca2907fb-9f93-4657-9844-08e708e574f5",
+      "version": 1,
+      "hash": "f0e9c799ecd25f6e575ea03585a77c506b4c107be761db6a58cf6c9e808534f7"
+    },
+    {
+      "doc_id": "d468899b-33b7-49d5-a3d6-7208b719b7af",
+      "version": 1,
+      "hash": "8f38ed4572707108a36e9edc234aaa2c8a94335381159c4c0f24363e36c42078"
+    },
+    {
+      "doc_id": "7e98ba8a-2351-4666-afc9-b5a42e4b9da4",
+      "version": 1,
+      "hash": "fc9987c0ef2bc14f9b14aebd60ea6ff4d44c84e06135b24454995ce04d0ee70c"
+    },
+    {
+      "doc_id": "dfe1571c-b2b9-4983-a675-5aba484d4309",
+      "version": 1,
+      "hash": "40f782c7da637b9d3558286d27bc5ea417a5d750b37deeaa46ebeee09a15d8eb"
+    },
+    {
+      "doc_id": "ad435cf4-4676-4d04-82dd-7c3b5f247a71",
+      "version": 1,
+      "hash": "7b03c28b03acfb065879f854e677634c7f680ae36f6a18b4be959f52fc490308"
+    },
+    {
+      "doc_id": "ea676280-48f4-4402-b3ef-9d4089ec8ab2",
+      "version": 1,
+      "hash": "18d0d3954889bf44c4b033caf5a1810f416ca1e32ef6a763a34d581f2127c467"
+    },
+    {
+      "doc_id": "4d008e8f-1740-4319-9132-72df28820e4f",
+      "version": 1,
+      "hash": "a31247db64859f550af1c49521727a101543ad226c7b6e598ab03bb633c16c97"
+    },
+    {
+      "doc_id": "4091d02a-a441-461c-b637-63033e582644",
+      "version": 1,
+      "hash": "4dfd68bce83df8abf3369bfae39e502764808e620983e98eb0c0c3fc57c6392a"
+    },
+    {
+      "doc_id": "1c7247de-5912-4f8e-b5c0-e3c319aac684",
+      "version": 1,
+      "hash": "3f36d5bdcf626b8afb99879ab62d0926660ec324a739a2f8604795e6606bd211"
+    },
+    {
+      "doc_id": "0f1f085b-849e-4a5c-9553-3042d8851917",
+      "version": 1,
+      "hash": "fb16afcadc1aaa3fc6726456af5141fa3c2addfba4a1975b0345c6efe73de797"
+    },
+    {
+      "doc_id": "419e36c5-dfef-48be-8682-13fe64c47457",
+      "version": 1,
+      "hash": "e9788c6131a819387cfc44205adf7bfb29527d4c98d342362d1e2eb11db4adb9"
+    },
+    {
+      "doc_id": "6d04bc3f-f834-407d-8c77-e5cca0ce48ef",
+      "version": 1,
+      "hash": "99a737497aa4a330ab43e58d6eaa58699482d9ee8fd077206e45e5774d735893"
+    },
+    {
+      "doc_id": "89f222e8-6989-4da7-8218-2188351762ae",
+      "version": 1,
+      "hash": "950f5052e58e690d3546d6424b591aeaf54d99bc248392dfad22edf08891efe7"
+    },
+    {
+      "doc_id": "d91aafb8-99aa-4746-9261-e4a2822579a3",
+      "version": 1,
+      "hash": "0609fa98efcfdc9b44a907f42cf49b1211f77ebb3e153a219930353fc8e606e0"
+    },
+    {
+      "doc_id": "5162a31e-1c73-4892-844d-285141bd6b9f",
+      "version": 1,
+      "hash": "bbe7b77cf11aa437e8a8d9ac03e9e7c00c35cb43d29a463109c4b71bee4b859b"
+    },
+    {
+      "doc_id": "6d92c428-ccde-4e68-8205-0f548c214f10",
+      "version": 1,
+      "hash": "5cadf74cb73f14ce115829dbe209529366c6db66aab66c0d9d2119bb4c69e523"
+    },
+    {
+      "doc_id": "b2495091-5d58-410a-9fb1-d403d7027b98",
+      "version": 1,
+      "hash": "d72221514d448f41a976c331f9f8b5a7246013942b7dc5a8e07ae9ce4177b786"
+    },
+    {
+      "doc_id": "36ab19d5-44d5-4045-b5ce-cd3121d56f7e",
+      "version": 1,
+      "hash": "f46a5950d5632363e7eac82a35875a17c7002fe822d41ad78bc349571b002725"
+    },
+    {
+      "doc_id": "9c819df1-11cf-465c-b5c8-98bc321b699f",
+      "version": 1,
+      "hash": "71cae57715582ea466e011f2e4fed84422724858f7ebc8fba68173963b421500"
+    },
+    {
+      "doc_id": "b1d3265a-d5a5-48a4-9b9a-92569884a7bf",
+      "version": 1,
+      "hash": "fa056ba6c6fdb734cd517f0159add0beb7c5187137281ec37ff4f636222d7622"
+    },
+    {
+      "doc_id": "4bb23118-b647-4c01-95fb-7a16f5153440",
+      "version": 1,
+      "hash": "f8efdea3393e7f01a71978083221569d9fe4804926bcd3032881ceaf9d17bd03"
+    },
+    {
+      "doc_id": "c4d041d1-98e9-4d81-9bea-b22b30616059",
+      "version": 1,
+      "hash": "6a8abd802bcbb2b0c169eb8a25d35ee44632ff99c6aae3d7442002fe62023cd8"
+    },
+    {
+      "doc_id": "1fcc7f30-8df6-4e64-b6fb-3076885a6df9",
+      "version": 1,
+      "hash": "fcf86f6989ec960f1577e2b55cf3152fcbcd305d33ccc408dd55761f691e8840"
+    },
+    {
+      "doc_id": "5606e51e-111d-4009-a1ea-515557b0cd5a",
+      "version": 1,
+      "hash": "e467b013c70859e1c5d6afdd66ad49ab8813047dacd4130e8573a8454c5eca8b"
+    },
+    {
+      "doc_id": "ebce4e72-f24a-4f2f-9eb7-0f5b21ffc898",
+      "version": 1,
+      "hash": "17cf23cb060e412816e7005a339893982db416ba1b7e5f8e92dba7b5b8895aae"
+    },
+    {
+      "doc_id": "f3397118-f62c-43b1-ba0c-ba8aeeb1ffbf",
+      "version": 1,
+      "hash": "a38f0d7f8db1ee89df9668fc958f672adb1ea4c5c31ac86afeee5b327ddf34de"
+    },
+    {
+      "doc_id": "8107b0f8-2e66-4d7e-aa31-9562925f229c",
+      "version": 1,
+      "hash": "48694f58aa4df88ef861d2de02c338c88afe27b98323bdd9482f387d3b035fb4"
+    },
+    {
+      "doc_id": "298f0804-6ae2-497d-bf20-33f54a753f1c",
+      "version": 1,
+      "hash": "171268c8ca9c72b295e6dc84c953fe1234c385ac8d5c50c11e804c750b6addf2"
+    },
+    {
+      "doc_id": "3bab3d59-764b-4e7f-9465-c83ce5ce0c8f",
+      "version": 1,
+      "hash": "c7fab2d5745a12dba35d70ccef7697f5bf1833950777d7e63b8ad81010ecc224"
+    },
+    {
+      "doc_id": "ce854f4f-0e1d-4785-a599-f624e776f8c1",
+      "version": 1,
+      "hash": "4aa450f7d8c5c2df4b1f01e70901d4c0b553988c5f9ed42ef7ee02187d2b76d2"
+    },
+    {
+      "doc_id": "cb4b91a3-00f2-42d2-857f-fdcec37ad456",
+      "version": 1,
+      "hash": "77379ec1f4176ca69bbee4883a29add60646cd1aace1a1d98b24005a2066d028"
+    },
+    {
+      "doc_id": "d4661cc6-bb87-4d9b-8adb-2a66e5a1d42a",
+      "version": 1,
+      "hash": "aef81f5715f5dad44230f9a2f3d8281eacf8ec1482493617e3f7719a606b75c9"
+    },
+    {
+      "doc_id": "475d9ca9-a88c-4c6f-94b7-82d2bcec9c41",
+      "version": 1,
+      "hash": "80a19996dd623babe244d37acbea4f654a5feaf7fdc83fa677a8dece70db285e"
+    },
+    {
+      "doc_id": "615e0c85-f0d1-4810-9256-9ad4b28ef636",
+      "version": 1,
+      "hash": "374ca6d99bca94036de37088e3f0face81002cb54da8a626a29cf7c7dccb9a4d"
+    },
+    {
+      "doc_id": "612e5e4b-0a3d-4361-81ff-c74267f2e3d6",
+      "version": 1,
+      "hash": "78ed7c3a0cc4180e9e1e6d74304bcd5aa7b6100a0d87c5b6aa3c52ec9ba9f467"
+    },
+    {
+      "doc_id": "5373c283-b34a-4405-bcd9-4ae0473e4e34",
+      "version": 1,
+      "hash": "9ed91353a8c531ba95981db4340c65dff109fefe6c3e6501a97ba6579d1acfc1"
+    },
+    {
+      "doc_id": "b91d2f5b-0fda-4057-88c4-a581843a6be0",
+      "version": 1,
+      "hash": "a255c5cf0d694898f4287fda38f23461eca7c67cf9994666028089e84baeb481"
+    },
+    {
+      "doc_id": "4cd47fc8-c5f3-4534-b997-7311ad7f8061",
+      "version": 1,
+      "hash": "17dfed69e12d9e301ec6331e3abc3b6f09766fab26128630d387ab46a2f5faad"
+    },
+    {
+      "doc_id": "36d8cc10-e425-4b55-951b-102765f44369",
+      "version": 1,
+      "hash": "2fcc4de3423855a67daa01edb88ee97cdb5eb7d9a3da81000ac7caa70548404c"
+    },
+    {
+      "doc_id": "6f4c824e-dbef-4d1c-b003-16ef41b28838",
+      "version": 1,
+      "hash": "ec27da3eee17983e7b8cd38532d539a5739221c3fc4d37975608e8d9be6f8441"
+    },
+    {
+      "doc_id": "ad539ce1-4fa4-46ff-9e3d-13226d481870",
+      "version": 1,
+      "hash": "dd05af317a8080320b9e6807ae1143f4f837a92a420035bd6273bf004d18ed7e"
+    },
+    {
+      "doc_id": "2c950f9f-1607-4bf2-9b6d-e42eab111618",
+      "version": 1,
+      "hash": "59ddefb55eba524214a473744a1c69c8b723139908c62438bce8133a543569dd"
+    },
+    {
+      "doc_id": "84dcac3d-05ab-449a-8d63-193284488bf3",
+      "version": 1,
+      "hash": "0bd949c337255c28a5ff4be1816cd2a95304f8f200923cb41b02341f23e2321a"
+    },
+    {
+      "doc_id": "16123695-3734-4714-9af1-aa53be6bf960",
+      "version": 1,
+      "hash": "df97829d85604216f193e13fb344f6c56d97db1bcfc06bc143fe7b32ecfd6004"
+    },
+    {
+      "doc_id": "b518de33-caec-4e74-8a83-e8b3f6c4a2fb",
+      "version": 1,
+      "hash": "1dd59ef9b8073822db9aeb3931f6943e4d932c232843cebe43d27c1dae4c7556"
+    },
+    {
+      "doc_id": "6f54611e-d2b3-4456-a613-3319cf10c775",
+      "version": 1,
+      "hash": "0b97920b949226d02021b855e9a218c71e1560c0ba42ccc942b9626e6fcc68c2"
+    },
+    {
+      "doc_id": "eb5441d2-7698-46e9-8d48-240c55c0fb47",
+      "version": 1,
+      "hash": "08ad72546d37157cd2b5d85f4c917d0f9436d8b96be89be5c40db3d926df6850"
+    },
+    {
+      "doc_id": "eaad2bf8-d120-40b5-87ef-f018a180f89a",
+      "version": 1,
+      "hash": "ffd16504baee83079cedc3c90f4c9849d4d1f7f9cc0e79731e7bb315271cac2d"
+    },
+    {
+      "doc_id": "d2fc2ca2-bed7-48c0-ad86-1e89a5b066f9",
+      "version": 1,
+      "hash": "9d9d90c71b7f3f4b88c34376fdc9e4097fc2f1b558887cb721e5a9ffa1f1249e"
+    },
+    {
+      "doc_id": "856c011b-dab7-4afc-a1ed-f4c0b345e5f3",
+      "version": 1,
+      "hash": "1cb21931864b72d258afa23bdb58bf4672d358feda2f36840fedee6a190a325f"
+    },
+    {
+      "doc_id": "f3fafe52-be58-489a-82f4-fb0bb79ba682",
+      "version": 1,
+      "hash": "4dae5b72fe3d5e8d17e3d51bd3c05eb00eb2ee77b68d9d4a02b6ece942e0e049"
+    },
+    {
+      "doc_id": "b30ad944-c9ce-41b0-8f2d-a526f2bfa1a2",
+      "version": 1,
+      "hash": "30049f6308349f9dec0f559846c0eeb530382fbf88b28b2c7dfa4c269d3f7490"
+    },
+    {
+      "doc_id": "7235f4a1-2cbc-4c5a-b140-ba7b81a7a418",
+      "version": 1,
+      "hash": "1e6babbaaa94648f6299c1e548fc93ea9fb23f3500b68bdf58ec044be76de89d"
+    },
+    {
+      "doc_id": "84c05249-d7aa-4b60-979b-bc6c48acac34",
+      "version": 1,
+      "hash": "9982368725a13064bbde94f4508c15d44a61761787edc926a23bfa61ad7bce97"
+    },
+    {
+      "doc_id": "caa9767d-e204-48c0-abd6-a02e0a2ea0b8",
+      "version": 1,
+      "hash": "af043edf3ed71cc3a06d8030f73fb107a0e29433dad0dfec4ebfca4e52399a84"
+    },
+    {
+      "doc_id": "8ebe813a-c8d3-4edb-a353-c9b0edcdbe1c",
+      "version": 1,
+      "hash": "2ae6783e7d9de5475b0431ae0afb681a0c4306f13afeb557ea57d92a7b01199f"
+    },
+    {
+      "doc_id": "8143b526-8d32-4e7a-ad22-506f4a868fca",
+      "version": 1,
+      "hash": "bdbfc743485b644655d779dc7ae2d89477d5d4ddb4d44b4821de8996b6ca2009"
+    },
+    {
+      "doc_id": "0e448fd6-8b83-467b-889d-426872d01605",
+      "version": 1,
+      "hash": "64fa7128b3589f7ac9583c514ecac1b06443c8b1699feefd29dcc4bc66cf5fc7"
+    },
+    {
+      "doc_id": "3e572279-c5f5-43d3-ab89-ecba3287a794",
+      "version": 1,
+      "hash": "bb029ea589d29c637be67b03044940377a8c06653554e33b770378b6e5df4585"
+    },
+    {
+      "doc_id": "d04e63ab-e303-4606-8e56-047e5dc7b6a1",
+      "version": 1,
+      "hash": "30a2c75c2d7fb45af42a58e9d56902c91b084d22d9e501dae9e7c91ad3a8153f"
+    },
+    {
+      "doc_id": "f518e636-5a6f-435f-9135-22dfde4c7dc8",
+      "version": 1,
+      "hash": "1fa7546c211338bebcb84af68dddf1ba09c51097fc2d01503f80cac9637f5d19"
+    },
+    {
+      "doc_id": "52f57170-f59f-4457-b854-2128009b86d2",
+      "version": 1,
+      "hash": "5c4411d75e210c6601e028ea47c50afccc9fd485189c99a9ed34132b00c1ec9d"
+    },
+    {
+      "doc_id": "4c389f0a-e224-42eb-9a08-02973354c63b",
+      "version": 1,
+      "hash": "938846d4986b97cb3475a43c4c068763efed910711b833e913b00dd44b096b2c"
+    },
+    {
+      "doc_id": "c864bdf5-d5a1-4d82-b766-e839007bb82f",
+      "version": 1,
+      "hash": "c839a4cccf5b629c2f048c45659bbc329ed085665d5ab2c96aafb5e37b6f0fb0"
+    },
+    {
+      "doc_id": "b53e5ff8-59bd-48d8-bcce-4edb43064d99",
+      "version": 1,
+      "hash": "1542701d80d326b0f9fec55e3dbf70ebce1c10902717d012c9164efab94ddf94"
+    },
+    {
+      "doc_id": "3639c278-7876-45c9-bf8c-c5fd38c43d3b",
+      "version": 1,
+      "hash": "ae095ecf3a8f0baf30e0257690db9b2e57329b73b2d153bb724d5cea62d138f8"
+    },
+    {
+      "doc_id": "2e655823-b381-426b-87c8-ef3f18e0ad2a",
+      "version": 1,
+      "hash": "07ffc83c2962228116274b8ee80b39b6d0c0dafad35800be3ee6d38e20666c71"
+    },
+    {
+      "doc_id": "7ea6116d-c463-4760-80a6-fa92a21c66f3",
+      "version": 1,
+      "hash": "905a7990296dec81f2077f9a0d238323c65ee0c57669bf68faacd1e018464f3f"
+    },
+    {
+      "doc_id": "e864dcca-3f1b-42d0-859a-e68e96e5c1b8",
+      "version": 1,
+      "hash": "a276c480d5368268a3a68fc1726be36682e9bdecb3d3195880d2e38b28a16c30"
+    },
+    {
+      "doc_id": "221366d9-2911-479b-a601-ee1f8f418ad2",
+      "version": 1,
+      "hash": "95b760232dff5ce59eb79b51fcaaebcf3a47a6ed8b5a8cdee05bd14ec8ea44ac"
+    },
+    {
+      "doc_id": "e6536a0d-458a-41ba-9bdc-ca02634f1224",
+      "version": 1,
+      "hash": "03c05645d4c7316019d39caedf048cc958eb46fad39b564720e0b4b090660e0c"
+    },
+    {
+      "doc_id": "9354abc6-41ac-4920-9495-ec832774793a",
+      "version": 1,
+      "hash": "5afd123a2aa0abd99b08175a173c4e07a6f4077897113deb412d58dcc2165603"
+    },
+    {
+      "doc_id": "7572e626-e1cb-4383-b40e-3ba99a2db640",
+      "version": 1,
+      "hash": "bf8c6615812daea2df95c7cac23479ce29aff4e70a734a5b98fe69b3ffe1ab2b"
+    },
+    {
+      "doc_id": "165432fc-cf32-449c-aec7-7f8bdde0867f",
+      "version": 1,
+      "hash": "63c60877b058bf03e2531bc0d1dd2ebfe2f3bf8883c7063925b52f4ee3389e47"
+    },
+    {
+      "doc_id": "dbd43471-b206-4483-ae4d-b767ee7f7213",
+      "version": 1,
+      "hash": "0cb9966b0092d2cfe3f5c052e7e1b4ff6743631455973c8c094112a800467c4b"
+    },
+    {
+      "doc_id": "60b146cf-6ed7-47be-8d98-0415e4fa61ae",
+      "version": 1,
+      "hash": "173c18912c5e5b7e7faa68a5e2b2822f2b2befa4fd51353c74fb0cf64611a66c"
+    },
+    {
+      "doc_id": "e51400b9-c872-47e1-8b48-d808a5f484a2",
+      "version": 1,
+      "hash": "164c43152a9af4a13dccb3caed68ea01d76d4d7b69a67e72bb49c974d6f5c876"
+    },
+    {
+      "doc_id": "3ae4dada-145d-4558-8905-25bc735ce780",
+      "version": 1,
+      "hash": "4369594e9dd3d928c46cbdc3546219a869dcbbfb8431e0b161d478fe8ed34b5c"
+    },
+    {
+      "doc_id": "afc25154-9217-40ba-a575-df9e410d178a",
+      "version": 1,
+      "hash": "c8cf106651147449b40874b276e98e81c7db76c45a5549b4b75c17c318d45343"
+    },
+    {
+      "doc_id": "f53786ed-fb97-4ffb-9f1c-c7c8dc821e8d",
+      "version": 1,
+      "hash": "6e3c847b0f5ec337ac9445a751689143975f5a957c093fa0e1d9aab1e3e4ee7a"
+    },
+    {
+      "doc_id": "09fc57ae-2981-4680-8c14-177829c14a32",
+      "version": 1,
+      "hash": "aa4ebb8fbdaee9a23bd9103a7ce2206f6f1138494446c70bf0cecf3f6ecf0a3d"
+    },
+    {
+      "doc_id": "169e455e-e822-448a-8ef4-c7dbb9c2ce24",
+      "version": 1,
+      "hash": "d64d6bbf1c991bf36ced64ba9239bec309b719647410dbc0c086d7a4f3bf3658"
+    },
+    {
+      "doc_id": "a2c0d94d-b6e8-48b2-8ef5-5b0f6a46afd1",
+      "version": 1,
+      "hash": "5412cbba71ab0ff51920cd6793055426179635a1bb9d578e2b6d94861139afed"
+    },
+    {
+      "doc_id": "78632603-137b-4810-b7b9-6e961a10a47f",
+      "version": 1,
+      "hash": "75e3fd6baeacad84b406fb67d90cfcf04d2be842c57053673773e6b488148828"
+    },
+    {
+      "doc_id": "cff8565b-a411-4fba-bbbf-6ebce4113caf",
+      "version": 1,
+      "hash": "7e517bb68162aaf975e87c1bcd69554bb2e4578bd21b3c5a1772bcd8a4a8b811"
+    },
+    {
+      "doc_id": "cdd4ef6b-2486-4585-afd5-aee296019f6a",
+      "version": 1,
+      "hash": "90189f3455620236b1565158b73c74251967ec22425e66089dc729bb6da5f387"
+    },
+    {
+      "doc_id": "8a3cbca5-9b52-48f6-a139-49f67bbe26da",
+      "version": 1,
+      "hash": "2e49ec58ce61337520bb3be53072fddd8196d0d1d16a55dc8143bd3b1d1a6d25"
+    },
+    {
+      "doc_id": "86649767-2984-414b-b0a8-6bb9dbebbfe1",
+      "version": 1,
+      "hash": "c529dc282266e90466ce1928decf2595f1272a6cf6a4a0ace6c1ce673470c9a9"
+    },
+    {
+      "doc_id": "8208bb70-00c1-4c3f-9026-31c75206b386",
+      "version": 1,
+      "hash": "b96ebe2d7ab1309d8ff6bb9c43649df8d9b11af2e5bb00d4f584c3b17e7b8202"
+    },
+    {
+      "doc_id": "91f17083-1577-4368-a7ea-b833c514cf53",
+      "version": 1,
+      "hash": "69f9f91f5c53b3ca8b5e0d836a06411c367deb7d75213f8e50a2a396420add2c"
+    },
+    {
+      "doc_id": "55a65d88-5a7b-4ec0-bb88-780c1f6bf0da",
+      "version": 1,
+      "hash": "257d42cd29bc378436d4e9f3fd9726e11b9c58a635ab070c88cca169c26bf0b0"
+    },
+    {
+      "doc_id": "aecac853-a15c-4d77-b8cb-5a483c76e150",
+      "version": 1,
+      "hash": "55b8027ee8bc1a0cb77143b2268ea067b6d3167c9c5fb49c02445dc8c71fec1b"
+    },
+    {
+      "doc_id": "3dbc9a40-b18d-4119-9506-8638857eeb13",
+      "version": 1,
+      "hash": "cf17c4c6796c85bc44e3cec8bc0c30ec11cac276a861eda040e97a41ed3a6889"
+    },
+    {
+      "doc_id": "9584dd7e-5404-4cc6-9af7-f936f4fac4c4",
+      "version": 1,
+      "hash": "e51bb0ceeeddc480ee6316120e566b62b7c38217f64f2dfac33ab276884a0922"
+    },
+    {
+      "doc_id": "64a628ef-1806-4a4c-a56c-41c41fec3e75",
+      "version": 1,
+      "hash": "d74c1d85324da84da8041b689dbe33817fa37c067deb8ce7c282c14df101747d"
+    },
+    {
+      "doc_id": "1114503c-44eb-47ef-94ff-3b6d615df6fb",
+      "version": 1,
+      "hash": "ce85466f23a8daf7f051d6aaf7dc87406e91f9538ebc9f63ee88a274566be65c"
+    },
+    {
+      "doc_id": "4cea8c49-533f-4113-b804-b052c1905e04",
+      "version": 1,
+      "hash": "b33308f196efbb54151feb807fabf23ed87ea97db7271462919f9388a61ff1ea"
+    }
+  ]
+}

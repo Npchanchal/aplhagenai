@@ -1,0 +1,1159 @@
+from __future__ import annotations
+
+from collections import defaultdict
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
+
+from fastapi import HTTPException
+
+from app.data.seed import get_data, get_outcomes, list_companies, outcome_from_dict, save_data
+from app.models.schemas import (
+    AlertItem,
+    CompanyGCIDetail,
+    CompanySummary,
+    OutcomeView,
+    PitPoint,
+)
+from app.services.changes import change_bundle, enrich_metric_rows, enrich_value_series
+from app.services.citations import enrich_outcome_citation
+from app.services.gci_scoring import (
+    classify_outcome,
+    compute_company_gci,
+    delta_pct,
+    gci_trend_series,
+    label_counts,
+    metric_breakdown,
+    outcome_score,
+)
+
+
+def _to_view(
+    o,
+    *,
+    company_id: str = "",
+    data_quality: str = "demo_structured",
+    actual_change_pct=None,
+    actual_change_horizon=None,
+    guided_change_pct=None,
+    guided_change_horizon=None,
+) -> OutcomeView:
+    score = outcome_score(o)
+    cite = enrich_outcome_citation(o, company_id=company_id, data_quality=data_quality)
+    return OutcomeView(
+        period=o.period,
+        metric=o.metric,
+        guided_value=o.guided_value,
+        guided_low=o.guided_low,
+        guided_high=o.guided_high,
+        actual_value=o.actual_value,
+        delta_pct=delta_pct(o.guided_value, o.actual_value),
+        guided_text=o.guided_text,
+        confidence=o.confidence,
+        speaker=o.speaker,
+        contribution_score=None if score is None else round(score, 1),
+        label=classify_outcome(o).value,
+        thread_id=o.thread_id,
+        source_url=o.source_url,
+        source_ref=o.source_ref,
+        quote_span=cite["quote_span"],
+        as_of=o.as_of,
+        dropped=o.dropped,
+        actual_change_pct=actual_change_pct,
+        actual_change_horizon=actual_change_horizon,
+        guided_change_pct=guided_change_pct,
+        guided_change_horizon=guided_change_horizon,
+        citation_id=cite["citation_id"],
+        doc_id=cite["doc_id"],
+        citeable=cite["citeable"],
+        cite_reason=cite["cite_reason"],
+        span_start=cite.get("span_start"),
+        span_end=cite.get("span_end"),
+    )
+
+
+def _outcome_change_map(outcomes) -> Dict[Tuple[str, str], Dict[str, Any]]:
+    rows = [
+        {
+            "period": o.period,
+            "metric": o.metric,
+            "actual": o.actual_value,
+            "management_guidance": o.guided_value,
+        }
+        for o in outcomes
+    ]
+    enriched = enrich_metric_rows(
+        rows, value_keys=("actual", "management_guidance")
+    )
+    return {
+        (r["period"], r["metric"]): r
+        for r in enriched
+    }
+
+
+def _latest_trend_change(trend: List[Dict[str, Any]]) -> Tuple[Optional[float], Optional[str]]:
+    if not trend:
+        return None, None
+    last = trend[-1]
+    return last.get("change_pct"), last.get("change_horizon")
+
+
+def _by_metric_changes(outcomes) -> Dict[str, Dict[str, Any]]:
+    by_m: Dict[str, List] = {}
+    for o in outcomes:
+        by_m.setdefault(o.metric, []).append(o)
+    out: Dict[str, Dict[str, Any]] = {}
+    for metric, rows in by_m.items():
+        series = [(o.period, o.actual_value) for o in rows if o.actual_value is not None]
+        # unique by period keep last
+        seen = {}
+        for p, v in series:
+            seen[p] = v
+        hist = list(seen.items())
+        if not hist:
+            continue
+        out[metric] = change_bundle(hist[-1][1], hist)
+    return out
+
+
+def _sector_stats() -> Dict[str, Tuple[Optional[float], Dict[str, Optional[float]]]]:
+    """sector -> (avg, {company_id: score}) for seed companies only."""
+    by_sector: Dict[str, Dict[str, Optional[float]]] = defaultdict(dict)
+    for c in list_companies():
+        score = compute_company_gci(get_outcomes(c["id"]))
+        by_sector[c["sector"]][c["id"]] = score
+    out: Dict[str, Tuple[Optional[float], Dict[str, Optional[float]]]] = {}
+    for sector, mapping in by_sector.items():
+        vals = [v for v in mapping.values() if v is not None]
+        avg = round(sum(vals) / len(vals), 1) if vals else None
+        out[sector] = (avg, mapping)
+    return out
+
+
+def _listing_sector_maps(
+    scores: Dict[str, Dict[str, Any]],
+) -> Tuple[Dict[str, Optional[float]], Dict[str, int], Dict[str, int]]:
+    """Precompute sector avg + rank + count once (O(n log n)), not per row."""
+    by_sector: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
+    for sid, srow in scores.items():
+        sc = srow.get("gci_score")
+        if sc is None:
+            continue
+        by_sector[srow.get("sector") or "Equity"].append((sid, float(sc)))
+    avg_map: Dict[str, Optional[float]] = {}
+    rank_map: Dict[str, int] = {}
+    count_map: Dict[str, int] = {}
+    for sector, peers in by_sector.items():
+        peers.sort(key=lambda x: -x[1])
+        vals = [v for _, v in peers]
+        avg_map[sector] = round(sum(vals) / len(vals), 1) if vals else None
+        count_map[sector] = len(peers)
+        for i, (cid, _) in enumerate(peers):
+            rank_map[cid] = i + 1
+    return avg_map, rank_map, count_map
+
+
+def count_companies(
+    market: Optional[str] = None, index: Optional[str] = None
+) -> int:
+    """Fast count — membership only, no GCI scoring."""
+    from app.data import markets as markets_data
+
+    mid = market.upper() if market else None
+    iid = index.upper() if index else None
+    if not mid and not iid:
+        return len(list_companies())
+    if iid:
+        return markets_data.constituent_count(iid)
+    return len(markets_data.list_stocks(market_id=mid, index_id=None))
+
+
+def list_company_summaries(
+    market: Optional[str] = None,
+    index: Optional[str] = None,
+    *,
+    limit: Optional[int] = None,
+    offset: int = 0,
+) -> List[CompanySummary]:
+    """List GCI universe, optionally filtered to a market/index.
+
+    Large indexes (NSE_ALL / BSE_ALL) use the score cache + O(1) peer maps.
+    Never rebuild the full India cache on a request path.
+    """
+    from app.data import markets as markets_data
+    from app.data.gci_score_cache import load_cache
+
+    mid = market.upper() if market else None
+    iid = index.upper() if index else None
+
+    # Default product path — existing Sensex GCI seed
+    if not mid and not iid:
+        stats = _sector_stats()
+        rows: List[CompanySummary] = []
+        for c in list_companies():
+            outcomes = get_outcomes(c["id"])
+            score = compute_company_gci(outcomes)
+            trend = gci_trend_series(outcomes)
+            ch_pct, ch_h = _latest_trend_change(trend)
+            avg, mapping = stats[c["sector"]]
+            ranked = sorted(
+                [(cid, s) for cid, s in mapping.items() if s is not None],
+                key=lambda x: x[1],
+                reverse=True,
+            )
+            rank = next((i + 1 for i, (cid, _) in enumerate(ranked) if cid == c["id"]), None)
+            rows.append(
+                CompanySummary(
+                    id=c["id"],
+                    name=c["name"],
+                    ticker=c["ticker"],
+                    sector=c["sector"],
+                    gci_score=score,
+                    data_quality=c.get("data_quality", "demo_structured"),
+                    peer_rank_in_sector=rank,
+                    sector_avg_gci=avg,
+                    gci_change_pct=ch_pct,
+                    gci_change_horizon=ch_h,
+                    market_id="IN",
+                    index_ids=["SENSEX", "NIFTY50"],
+                )
+            )
+        rows.sort(key=lambda r: (r.gci_score is None, -(r.gci_score or 0)))
+        if offset:
+            rows = rows[offset:]
+        if limit is not None and limit > 0:
+            rows = rows[:limit]
+        return rows
+
+    stock_rows = (
+        markets_data.constituents_readonly(iid)
+        if iid
+        else markets_data.list_stocks(market_id=mid, index_id=None)
+    )
+    seed_by_id = {c["id"]: c for c in list_companies()}
+    cache_scores = load_cache().get("scores") or {}
+    avg_map, rank_map, _ = _listing_sector_maps(cache_scores)
+    large = len(stock_rows) > 200
+    seed_stats = None if large else _sector_stats()
+
+    def _score_key(s: Dict[str, Any]) -> Tuple:
+        cached = cache_scores.get(s["id"]) or {}
+        sc = cached.get("gci_score")
+        return (sc is None, -(sc or 0), s.get("ticker") or "")
+
+    # Sort membership first, then materialize only the requested page for large indexes
+    ordered = sorted(stock_rows, key=_score_key)
+    if offset:
+        ordered = ordered[offset:]
+    page = ordered[:limit] if (limit is not None and limit > 0) else ordered
+
+    rows = []
+    for s in page:
+        cid = s["id"]
+        seeded = seed_by_id.get(cid)
+        cached = cache_scores.get(cid)
+        if seeded is not None and (
+            not cached or seeded.get("data_quality") in ("hand_labeled", "demo_structured")
+        ):
+            # Prefer live seed outcomes for deep GCI names on small pages
+            if seeded.get("data_quality") == "hand_labeled" or not large:
+                outcomes = get_outcomes(seeded["id"])
+                score = compute_company_gci(outcomes)
+                trend = gci_trend_series(outcomes)
+                ch_pct, ch_h = _latest_trend_change(trend)
+                sector = seeded["sector"]
+                if seed_stats:
+                    avg, mapping = seed_stats.get(sector, (None, {}))
+                    ranked = sorted(
+                        [(i, sc) for i, sc in mapping.items() if sc is not None],
+                        key=lambda x: x[1],
+                        reverse=True,
+                    )
+                    rank = next((i + 1 for i, (x, _) in enumerate(ranked) if x == cid), None)
+                else:
+                    avg = avg_map.get(sector)
+                    rank = rank_map.get(cid)
+                rows.append(
+                    CompanySummary(
+                        id=seeded["id"],
+                        name=seeded["name"],
+                        ticker=seeded["ticker"],
+                        sector=sector,
+                        gci_score=score,
+                        data_quality=seeded.get("data_quality", "demo_structured"),
+                        peer_rank_in_sector=rank,
+                        sector_avg_gci=avg,
+                        gci_change_pct=ch_pct,
+                        gci_change_horizon=ch_h,
+                        market_id=s.get("market_id", "IN"),
+                        index_ids=s.get("index_ids"),
+                    )
+                )
+                continue
+        score = cached.get("gci_score") if cached else None
+        quality = (cached or {}).get("data_quality") or s.get("data_quality") or "listing_master"
+        sector = s.get("sector") or (cached or {}).get("sector") or "Equity"
+        if seeded and not cached:
+            quality = seeded.get("data_quality", quality)
+            sector = seeded.get("sector", sector)
+        rows.append(
+            CompanySummary(
+                id=cid,
+                name=s.get("name") or (seeded or {}).get("name") or cid,
+                ticker=s.get("ticker") or (seeded or {}).get("ticker") or cid,
+                sector=sector,
+                gci_score=score,
+                data_quality=quality,
+                peer_rank_in_sector=rank_map.get(cid),
+                sector_avg_gci=avg_map.get(sector),
+                gci_change_pct=(cached or {}).get("gci_change_pct"),
+                gci_change_horizon=(cached or {}).get("gci_change_horizon"),
+                market_id=s.get("market_id"),
+                index_ids=s.get("index_ids"),
+            )
+        )
+    return rows
+
+
+def get_company_gci(company_id: str) -> CompanyGCIDetail:
+    company = next((c for c in list_companies() if c["id"] == company_id), None)
+    if company is None:
+        from app.data.india_listings import find_listing
+        from app.services.provisional_gci import (
+            QUALITY,
+            make_provisional_outcomes,
+        )
+
+        listing = find_listing(company_id)
+        if listing is None:
+            raise HTTPException(status_code=404, detail="Company not found")
+
+        outcomes = make_provisional_outcomes(
+            listing["id"], listing["ticker"], listing.get("sector") or "Equity"
+        )
+        score = compute_company_gci(outcomes)
+        chmap = _outcome_change_map(outcomes)
+        views = []
+        for o in outcomes:
+            meta = chmap.get((o.period, o.metric), {})
+            views.append(
+                _to_view(
+                    o,
+                    company_id=listing["id"],
+                    data_quality=QUALITY,
+                    actual_change_pct=meta.get("actual_change_pct"),
+                    actual_change_horizon=meta.get("actual_change_horizon"),
+                    guided_change_pct=meta.get("management_guidance_change_pct"),
+                    guided_change_horizon=meta.get("management_guidance_change_horizon"),
+                )
+            )
+        threads: Dict[str, List[OutcomeView]] = defaultdict(list)
+        for v in views:
+            if v.thread_id:
+                threads[v.thread_id].append(v)
+        trend = gci_trend_series(outcomes)
+        ch_pct, ch_h = _latest_trend_change(trend)
+        return CompanyGCIDetail(
+            id=listing["id"],
+            name=listing["name"],
+            ticker=listing["ticker"],
+            sector=listing.get("sector") or "Equity",
+            gci_score=score,
+            status="ok" if score is not None else "insufficient_data",
+            data_quality=QUALITY,
+            by_metric=metric_breakdown(outcomes),
+            label_counts=label_counts(outcomes),
+            outcomes=views,
+            trend=trend,
+            peer_rank_in_sector=None,
+            sector_avg_gci=None,
+            threads=dict(threads),
+            sentiment={},
+            gci_change_pct=ch_pct,
+            gci_change_horizon=ch_h,
+            by_metric_changes=_by_metric_changes(outcomes),
+        )
+
+    quality = company.get("data_quality", "demo_structured")
+    if quality == "hand_labeled":
+        from app.data import doc_store
+        from app.data.seed import get_data as _gd
+        from app.services.citation_corpus import ensure_company_citation_corpus
+
+        raw = (_gd().get("outcomes") or {}).get(company_id) or []
+        missing_bind = any(
+            (r.get("source_url") and r.get("quote_span") and not r.get("doc_id")) for r in raw
+        )
+        accepted = [
+            d
+            for d in doc_store.list_documents(company_id=company_id, include_rejected=True)
+            if d.get("review_status") == "accepted"
+        ]
+        if missing_bind or not accepted:
+            ensure_company_citation_corpus(company_id)
+    outcomes = get_outcomes(company_id)
+    score = compute_company_gci(outcomes)
+    chmap = _outcome_change_map(outcomes)
+    views = []
+    for o in outcomes:
+        meta = chmap.get((o.period, o.metric), {})
+        views.append(
+            _to_view(
+                o,
+                company_id=company_id,
+                data_quality=quality,
+                actual_change_pct=meta.get("actual_change_pct"),
+                actual_change_horizon=meta.get("actual_change_horizon"),
+                guided_change_pct=meta.get("management_guidance_change_pct"),
+                guided_change_horizon=meta.get("management_guidance_change_horizon"),
+            )
+        )
+    threads: Dict[str, List[OutcomeView]] = defaultdict(list)
+    for v in views:
+        if v.thread_id:
+            threads[v.thread_id].append(v)
+
+    stats = _sector_stats()
+    avg, mapping = stats.get(company["sector"], (None, {}))
+    ranked = sorted(
+        [(cid, s) for cid, s in mapping.items() if s is not None],
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    rank = next((i + 1 for i, (cid, _) in enumerate(ranked) if cid == company_id), None)
+    sentiment = get_data().get("sentiment", {}).get(company_id, {})
+    trend = gci_trend_series(outcomes)
+    ch_pct, ch_h = _latest_trend_change(trend)
+
+    return CompanyGCIDetail(
+        id=company["id"],
+        name=company["name"],
+        ticker=company["ticker"],
+        sector=company["sector"],
+        gci_score=score,
+        status="ok" if score is not None else "insufficient_data",
+        data_quality=company.get("data_quality", "demo_structured"),
+        by_metric=metric_breakdown(outcomes),
+        label_counts=label_counts(outcomes),
+        outcomes=views,
+        trend=trend,
+        peer_rank_in_sector=rank,
+        sector_avg_gci=avg,
+        threads=dict(threads),
+        sentiment=sentiment,
+        gci_change_pct=ch_pct,
+        gci_change_horizon=ch_h,
+        by_metric_changes=_by_metric_changes(outcomes),
+    )
+
+
+def pit_history(company_id: str) -> List[PitPoint]:
+    outcomes = get_outcomes(company_id)
+    if not outcomes:
+        company = next((c for c in list_companies() if c["id"] == company_id), None)
+        if company is None:
+            from app.data.india_listings import find_listing
+            from app.services.provisional_gci import make_provisional_outcomes
+
+            listing = find_listing(company_id)
+            if listing is None:
+                raise HTTPException(status_code=404, detail="Company not found")
+            outcomes = make_provisional_outcomes(
+                listing["id"], listing["ticker"], listing.get("sector") or "Equity"
+            )
+        else:
+            return []
+    # Prefer explicit as_of; else use period labels as chronological proxy (still citeable outcomes).
+    dates = sorted({o.as_of for o in outcomes if o.as_of})
+    if len(dates) < 2:
+        periods = sorted({o.period for o in outcomes if o.period})
+        raw = []
+        for i, period in enumerate(periods):
+            subset = [o for o in outcomes if o.period in periods[: i + 1]]
+            score = compute_company_gci(subset)
+            if score is None:
+                continue
+            raw.append({"as_of": period, "gci_score": score})
+    else:
+        raw = []
+        for d in dates:
+            subset = [o for o in outcomes if o.as_of and o.as_of <= d]
+            raw.append({"as_of": d, "gci_score": compute_company_gci(subset)})
+    enriched = enrich_value_series(raw, period_key="as_of", value_key="gci_score")
+    return [
+        PitPoint(
+            as_of=r["as_of"],
+            gci_score=r.get("gci_score"),
+            prior_gci=r.get("prior_value"),
+            change_pct=r.get("change_pct"),
+            change_horizon=r.get("change_horizon"),
+        )
+        for r in enriched
+    ]
+
+
+def list_alerts() -> List[AlertItem]:
+    alerts: List[AlertItem] = []
+
+    # Pending IR / transcript docs awaiting analyst review (crawl + ingest)
+    try:
+        from app.data import doc_store
+
+        pending_by: Dict[str, int] = {}
+        for d in doc_store.list_documents(include_rejected=False):
+            if d.get("review_status") == "pending":
+                pending_by[d["company_id"]] = pending_by.get(d["company_id"], 0) + 1
+        cos = {c["id"]: c for c in list_companies()}
+        for cid, n in sorted(pending_by.items(), key=lambda x: -x[1]):
+            c = cos.get(cid)
+            if not c:
+                continue
+            alerts.append(
+                AlertItem(
+                    company_id=cid,
+                    ticker=c["ticker"],
+                    kind="docs_pending_review",
+                    message=(
+                        f"{c['ticker']}: {n} IR/transcript document(s) awaiting review "
+                        f"— open Desk → Review queue"
+                    ),
+                    severity="medium",
+                )
+            )
+    except Exception:
+        pass
+
+    for c in list_companies():
+        outs = get_outcomes(c["id"])
+
+        # Credibility drift — GCI down N consecutive periods (trend, not one miss)
+        trend = gci_trend_series(outs)
+        drops = 0
+        for point in reversed(trend):
+            ch = point.get("change_pct")
+            if ch is not None and ch < 0:
+                drops += 1
+            else:
+                break
+        if drops >= 2:
+            alerts.append(
+                AlertItem(
+                    company_id=c["id"],
+                    ticker=c["ticker"],
+                    kind="credibility_drift",
+                    message=(
+                        f"{c['ticker']} GCI down {drops} consecutive periods — credibility drift"
+                    ),
+                    severity="high" if drops >= 3 else "medium",
+                )
+            )
+
+        # Quietly shelved promise — a pending thread with no restatement since
+        # the company's most recent disclosure date (distinct from dropped label)
+        dated = [o for o in outs if o.as_of]
+        if dated:
+            latest_as_of = max(o.as_of for o in dated)
+            by_thread: Dict[str, List[Any]] = {}
+            for o in dated:
+                if o.thread_id:
+                    by_thread.setdefault(o.thread_id, []).append(o)
+            for rows in by_thread.values():
+                last = max(rows, key=lambda r: r.as_of)
+                if last.as_of < latest_as_of and classify_outcome(last).value == "pending":
+                    alerts.append(
+                        AlertItem(
+                            company_id=c["id"],
+                            ticker=c["ticker"],
+                            kind="thread_stale",
+                            message=(
+                                f"{c['ticker']} has not reiterated {last.metric} guidance "
+                                f"({last.period}) since {last.as_of} — quietly shelved?"
+                            ),
+                            severity="medium",
+                        )
+                    )
+
+        for o in outs:
+            label = classify_outcome(o).value
+            if label == "missed":
+                alerts.append(
+                    AlertItem(
+                        company_id=c["id"],
+                        ticker=c["ticker"],
+                        kind="large_miss",
+                        message=f"{c['ticker']} missed {o.metric} guidance for {o.period}",
+                        severity="high",
+                    )
+                )
+            if label == "dropped":
+                alerts.append(
+                    AlertItem(
+                        company_id=c["id"],
+                        ticker=c["ticker"],
+                        kind="guidance_dropped",
+                        message=f"{c['ticker']} dropped {o.metric} guidance ({o.period})",
+                        severity="medium",
+                    )
+                )
+            if o.thread_id:
+                thread = [x for x in outs if x.thread_id == o.thread_id]
+                if len(thread) >= 2:
+                    vals = [x.guided_value for x in thread]
+                    if max(vals) - min(vals) >= 2:
+                        alerts.append(
+                            AlertItem(
+                                company_id=c["id"],
+                                ticker=c["ticker"],
+                                kind="guidance_revised",
+                                message=f"{c['ticker']} revised {o.metric} thread materially",
+                                severity="low",
+                            )
+                        )
+                        break
+    # de-dupe messages
+    seen = set()
+    unique: List[AlertItem] = []
+    for a in alerts:
+        if a.message in seen:
+            continue
+        seen.add(a.message)
+        unique.append(a)
+    return unique[:100]
+
+
+def apply_review(
+    company_id: str,
+    outcome_index: int,
+    action: str,
+    comment: Optional[str],
+    edits: Optional[Dict[str, Any]],
+    reviewer: str,
+) -> Dict[str, Any]:
+    data = get_data()
+    rows = data["outcomes"].get(company_id)
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    if outcome_index < 0 or outcome_index >= len(rows):
+        raise HTTPException(status_code=400, detail="Invalid outcome_index")
+
+    action = action.lower().strip()
+    if action not in {"accept", "edit", "reject"}:
+        raise HTTPException(status_code=400, detail="action must be accept|edit|reject")
+
+    if action == "edit" and edits:
+        allowed = set(rows[outcome_index].keys()) | {
+            "source_url",
+            "source_ref",
+            "quote_span",
+            "doc_id",
+            "span_start",
+            "span_end",
+            "guided_text",
+            "period",
+            "metric",
+            "guided_low",
+            "guided_high",
+            "guided_value",
+            "actual_value",
+            "confidence",
+        }
+        for k, v in edits.items():
+            if k in allowed:
+                rows[outcome_index][k] = v
+    if action == "reject":
+        rows[outcome_index]["dropped"] = True
+        rows[outcome_index]["actual_value"] = None
+
+    review = {
+        "company_id": company_id,
+        "outcome_index": outcome_index,
+        "action": action,
+        "comment": comment,
+        "edits": edits or {},
+        "reviewer": reviewer,
+        "at": datetime.now(timezone.utc).isoformat(),
+    }
+    data.setdefault("reviews", []).append(review)
+    rows[outcome_index]["review_status"] = action
+    save_data()
+    return {"ok": True, "review": review, "outcome": rows[outcome_index]}
+
+
+def append_outcomes(company_id: str, statements: List[Dict[str, Any]]) -> int:
+    data = get_data()
+    if company_id not in {c["id"] for c in data["companies"]}:
+        raise HTTPException(status_code=404, detail="Company not found")
+    data["outcomes"].setdefault(company_id, []).extend(statements)
+    save_data()
+    return len(statements)
+
+
+def merge_matched(company_id: str, matched: List[Dict[str, Any]]) -> int:
+    """Replace/append matched rows for company."""
+    data = get_data()
+    if company_id not in {c["id"] for c in data["companies"]}:
+        raise HTTPException(status_code=404, detail="Company not found")
+    cleaned = []
+    for m in matched:
+        row = dict(m)
+        row.pop("company_id", None)
+        row.pop("match_status", None)
+        row.pop("review_status", None)
+        cleaned.append(row)
+    data["outcomes"][company_id] = data["outcomes"].get(company_id, []) + cleaned
+    save_data()
+    return len(cleaned)
+
+
+def save_pending_extract(company_id: str, statements: List[Dict[str, Any]]) -> Dict[str, Any]:
+    from uuid import uuid4
+
+    data = get_data()
+    batch = {
+        "id": str(uuid4()),
+        "company_id": company_id,
+        "statements": statements,
+        "status": "pending",
+    }
+    data.setdefault("pending_extracts", []).append(batch)
+    save_data()
+    return batch
+
+
+def list_pending_extracts(company_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    rows = get_data().get("pending_extracts", [])
+    if company_id:
+        rows = [r for r in rows if r["company_id"] == company_id]
+    return rows
+
+
+def commit_pending_extract(
+    extract_id: str,
+    accepted_indices: List[int],
+    edits: Optional[Dict[int, Dict[str, Any]]] = None,
+    reviewer: str = "queue",
+) -> Dict[str, Any]:
+    """Phase 3.4 — only accepted statements enter GCI outcomes.
+
+    ``edits`` carries per-statement analyst corrections (band, period, metric…)
+    applied before commit; each accepted statement is recorded in the reviews
+    corpus so the correction history compounds.
+    """
+    data = get_data()
+    batches = data.setdefault("pending_extracts", [])
+    batch = next((b for b in batches if b["id"] == extract_id), None)
+    if batch is None:
+        raise HTTPException(status_code=404, detail="Extract batch not found")
+    edits = edits or {}
+    accepted = []
+    reviews = data.setdefault("reviews", [])
+    company_id = batch["company_id"]
+    now = datetime.now(timezone.utc).isoformat()
+    edited_count = 0
+    for i in accepted_indices:
+        if 0 <= i < len(batch["statements"]):
+            row = dict(batch["statements"][i])
+            row_edits = edits.get(i) or {}
+            for k, v in row_edits.items():
+                if k in row:
+                    row[k] = v
+            action = "edit" if row_edits else "accept"
+            if row_edits:
+                edited_count += 1
+            row["needs_review"] = False
+            row["review_status"] = "accepted" if action == "accept" else "edited"
+            # strip flags that aren't part of scoring outcome
+            row.pop("extract_engine", None)
+            accepted.append(row)
+            reviews.append(
+                {
+                    "company_id": company_id,
+                    "extract_id": extract_id,
+                    "statement_index": i,
+                    "action": action,
+                    "edits": row_edits,
+                    "reviewer": reviewer,
+                    "source": "extract_queue",
+                    "at": now,
+                }
+            )
+    data["outcomes"].setdefault(company_id, []).extend(accepted)
+    batch["status"] = "committed"
+    batch["accepted_count"] = len(accepted)
+    save_data()
+    return {
+        "ok": True,
+        "committed": len(accepted),
+        "edited": edited_count,
+        "company_id": company_id,
+    }
+
+
+def search_entities(
+    q: str,
+    *,
+    limit: int = 25,
+    exchange: Optional[str] = None,
+    sector: Optional[str] = None,
+    data_quality: Optional[str] = None,
+    corpus_status: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Typeahead over Sensex seed + full NSE/BSE listing masters.
+
+    Ranks hand_labeled / deep coverage above provisional shells. Adds
+    doc_count, citeable_outcomes, and corpus_status honesty fields.
+    Optional facet filters: exchange, sector, data_quality, corpus_status.
+    """
+    from app.data import doc_store
+    from app.data.india_listings import india_equity_universe
+    from app.data.gci_score_cache import get_listing_score
+    from app.services.citations import CITEABLE_QUALITIES
+
+    query = (q or "").strip().lower()
+    if len(query) < 1:
+        return []
+    ex_f = (exchange or "").strip().upper() or None
+    sec_f = (sector or "").strip().lower() or None
+    dq_f = (data_quality or "").strip().lower() or None
+    cs_f = (corpus_status or "").strip().lower() or None
+    seed_by_id = {c["id"]: c for c in list_companies()}
+    hits: List[Dict[str, Any]] = []
+    for row in india_equity_universe():
+        blob = f"{row.get('ticker','')} {row.get('name','')} {row.get('id','')}".lower()
+        if query not in blob:
+            continue
+        if ex_f and (row.get("exchange") or "").upper() != ex_f:
+            continue
+        if sec_f and sec_f not in (row.get("sector") or "").lower():
+            continue
+        seeded = seed_by_id.get(row["id"])
+        cached = get_listing_score(row["id"])
+        score = None
+        quality = row.get("data_quality") or "listing_provisional"
+        citeable_n = 0
+        if seeded:
+            outs = get_outcomes(seeded["id"])
+            score = compute_company_gci(outs)
+            quality = seeded.get("data_quality", quality)
+            if quality in CITEABLE_QUALITIES:
+                citeable_n = sum(
+                    1
+                    for o in outs
+                    if (o.source_url or "").strip() and (o.quote_span or "").strip()
+                )
+        elif cached:
+            score = cached.get("gci_score")
+            quality = cached.get("data_quality", quality)
+        if dq_f and (quality or "").lower() != dq_f:
+            continue
+        docs = doc_store.list_documents(company_id=row["id"], include_rejected=False)
+        doc_count = len(docs)
+        if quality in CITEABLE_QUALITIES and citeable_n > 0:
+            status = "gci_citeable"
+        elif seeded or doc_count > 0:
+            status = "gci_available"
+        else:
+            status = "listed_not_in_corpus"
+        if cs_f and status != cs_f:
+            continue
+        hits.append(
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "ticker": row["ticker"],
+                "sector": row.get("sector") or "Equity",
+                "gci_score": score,
+                "data_quality": quality,
+                "market_id": "IN",
+                "index_ids": row.get("index_ids"),
+                "exchange": row.get("exchange"),
+                "doc_count": doc_count,
+                "citeable_outcomes": citeable_n,
+                "corpus_status": status,
+            }
+        )
+        if len(hits) >= max(limit * 4, 40):
+            break
+
+    def _rank(r: Dict[str, Any]) -> Tuple:
+        q = r.get("data_quality") or ""
+        q_rank = 0 if q == "hand_labeled" else (1 if q == "demo_structured" else 2)
+        status_rank = {
+            "gci_citeable": 0,
+            "gci_available": 1,
+            "listed_not_in_corpus": 2,
+        }.get(str(r.get("corpus_status")), 3)
+        return (
+            status_rank,
+            q_rank,
+            -(r.get("citeable_outcomes") or 0),
+            -(r.get("doc_count") or 0),
+            r["gci_score"] is None,
+            -(r["gci_score"] or 0),
+            r["ticker"],
+        )
+
+    hits.sort(key=_rank)
+    return hits[:limit]
+
+
+def sector_leaderboard(
+    market: Optional[str] = None, index: Optional[str] = None, *, limit: int = 40
+) -> List[Dict[str, Any]]:
+    """Sector avg GCI for any market/index — cache/membership only (no full summary build)."""
+    from app.data import markets as markets_data
+    from app.data.gci_score_cache import load_cache
+
+    mid = market.upper() if market else None
+    iid = index.upper() if index else None
+    if not mid and not iid:
+        rows = list_company_summaries()
+        stock_ids = {r.id for r in rows}
+        score_rows = {
+            r.id: {
+                "gci_score": r.gci_score,
+                "sector": r.sector,
+                "ticker": r.ticker,
+                "name": r.name,
+            }
+            for r in rows
+            if r.gci_score is not None
+        }
+    else:
+        stocks = (
+            markets_data.constituents_readonly(iid)
+            if iid
+            else markets_data.list_stocks(market_id=mid, index_id=None)
+        )
+        stock_ids = {s["id"] for s in stocks}
+        stock_meta = {s["id"]: s for s in stocks}
+        cache_scores = load_cache().get("scores") or {}
+        score_rows = {}
+        for cid in stock_ids:
+            cached = cache_scores.get(cid)
+            if not cached or cached.get("gci_score") is None:
+                continue
+            meta = stock_meta.get(cid) or {}
+            score_rows[cid] = {
+                "gci_score": cached["gci_score"],
+                "sector": cached.get("sector") or meta.get("sector") or "Equity",
+                "ticker": meta.get("ticker") or cached.get("ticker") or cid,
+                "name": meta.get("name") or cached.get("name") or cid,
+            }
+
+    by: Dict[str, Dict[str, Any]] = {}
+    for cid, row in score_rows.items():
+        sector = row["sector"]
+        sc = float(row["gci_score"])
+        cur = by.setdefault(
+            sector,
+            {"sector": sector, "scores": [], "best": None, "count": 0},
+        )
+        cur["scores"].append(sc)
+        cur["count"] += 1
+        best = cur["best"]
+        if best is None or sc > float(best["gci_score"] or -1):
+            cur["best"] = {
+                "id": cid,
+                "ticker": row["ticker"],
+                "name": row["name"],
+                "gci_score": sc,
+            }
+    out = []
+    for sector, v in by.items():
+        avg = round(sum(v["scores"]) / len(v["scores"]), 1)
+        out.append(
+            {
+                "sector": sector,
+                "avg": avg,
+                "count": v["count"],
+                "best": v["best"],
+            }
+        )
+    out.sort(key=lambda r: -(r["avg"] or -1))
+    return out[:limit]
+
+
+def company_period_docs(company_id: str, period: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Docs already ingested for a company (optional period filter on title/text meta)."""
+    from app.data import doc_store
+
+    docs = doc_store.list_documents(company_id=company_id, include_rejected=True)
+    if period:
+        p = period.lower()
+        docs = [
+            d
+            for d in docs
+            if p in (d.get("title") or "").lower()
+            or p in (d.get("period") or "").lower()
+            or p in (d.get("source_ref") or "").lower()
+        ]
+    return docs
+
+
+EXPECTED_DOC_TYPES = ("transcript", "results", "ir_guidance")
+
+
+def period_completeness(company_id: str, periods: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Sensex-style period matrix: missing / pending / accepted + expected doc types."""
+    from app.data import doc_store
+    from app.services.citations import assess_citeability
+
+    # Prefer periods that actually appear on outcomes for this company
+    if periods is None:
+        try:
+            raw = (get_data().get("outcomes") or {}).get(company_id) or []
+            derived = sorted({str(o.get("period")) for o in raw if o.get("period")})
+            fy = [p for p in derived if p.upper().startswith("FY")]
+            periods = fy[-3:] if len(fy) >= 3 else (fy or ["FY24", "FY25", "FY26"])
+        except Exception:
+            periods = ["FY24", "FY25", "FY26"]
+
+    company = next((c for c in list_companies() if c["id"] == company_id), None)
+    quality = (company or {}).get("data_quality") or "demo_structured"
+
+    docs = doc_store.list_documents(company_id=company_id, include_rejected=True)
+    rows = []
+    for period in periods:
+        pl = period.lower()
+        period_docs = [
+            d
+            for d in docs
+            if pl == (d.get("period") or "").lower()
+            or pl in (d.get("title") or "").lower()
+            or pl in (d.get("text") or "")[:240].lower()
+        ]
+        by_status = {"accepted": 0, "pending": 0, "rejected": 0, "other": 0}
+        for d in period_docs:
+            st = (d.get("review_status") or "pending").lower()
+            if st in by_status:
+                by_status[st] += 1
+            else:
+                by_status["other"] += 1
+        have_types = {
+            (d.get("doc_type") or "").lower()
+            for d in period_docs
+            if d.get("review_status") == "accepted"
+        }
+        type_coverage = {
+            t: (t in have_types or (t == "ir_guidance" and "guidance" in have_types))
+            for t in EXPECTED_DOC_TYPES
+        }
+        types_ok = all(type_coverage.values())
+        if by_status["accepted"] > 0 and types_ok:
+            status = "accepted"
+        elif by_status["accepted"] > 0:
+            status = "partial"
+        elif by_status["pending"] > 0 or period_docs:
+            status = "pending"
+        else:
+            status = "missing"
+        rows.append(
+            {
+                "period": period,
+                "status": status,
+                "doc_count": len(period_docs),
+                "by_status": by_status,
+                "expected_types": list(EXPECTED_DOC_TYPES),
+                "type_coverage": type_coverage,
+                "types_complete": types_ok,
+                "documents": [
+                    {
+                        "doc_id": d.get("doc_id"),
+                        "title": d.get("title"),
+                        "doc_type": d.get("doc_type"),
+                        "review_status": d.get("review_status"),
+                        "url": d.get("url"),
+                        "source_type": d.get("source_type"),
+                        "period": d.get("period"),
+                    }
+                    for d in period_docs[:8]
+                ],
+            }
+        )
+    accepted = sum(1 for r in rows if r["status"] in ("accepted", "partial"))
+    types_complete_n = sum(1 for r in rows if r.get("types_complete"))
+    citeable_bound = 0
+    citeable_ok = 0
+    outcome_n = 0
+    try:
+        raw = (get_data().get("outcomes") or {}).get(company_id) or []
+        outcome_n = len(raw)
+        for o in raw:
+            ok, _ = assess_citeability(
+                data_quality=quality,
+                source_url=o.get("source_url"),
+                quote_span=o.get("quote_span"),
+                doc_id=o.get("doc_id"),
+            )
+            if ok:
+                citeable_ok += 1
+            if o.get("doc_id") and o.get("quote_span") and o.get("source_url"):
+                citeable_bound += 1
+    except Exception:
+        pass
+    citeable_pct = round(100.0 * citeable_ok / outcome_n, 1) if outcome_n else 0.0
+    tier1_gate = (
+        len(rows) > 0
+        and types_complete_n == len(rows)
+        and citeable_pct >= 95.0
+        and citeable_bound > 0
+    )
+    return {
+        "company_id": company_id,
+        "periods": rows,
+        "summary": {
+            "accepted_periods": accepted,
+            "types_complete_periods": types_complete_n,
+            "total_periods": len(rows),
+            "complete": accepted == len(rows) and len(rows) > 0,
+            "citeable_bound_outcomes": citeable_bound,
+            "citeable_outcomes": citeable_ok,
+            "outcome_count": outcome_n,
+            "citeable_pct": citeable_pct,
+            "tier1_gate": tier1_gate,
+        },
+        "note": (
+            "Automatic corpus preferred — paste ingest is exception path. "
+            "Tier-1 gate: expected doc types accepted per period + ≥95% citeable outcomes."
+        ),
+    }
+
+
+def gci_change_bundle_for(company_id: str) -> Dict[str, Any]:
+    from app.services.changes import change_bundle
+    from app.services.pit_warehouse import get_pit_series, ensure_pit_series
+
+    detail = get_company_gci(company_id)
+    series = [
+        (str(p.get("period") or p.get("as_of") or ""), p.get("gci_score"))
+        for p in (detail.trend or [])
+    ]
+    series_kind = "seed_pit"
+    citeable = False
+
+    # Prefer citeable outcome as_of PIT when deep enough (≥4 for deltas; ≥12 for Granger).
+    pit = pit_history(company_id)
+    if len(pit) >= 4:
+        series = [(p.as_of, p.gci_score) for p in pit]
+        series_kind = "citeable_pit"
+        citeable = True
+    else:
+        wh = get_pit_series(company_id) or ensure_pit_series(company_id)
+        if wh and (wh.get("n") or 0) >= 2:
+            series = [
+                (str(p.get("as_of")), p.get("gci_score"))
+                for p in (wh.get("points") or [])
+                if p.get("gci_score") is not None
+            ]
+            series_kind = (wh or {}).get("series_kind") or "demo_pit_extension"
+            citeable = False
+        elif len(pit) >= 2:
+            series = [(p.as_of, p.gci_score) for p in pit]
+            series_kind = "citeable_pit_short"
+            citeable = True
+
+    bundle = change_bundle(detail.gci_score, series)
+    bundle["series_kind"] = series_kind
+    bundle["series_n"] = len(series)
+    bundle["citeable"] = citeable
+    return bundle
