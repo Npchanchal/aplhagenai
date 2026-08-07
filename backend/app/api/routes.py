@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from app.data.seed import get_data, reset_data
 from app.models.schemas import (
@@ -40,6 +41,12 @@ router = APIRouter()
 
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
+    try:
+        from app.services.csm_sla import record_health
+
+        record_health(True)
+    except Exception:
+        pass
     return HealthResponse(status="ok")
 
 
@@ -210,6 +217,37 @@ def import_alphahunter(body: ImportFactsRequest, _auth=Depends(resolve_api_key))
 def import_facts(body: ImportFactsRequest, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     """P1.4 — Facts JSON import (AlphaHunter-compatible alias)."""
     return _import_facts(body)
+
+
+@router.get("/api/import/alphahunter/status")
+def alphahunter_status() -> Dict[str, Any]:
+    from app.services.alphahunter_live import connector_status
+
+    return connector_status()
+
+
+@router.post("/api/import/alphahunter/live")
+def alphahunter_live_pull(
+    company_id: Optional[str] = None,
+    merge: bool = True,
+    _auth=Depends(resolve_api_key),
+) -> Dict[str, Any]:
+    """Pull facts from ALPHAHUNTER_API_URL and optionally merge into a company."""
+    from app.services.alphahunter_live import pull_facts
+
+    try:
+        pulled = pull_facts(company_id=company_id)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    if not merge or not company_id:
+        return pulled
+    body = ImportFactsRequest(
+        facts=pulled["facts"],
+        merge_into_company=company_id,
+        allow_custom=False,
+    )
+    merged = _import_facts(body)
+    return {**pulled, **merged}
 
 
 def _import_facts(body: ImportFactsRequest) -> Dict[str, Any]:
@@ -1073,9 +1111,11 @@ def auth_sso_status() -> Dict[str, Any]:
     from app.services.rbac import sso_status
 
     st = sso_status()
+    ready = bool(st.get("enabled") and st.get("configured"))
     return {
         **st,
-        "coming_soon": not st.get("configured"),
+        "coming_soon": not st.get("enabled"),
+        "ready": ready,
         "modes": ["register", "login", "guest", "api_key", "sso"],
     }
 
@@ -1089,14 +1129,37 @@ def auth_sso_login() -> Dict[str, Any]:
 
 @router.get("/api/auth/sso/callback")
 def auth_sso_callback(
+    request: Request,
     code: Optional[str] = None,
     state: Optional[str] = None,
     email: Optional[str] = None,
     name: Optional[str] = None,
-) -> Dict[str, Any]:
+    format: Optional[str] = None,
+):
+    """OIDC callback — JSON for API clients; HTML bridge for browser IdP redirects."""
+    from fastapi.responses import HTMLResponse, JSONResponse
+
     from app.services import sso as sso_svc
 
-    return sso_svc.sso_callback(code=code, state=state, email=email, name=name)
+    result = sso_svc.sso_callback(code=code, state=state, email=email, name=name)
+    accept = (request.headers.get("accept") or "").lower()
+    want_json = (format or "").lower() == "json" or (
+        "application/json" in accept and "text/html" not in accept
+    )
+    if want_json:
+        return JSONResponse(result)
+    token = result.get("token") or ""
+    front = (os.environ.get("OIDC_FRONTEND_REDIRECT") or "/").strip() or "/"
+    # Escape for inline script
+    safe_token = token.replace("\\", "\\\\").replace("'", "\\'")
+    safe_front = front.replace("\\", "\\\\").replace("'", "\\'")
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>SSO</title></head>
+<body><p>Completing sign-in…</p>
+<script>
+try {{ localStorage.setItem('intellens.auth.token', '{safe_token}'); }} catch (e) {{}}
+window.location.replace('{safe_front}');
+</script></body></html>"""
+    return HTMLResponse(html)
 
 
 @router.get("/api/labeling/queue")
@@ -1208,17 +1271,74 @@ def auth_put_preferences(
 @router.get("/api/universe/nifty")
 def universe_nifty() -> Dict[str, Any]:
     from app.data.universe import NIFTY_EXTRA, SENSEX_30
+    from app.services.nifty_milestones import milestones_payload
 
     return {
         "sensex_count": len(SENSEX_30),
         "nifty_extra": [
             {"id": a, "name": b, "ticker": c, "sector": d} for a, b, c, d in NIFTY_EXTRA
         ],
+        "milestones": milestones_payload(),
         "note": (
             "Nifty scaffolding only — deep hand_labeled GCI remains Sensex pilot. "
             "Do not treat Nifty rows as day-1 GCI depth."
         ),
     }
+
+
+@router.get("/api/universe/nifty/milestones")
+def nifty_milestones() -> Dict[str, Any]:
+    from app.services.nifty_milestones import milestones_payload
+
+    return milestones_payload()
+
+
+@router.post("/api/universe/nifty/enqueue-labeling")
+def nifty_enqueue_labeling(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.nifty_milestones import ensure_nifty_labeling_queue
+
+    return ensure_nifty_labeling_queue(org_id=_auth.get("org") or "demo")
+
+
+@router.get("/api/csm/{org_id}")
+def csm_dashboard(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.csm_sla import csm_dashboard as dash
+
+    if auth.get("org") != org_id and auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    return dash(org_id)
+
+
+@router.get("/api/sla/{org_id}")
+def sla_for_org(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.csm_sla import sla_status
+
+    if auth.get("org") != org_id and auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    return sla_status(org_id)
+
+
+@router.post("/api/csm/{org_id}/tickets")
+def csm_ticket(org_id: str, body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.csm_sla import create_ticket
+
+    if auth.get("org") != org_id and auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    ticket = create_ticket(
+        org_id=org_id,
+        subject=str(body.get("subject") or ""),
+        severity=str(body.get("severity") or "3"),
+        body=str(body.get("body") or ""),
+        requested_by=str(auth.get("org") or "api"),
+    )
+    return {"ok": True, "ticket": ticket}
+
+
+@router.get("/api/vpc/posture")
+def vpc_posture() -> Dict[str, Any]:
+    from app.services.csm_sla import vpc_posture as posture
+
+    return posture()
 
 
 @router.get("/api/markets")

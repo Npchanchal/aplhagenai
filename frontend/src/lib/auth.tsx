@@ -30,6 +30,7 @@ type AuthCtx = {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   continueAsGuest: () => Promise<void>;
+  adoptToken: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>;
   preferences: UserPreferences | null;
@@ -161,6 +162,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeLocalPrefs(prefs.preferences);
   }, [applySession, lang]);
 
+  const adoptToken = useCallback(
+    async (nextToken: string) => {
+      const me = await fetchAuthMe(nextToken);
+      applySession(nextToken, me.user);
+    },
+    [applySession],
+  );
+
   const logout = useCallback(async () => {
     if (token) {
       try {
@@ -200,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       continueAsGuest,
+      adoptToken,
       logout,
       updatePreferences,
       preferences,
@@ -211,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       continueAsGuest,
+      adoptToken,
       logout,
       updatePreferences,
       preferences,

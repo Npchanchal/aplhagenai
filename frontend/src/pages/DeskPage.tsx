@@ -32,6 +32,12 @@ import {
   fetchVernacular,
   fetchWordmap,
   postAlphaHunterImport,
+  fetchAlphaHunterStatus,
+  postAlphaHunterLive,
+  fetchNiftyMilestones,
+  postNiftyEnqueueLabeling,
+  fetchCsmDashboard,
+  postCsmTicket,
   postExtract,
   postExtractCommit,
   postIngestPaste,
@@ -139,6 +145,21 @@ export default function DeskPage() {
   const [org, setOrg] = useState<OrgPayload | null>(null);
   const [labelQueue, setLabelQueue] = useState<LabelingQueueItem[]>([]);
   const [factsJson, setFactsJson] = useState(DEFAULT_FACTS);
+  const [ahStatus, setAhStatus] = useState<{
+    configured: boolean;
+    note: string;
+    url_host: string | null;
+  } | null>(null);
+  const [niftyMs, setNiftyMs] = useState<{
+    milestones: Array<{ id: string; title: string; target: string; status: string }>;
+    counts: Record<string, number>;
+    note: string;
+    progress: { done: number; total: number };
+  } | null>(null);
+  const [csmDash, setCsmDash] = useState<Awaited<ReturnType<typeof fetchCsmDashboard>> | null>(
+    null,
+  );
+  const [ticketSubject, setTicketSubject] = useState("");
   const [catalog, setCatalog] = useState<MetricCatalogRow[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -188,6 +209,22 @@ export default function DeskPage() {
     fetchLabelingQueue()
       .then((r) => setLabelQueue(r.items || []))
       .catch(() => setLabelQueue([]));
+    fetchAlphaHunterStatus()
+      .then(setAhStatus)
+      .catch(() => setAhStatus(null));
+    fetchNiftyMilestones()
+      .then((r) =>
+        setNiftyMs({
+          milestones: r.milestones,
+          counts: r.counts as Record<string, number>,
+          note: r.note,
+          progress: r.progress,
+        }),
+      )
+      .catch(() => setNiftyMs(null));
+    fetchCsmDashboard("demo")
+      .then(setCsmDash)
+      .catch(() => setCsmDash(null));
     fetchMetrics()
       .then((r) => setCatalog(r.metrics))
       .catch(() => setCatalog([]));
@@ -967,14 +1004,35 @@ export default function DeskPage() {
       {tab === "import" && (
         <div className="panel desk-panel">
           <h2 style={{ marginTop: 0 }}>
-            Facts / AlphaHunter JSON import <InfoTip termId="alphahunter" />
+            Facts / AlphaHunter <InfoTip termId="alphahunter" />
           </h2>
           <p className="muted">
-            Paste catalog-aligned facts JSON (AlphaHunter-compatible). Not a live vendor
-            feed — merge into the company GCI trail after review.
+            {ahStatus?.configured
+              ? `Live connector configured (${ahStatus.url_host || "vendor"}). Pull merges into the selected company after review.`
+              : "Paste catalog-aligned facts JSON, or set ALPHAHUNTER_API_URL for live vendor pull."}
           </p>
+          {ahStatus && <p className="muted">{ahStatus.note}</p>}
+          <button
+            type="button"
+            className="btn"
+            disabled={!ahStatus?.configured}
+            style={{ marginBottom: 12 }}
+            onClick={async () => {
+              try {
+                const res = await postAlphaHunterLive({ company_id: companyId, merge: true });
+                setMsg(`Live pull ok — ${res.fact_count ?? 0} fact(s), merged ${res.merged ?? 0}`);
+                setApiOut(JSON.stringify(res, null, 2));
+                const d = await fetchCompanyGci(companyId);
+                setDetail(d);
+              } catch (e) {
+                setMsg((e as Error).message);
+              }
+            }}
+          >
+            Pull live & merge
+          </button>
           <label className="desk-field">
-            <span className="field-label">Facts JSON</span>
+            <span className="field-label">Facts JSON (paste)</span>
             <textarea
               rows={12}
               value={factsJson}
@@ -1222,6 +1280,49 @@ export default function DeskPage() {
             One-Stop dedicated labeling path — request hand-label priority for a name.
             Process SLA; does not invent actuals.
           </p>
+          {niftyMs && (
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ marginTop: 0 }}>Nifty deep GCI milestones</h3>
+              <p className="muted">{niftyMs.note}</p>
+              <p className="muted">
+                Progress {niftyMs.progress.done}/{niftyMs.progress.total} · Sensex HL{" "}
+                {niftyMs.counts.sensex_hand_labeled ?? "—"} · Nifty HL{" "}
+                {niftyMs.counts.nifty_hand_labeled ?? 0} · queued{" "}
+                {niftyMs.counts.nifty_queued ?? 0}
+              </p>
+              <ul className="package-steps">
+                {niftyMs.milestones.map((m) => (
+                  <li key={m.id}>
+                    <strong>{m.id}</strong> · {m.title} · {m.status} — {m.target}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="btn"
+                style={{ marginTop: 8 }}
+                onClick={async () => {
+                  try {
+                    const res = await postNiftyEnqueueLabeling();
+                    setMsg(`Enqueued ${res.enqueued} Nifty name(s) for labeling`);
+                    const q = await fetchLabelingQueue();
+                    setLabelQueue(q.items || []);
+                    const ms = await fetchNiftyMilestones();
+                    setNiftyMs({
+                      milestones: ms.milestones,
+                      counts: ms.counts as Record<string, number>,
+                      note: ms.note,
+                      progress: ms.progress,
+                    });
+                  } catch (e) {
+                    setMsg((e as Error).message);
+                  }
+                }}
+              >
+                Enqueue Nifty-extra for labeling (M2)
+              </button>
+            </div>
+          )}
           <button
             type="button"
             className="btn"
@@ -1258,42 +1359,92 @@ export default function DeskPage() {
         <div className="panel desk-panel">
           <h2 style={{ marginTop: 0 }}>Customer success (CSM)</h2>
           <p className="muted">
-            Named CSM and quarterly business reviews ship with Enterprise API / One-Stop
-            Platform. Seats are metered against the org plan.
+            {csmDash?.note ||
+              "Named CSM, SLA meter, and VPC posture for Enterprise / One-Stop — commercial terms in MSA."}
           </p>
           <div className="metrics">
             <div className="metric">
               <div className="label">Org</div>
               <div className="value" style={{ fontSize: 20 }}>
-                {String(org?.name ?? org?.id ?? "demo")}
+                {String(csmDash?.org?.name ?? org?.name ?? org?.id ?? "demo")}
               </div>
             </div>
             <div className="metric">
               <div className="label">Plan</div>
               <div className="value" style={{ fontSize: 20 }}>
-                {String(org?.plan ?? "pilot")}
+                {String(csmDash?.org?.plan ?? org?.plan ?? "pilot")}
               </div>
             </div>
             <div className="metric">
               <div className="label">Seats</div>
               <div className="value">
-                {String(org?.seats_used ?? 0)} / {String(org?.seats ?? "—")}
+                {String(csmDash?.org?.seats_used ?? org?.seats_used ?? 0)} /{" "}
+                {String(csmDash?.org?.seats ?? org?.seats ?? "—")}
               </div>
             </div>
             <div className="metric">
               <div className="label">Named CSM</div>
               <div className="value" style={{ fontSize: 18 }}>
-                {String(org?.csm ?? "Assigned at convert")}
+                {String(csmDash?.csm?.named ?? org?.csm ?? "Assigned at convert")}
+              </div>
+            </div>
+            <div className="metric">
+              <div className="label">SLA target</div>
+              <div className="value" style={{ fontSize: 18 }}>
+                {csmDash?.sla?.targets?.uptime_pct != null
+                  ? `${csmDash.sla.targets.uptime_pct}%`
+                  : "—"}
+              </div>
+            </div>
+            <div className="metric">
+              <div className="label">Observed uptime</div>
+              <div className="value" style={{ fontSize: 18 }}>
+                {csmDash?.sla?.observed?.uptime_pct != null
+                  ? `${csmDash.sla.observed.uptime_pct}%`
+                  : "n/a yet"}
               </div>
             </div>
           </div>
+          <p className="muted" style={{ marginTop: 12 }}>
+            VPC: {csmDash?.vpc?.status ?? "msa_scoped"} · template{" "}
+            {csmDash?.vpc?.private_subnet_example ?? "deploy/aws/vpc-private.example.tf"}
+          </p>
           <ul className="package-steps" style={{ marginTop: 16 }}>
             <li>Weekly: review alerts + one evidence citation in a draft note</li>
             <li>Monthly: labeling feedback (wrong band / period / label)</li>
             <li>Quarterly: QBR — coverage milestones Sensex → Nifty</li>
+            <li>
+              Open labeling items: {csmDash?.labeling_open ?? "—"} · open tickets:{" "}
+              {csmDash?.tickets_open ?? 0}
+            </li>
           </ul>
+          <label className="desk-field" style={{ marginTop: 12 }}>
+            <span className="field-label">CSM ticket subject</span>
+            <input
+              value={ticketSubject}
+              onChange={(e) => setTicketSubject(e.target.value)}
+              placeholder="e.g. Need QBR slot"
+            />
+          </label>
+          <button
+            type="button"
+            className="btn"
+            style={{ marginTop: 8 }}
+            onClick={async () => {
+              try {
+                await postCsmTicket("demo", { subject: ticketSubject, severity: "3" });
+                setTicketSubject("");
+                setCsmDash(await fetchCsmDashboard("demo"));
+                setMsg("Ticket filed with CSM queue");
+              } catch (e) {
+                setMsg((e as Error).message);
+              }
+            }}
+          >
+            File CSM ticket
+          </button>
           <p className="cta-line">
-            Contact: <strong>csm@intellens.example</strong> · sales:{" "}
+            Contact: <strong>{csmDash?.csm?.email ?? "csm@intellens.example"}</strong> · sales:{" "}
             <strong>sales@intellens.example</strong>
           </p>
           <Link className="btn" to="/package" style={{ marginTop: 12 }}>

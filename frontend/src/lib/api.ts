@@ -879,6 +879,113 @@ export function postAlphaHunterImport(body: {
   });
 }
 
+export function fetchAlphaHunterStatus(): Promise<{
+  configured: boolean;
+  api_key_set: boolean;
+  url_host: string | null;
+  note: string;
+}> {
+  return getJson("/api/import/alphahunter/status");
+}
+
+export function postAlphaHunterLive(opts: {
+  company_id: string;
+  merge?: boolean;
+}): Promise<{
+  ok?: boolean;
+  source?: string;
+  fact_count?: number;
+  merged?: number;
+  note?: string;
+}> {
+  const qs = new URLSearchParams({
+    company_id: opts.company_id,
+    merge: opts.merge === false ? "false" : "true",
+  });
+  return getJson(`/api/import/alphahunter/live?${qs}`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+}
+
+export function fetchNiftyMilestones(): Promise<{
+  milestones: Array<{
+    id: string;
+    title: string;
+    target: string;
+    status: string;
+  }>;
+  counts: Record<string, number>;
+  progress: { done: number; total: number };
+  note: string;
+  day1_claim: boolean;
+}> {
+  return getJson("/api/universe/nifty/milestones");
+}
+
+export function postNiftyEnqueueLabeling(): Promise<{
+  ok: boolean;
+  enqueued: number;
+  milestones: {
+    milestones: Array<{ id: string; title: string; status: string }>;
+  };
+}> {
+  return getJson("/api/universe/nifty/enqueue-labeling", {
+    method: "POST",
+    headers: authHeaders(),
+  });
+}
+
+export function fetchCsmDashboard(orgId = "demo"): Promise<{
+  org: OrgPayload;
+  csm: { named: string; email: string; qbr_cadence: string; next_qbr_hint: string };
+  sla: {
+    plan: string;
+    targets: { uptime_pct: number; sev1_hours: number; channel: string };
+    observed: { uptime_pct: number | null; checks: number; note?: string };
+    within_target: boolean | null;
+  };
+  labeling_open: number;
+  tickets_open: number;
+  tickets: Array<{ id: string; subject: string; severity: string; status: string }>;
+  vpc: { status: string; private_subnet_example: string; note: string };
+  note: string;
+}> {
+  return getJson(`/api/csm/${encodeURIComponent(orgId)}`, {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function postCsmTicket(
+  orgId: string,
+  body: { subject: string; severity?: string; body?: string },
+): Promise<{ ok: boolean; ticket: { id: string } }> {
+  return getJson(`/api/csm/${encodeURIComponent(orgId)}/tickets`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchSsoStatus(): Promise<{
+  enabled: boolean;
+  configured: boolean;
+  ready?: boolean;
+  coming_soon?: boolean;
+  note?: string;
+  login_url?: string | null;
+}> {
+  return getJson("/api/auth/sso/status");
+}
+
+export function fetchSsoLogin(): Promise<{
+  status: string;
+  authorize_url: string | null;
+  message?: string;
+}> {
+  return getJson("/api/auth/sso/login");
+}
+
 export function fetchLabelingQueue(orgId?: string): Promise<{
   items: LabelingQueueItem[];
   count: number;

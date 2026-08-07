@@ -396,10 +396,32 @@ resource "aws_ecs_task_definition" "app" {
       }]
       environment = concat(
         [
-          { name = "INTELLENS_ENV", value = "aws" }
+          { name = "INTELLENS_ENV", value = "aws" },
+          { name = "SSO", value = var.sso_enabled ? "true" : "false" }
         ],
         var.fmp_api_key != "" ? [
           { name = "INTELLENS_FMP_API_KEY", value = var.fmp_api_key }
+        ] : [],
+        var.oidc_client_id != "" ? [
+          { name = "OIDC_CLIENT_ID", value = var.oidc_client_id }
+        ] : [],
+        var.oidc_client_secret != "" ? [
+          { name = "OIDC_CLIENT_SECRET", value = var.oidc_client_secret }
+        ] : [],
+        var.oidc_issuer != "" ? [
+          { name = "OIDC_ISSUER", value = var.oidc_issuer }
+        ] : [],
+        var.oidc_redirect_uri != "" ? [
+          { name = "OIDC_REDIRECT_URI", value = var.oidc_redirect_uri }
+        ] : [],
+        var.alphahunter_api_url != "" ? [
+          { name = "ALPHAHUNTER_API_URL", value = var.alphahunter_api_url }
+        ] : [],
+        var.alphahunter_api_key != "" ? [
+          { name = "ALPHAHUNTER_API_KEY", value = var.alphahunter_api_key }
+        ] : [],
+        var.csm_email != "" ? [
+          { name = "CSM_EMAIL", value = var.csm_email }
         ] : []
       )
       logConfiguration = {

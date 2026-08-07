@@ -8,34 +8,64 @@ AWS_DIR="$ROOT/deploy/aws"
 REGION="${AWS_REGION:-ap-south-1}"
 TAG="${IMAGE_TAG:-latest}"
 
-# Load optional FMP key for India EOD (never printed).
-if [[ -z "${TF_VAR_fmp_api_key:-}" ]]; then
-  for envf in "$ROOT/.env" "$ROOT/backend/.env"; do
-    if [[ -f "$envf" ]]; then
-      # shellcheck disable=SC1090
-      set -a
-      # Only export FMP-related lines
-      while IFS= read -r line; do
-        case "$line" in
-          INTELLENS_FMP_API_KEY=*|FMP_API_KEY=*)
-            key="${line%%=*}"
-            val="${line#*=}"
-            val="${val%\"}"
-            val="${val#\"}"
-            if [[ -n "$val" ]]; then
-              export TF_VAR_fmp_api_key="$val"
-            fi
-            ;;
-        esac
-      done < "$envf"
-      set +a
-    fi
-  done
-fi
+# Load optional secrets from .env into TF_VAR_* (never printed).
+_load_tf_env() {
+  local envf="$1"
+  [[ -f "$envf" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      ""|\#*) continue ;;
+    esac
+    local key="${line%%=*}"
+    local val="${line#*=}"
+    val="${val%\"}"
+    val="${val#\"}"
+    [[ -n "$val" ]] || continue
+    case "$key" in
+      INTELLENS_FMP_API_KEY|FMP_API_KEY)
+        [[ -z "${TF_VAR_fmp_api_key:-}" ]] && export TF_VAR_fmp_api_key="$val"
+        ;;
+      SSO)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_sso_enabled=true ;; esac
+        ;;
+      OIDC_CLIENT_ID)
+        [[ -z "${TF_VAR_oidc_client_id:-}" ]] && export TF_VAR_oidc_client_id="$val"
+        ;;
+      OIDC_CLIENT_SECRET)
+        [[ -z "${TF_VAR_oidc_client_secret:-}" ]] && export TF_VAR_oidc_client_secret="$val"
+        ;;
+      OIDC_ISSUER)
+        [[ -z "${TF_VAR_oidc_issuer:-}" ]] && export TF_VAR_oidc_issuer="$val"
+        ;;
+      OIDC_REDIRECT_URI)
+        [[ -z "${TF_VAR_oidc_redirect_uri:-}" ]] && export TF_VAR_oidc_redirect_uri="$val"
+        ;;
+      ALPHAHUNTER_API_URL|FACTS_API_URL)
+        [[ -z "${TF_VAR_alphahunter_api_url:-}" ]] && export TF_VAR_alphahunter_api_url="$val"
+        ;;
+      ALPHAHUNTER_API_KEY|FACTS_API_KEY)
+        [[ -z "${TF_VAR_alphahunter_api_key:-}" ]] && export TF_VAR_alphahunter_api_key="$val"
+        ;;
+      CSM_EMAIL)
+        [[ -z "${TF_VAR_csm_email:-}" ]] && export TF_VAR_csm_email="$val"
+        ;;
+    esac
+  done < "$envf"
+}
+_load_tf_env "$ROOT/.env"
+_load_tf_env "$ROOT/backend/.env"
+
 if [[ -n "${TF_VAR_fmp_api_key:-}" ]]; then
   echo "== FMP key detected (wiring INTELLENS_FMP_API_KEY into ECS task) =="
 else
   echo "== No FMP key — market tape stays demo_deterministic =="
+fi
+if [[ "${TF_VAR_sso_enabled:-}" == "true" ]]; then
+  echo "== SSO=true (OIDC env will be wired if CLIENT_ID/ISSUER/REDIRECT set) =="
+fi
+if [[ -n "${TF_VAR_alphahunter_api_url:-}" ]]; then
+  echo "== AlphaHunter live URL detected =="
 fi
 
 echo "== AWS identity =="

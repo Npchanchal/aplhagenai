@@ -63,6 +63,52 @@ variable "fmp_api_key" {
   description = "Optional Financial Modeling Prep key for EOD tape (not GCI). Empty = demo history."
 }
 
+variable "sso_enabled" {
+  type        = bool
+  default     = false
+  description = "Set SSO=true on the API task for OIDC login"
+}
+
+variable "oidc_client_id" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "oidc_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "oidc_issuer" {
+  type    = string
+  default = ""
+}
+
+variable "oidc_redirect_uri" {
+  type        = string
+  default     = ""
+  description = "Must match IdP app registration (usually https://host/api/auth/sso/callback)"
+}
+
+variable "alphahunter_api_url" {
+  type        = string
+  default     = ""
+  description = "Live facts vendor URL (ALPHAHUNTER_API_URL)"
+}
+
+variable "alphahunter_api_key" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "csm_email" {
+  type    = string
+  default = ""
+}
+
 variable "enable_eip" {
   type        = bool
   default     = false
