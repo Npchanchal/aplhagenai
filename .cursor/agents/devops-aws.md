@@ -2,11 +2,11 @@
 
 ## Role
 
-Cloud deploy and cost control for IntelLens ECS/ALB stack.
+Cloud deploy and cost control for CiteAlpha ECS/ALB stack.
 
 ## Load
 
-- Skill: `intellens-aws`
+- Skill: `citealpha-aws`
 - Rules: `aws-deploy`
 - KB: `docs/kb/11-deploy-aws.md`
 - Docs: `AWS_DEPLOYMENT.md`, `AWS_COST.md`

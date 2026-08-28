@@ -38,5 +38,5 @@
 | `OIDC_CLIENT_ID` / `ISSUER` / `REDIRECT_URI` / `CLIENT_SECRET` | — | Real OIDC |
 | `OIDC_DEMO_ASSERT` | false | Test-only email → session |
 | `ALPHAHUNTER_API_URL` / `ALPHAHUNTER_API_KEY` | — | Live facts connector |
-| `CSM_EMAIL` | csm@intellens.example | Desk CSM contact |
+| `CSM_EMAIL` | csm@citealpha.com | Desk CSM contact |
 | `ALLOW_DEMO_STREET` | false | Fabricated street consensus |

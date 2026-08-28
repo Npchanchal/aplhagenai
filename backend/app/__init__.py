@@ -1,1 +1,1 @@
-"""IntelLens GCI backend package."""
+"""CiteAlpha GCI backend package."""

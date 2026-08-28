@@ -6,8 +6,8 @@ Product definition, GTM, monetization, user stories, pitch alignment.
 
 ## Load
 
-- Skill: `intellens-product`
-- Rules: `intellens-core`, `compliance-sebi`
+- Skill: `citealpha-product`
+- Rules: `citealpha-core`, `compliance-sebi`
 - KB: `docs/kb/01-product-gci.md`, `13-commercial.md`
 - Docs: `PRODUCT_DEFINITION`, `BUSINESS_PLAN`, `USER_STORIES`, `customer/`
 

@@ -119,7 +119,7 @@ const INCLUDED = [
 
 const SURFACES = [
   {
-    to: "/",
+    to: "/tracker",
     title: "Guidance Credibility Index",
     tip: "tracker",
     blurb: "Screen Sensex GCI, Δ, quality, peers, alerts → open evidence.",
@@ -147,11 +147,18 @@ export default function PackagePage() {
         {t("package.title")} <InfoTip termId="one_stop" />
       </h1>
       <p className="muted lede">{t("package.lede")}</p>
+      <aside className="disclaimer" role="note" data-testid="retail-marketing-gate">
+        <strong>Retail (B2C) paywall.</strong> Individual plans are research tooling only — not
+        investment advice. After SEBI counsel attestation, checkout is available on{" "}
+        <Link to="/billing">Billing</Link>. B2B desks use MSA e-sign on the same page.
+      </aside>
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Product map</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Three primary surfaces — open any to evaluate in Pilot.
+          Three primary surfaces — open any to evaluate in Pilot. Parallel SKUs (Score, Cite,
+          Radar, Ledger, Data) are catalogued on{" "}
+          <Link to="/products">Products</Link>.
         </p>
         <div className="package-surfaces">
           {SURFACES.map((s) => (
@@ -166,6 +173,41 @@ export default function PackagePage() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="panel" data-testid="portfolio-skus">
+        <h2 style={{ marginTop: 0 }}>Parallel product lines</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Same disclosure spine; different jobs. Seats still sell as Pilot / Desk / API /
+          One-Stop — SKUs describe what the desk is buying.
+        </p>
+        <ul className="package-includes">
+          <li>
+            <strong>Score</strong>
+            <span className="muted">GCI 0–100 + peer delivery benchmarks</span>
+          </li>
+          <li>
+            <strong>Cite</strong>
+            <span className="muted">Mandatory citations + Research Terminal</span>
+          </li>
+          <li>
+            <strong>Radar</strong>
+            <span className="muted">Guidance change / miss / drop feed</span>
+          </li>
+          <li>
+            <strong>Ledger</strong>
+            <span className="muted">Promise accountability dossier</span>
+          </li>
+          <li>
+            <strong>Data</strong>
+            <span className="muted">PIT outcomes + factor export</span>
+          </li>
+        </ul>
+        <p style={{ marginTop: 12 }}>
+          <Link className="btn" to="/products">
+            Open products →
+          </Link>
+        </p>
       </div>
 
       <div className="panel">
@@ -190,7 +232,7 @@ export default function PackagePage() {
           Choose <strong>One-Stop Platform</strong>: one contract for Tracker + evidence +
           API/PIT + AlphaHunter JSON import <InfoTip termId="alphahunter" /> + Wordmap context
           (stub until corpus-derived) + vernacular + CSM <InfoTip termId="csm" />. Quotes and
-          consensus stay on your market terminal; IntelLens owns guidance accountability.
+          consensus stay on your market terminal; CiteAlpha owns guidance accountability.
         </p>
         <p style={{ marginTop: 12 }}>
           <Link className="btn" to="/desk">
@@ -233,37 +275,36 @@ export default function PackagePage() {
         <h2 style={{ marginTop: 0 }}>How to buy</h2>
         <ol className="package-steps">
           <li>
-            Start a <strong>Pilot</strong> — open{" "}
-            <Link to="/" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Guidance Credibility Index
+            Start a <strong>Pilot</strong> — open Tracker, then track conversion on{" "}
+            <Link to="/desk?tab=csm" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              Desk → CSM checklist
             </Link>
-            , try{" "}
-            <Link to="/desk" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Desk → Parameters
-            </Link>
-            , and skim{" "}
-            <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              About
+            . Export an{" "}
+            <Link to="/desk?tab=reports" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              IC audit dossier
             </Link>{" "}
-            /{" "}
-            <Link to="/help" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Help
+            (PDF/JSON). See public{" "}
+            <Link to="/rankings" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              GCI rankings
             </Link>
             .
           </li>
           <li>
-            Integrate reads with <code className="inline-code">X-API-Key</code> — OpenAPI
-            at <code className="inline-code">/docs</code>; metrics at{" "}
-            <code className="inline-code">/api/metrics</code>.
+            Integrate PIT with <code className="inline-code">GET /api/v1/pit/contract</code>{" "}
+            and <code className="inline-code">X-API-Key</code> — OpenAPI at{" "}
+            <code className="inline-code">/docs</code>.
           </li>
           <li>
             Convert with <strong>Desk</strong>, <strong>Enterprise API</strong>, or{" "}
             <strong>One-Stop Platform</strong> via{" "}
-            <code className="inline-code">docs/customer/ORDER_FORM.md</code>.
+            <Link to="/billing" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              Billing / MSA
+            </Link>{" "}
+            or <code className="inline-code">docs/customer/ORDER_FORM.md</code>.
           </li>
         </ol>
         <p className="cta-line">
-          Contact: <strong>sales@intellens.example</strong> · ask for org id + API key
+          Contact: <strong>sales@citealpha.com</strong> · ask for org id + API key
         </p>
       </div>
     </section>

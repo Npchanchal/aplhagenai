@@ -28,8 +28,17 @@ type AuthCtx = {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  continueAsGuest: () => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+    opts?: {
+      acceptTerms?: boolean;
+      accountType?: "retail" | "b2b";
+      orgName?: string;
+    },
+  ) => Promise<void>;
+  continueAsGuest: (acceptTerms?: boolean) => Promise<void>;
   adoptToken: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>;
@@ -100,6 +109,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!tkn) {
         const local = readLocalPrefs();
         if (local.language) setLang(local.language as LangCode);
+        if (Object.keys(local).length) {
+          setPreferences({
+            language: "en",
+            default_market: "IN",
+            default_index: "SENSEX",
+            watchlist: [],
+            show_demo_tape: true,
+            density: "comfortable",
+            ...local,
+          } as UserPreferences);
+        }
         setLoading(false);
         return;
       }
@@ -133,11 +153,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      opts?: {
+        acceptTerms?: boolean;
+        accountType?: "retail" | "b2b";
+        orgName?: string;
+      },
+    ) => {
       const res = await postRegister({
         email,
         password,
         name,
+        accept_terms: opts?.acceptTerms ?? true,
+        account_type: opts?.accountType ?? "retail",
+        org_name: opts?.orgName,
         guest_token: user?.kind === "guest" ? token ?? undefined : undefined,
         preferences: {
           language: lang,
@@ -145,22 +177,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
       applySession(res.token, res.user);
+      const { trackEvent } = await import("./analytics");
+      trackEvent("register");
     },
     [applySession, lang, token, user],
   );
 
-  const continueAsGuest = useCallback(async () => {
-    const res = await postGuest();
-    const merged = {
-      ...res.user.preferences,
-      ...readLocalPrefs(),
-      language: lang,
-    } as UserPreferences;
-    applySession(res.token, { ...res.user, preferences: merged });
-    const prefs = await putPreferences(res.token, merged);
-    setPreferences(prefs.preferences);
-    writeLocalPrefs(prefs.preferences);
-  }, [applySession, lang]);
+  const continueAsGuest = useCallback(
+    async (acceptTerms = true) => {
+      const res = await postGuest({ accept_terms: acceptTerms });
+      const merged = {
+        ...res.user.preferences,
+        ...readLocalPrefs(),
+        language: lang,
+      } as UserPreferences;
+      applySession(res.token, { ...res.user, preferences: merged });
+      const prefs = await putPreferences(res.token, merged);
+      setPreferences(prefs.preferences);
+      writeLocalPrefs(prefs.preferences);
+      const { trackEvent } = await import("./analytics");
+      trackEvent("guest_continue");
+    },
+    [applySession, lang],
+  );
 
   const adoptToken = useCallback(
     async (nextToken: string) => {

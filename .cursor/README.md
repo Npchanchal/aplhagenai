@@ -1,15 +1,16 @@
 ---
 name: Cursor Assets Index
-description: Map of IntelLens rules, skills, agents, and knowledge base for maintainers
+description: Map of CiteAlpha rules, skills, agents, and knowledge base for maintainers
 ---
 
-# Cursor assets (IntelLens)
+# Cursor assets (CiteAlpha)
 
 ## Rules (`.cursor/rules/`)
 
 | File | Scope |
 |---|---|
-| `intellens-core.mdc` | Always |
+| `citealpha-core.mdc` | Always |
+| `brand-assets.mdc` | Always — never change logos/favicons |
 | `python-backend.mdc` | `backend/**/*.py` |
 | `gci-scoring.mdc` | `backend/app/services/**` |
 | `gci-pipeline.mdc` | `backend/app/**` |
@@ -23,10 +24,15 @@ description: Map of IntelLens rules, skills, agents, and knowledge base for main
 | `data-quality.mdc` | Seed / labels |
 | `compliance-sebi.mdc` | Compliance surfaces |
 | `docs-kb.mdc` | `docs/kb/**` |
+| `sights.mdc` | Sights SKU (`/sights/*`) |
+| `production-monetization.mdc` | Auth, billing, entitlements, legal |
+| `postgres-data.mdc` | `backend/app/db/**` |
+| `seo-marketing.mdc` | SEO, prerender, marketing copy |
+| `portfolio.mdc` | Score · Cite · Radar · Ledger · Data SKUs |
 
 ## Skills (`.cursor/skills/`)
 
-`intellens-gci-dev`, `intellens-close-gaps`, `intellens-api`, `intellens-frontend-ux`, `intellens-research`, `intellens-labeling`, `intellens-phase0-labeling`, `intellens-product`, `intellens-test-deploy`, `intellens-aws`, `intellens-compliance`, `intellens-architecture`, `intellens-kb`
+`citealpha-gci-dev`, `citealpha-close-gaps`, `citealpha-api`, `citealpha-frontend-ux`, `citealpha-research`, `citealpha-sights`, `citealpha-portfolio`, `citealpha-production`, `citealpha-labeling`, `citealpha-phase0-labeling`, `citealpha-product`, `citealpha-test-deploy`, `citealpha-aws`, `citealpha-compliance`, `citealpha-architecture`, `citealpha-kb`
 
 ## Agents (`.cursor/agents/`)
 

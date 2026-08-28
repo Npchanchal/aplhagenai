@@ -23,22 +23,22 @@ def _digest(name: str, ticker: str, theme: str) -> str:
     return (
         f"{name} ({ticker}) investor relations digest — {theme}. "
         f"Management discussed growth outlook, operating margins, and capital allocation. "
-        f"Quantified guidance bands, when restated, are the primary IntelLens GCI input. "
+        f"Quantified guidance bands, when restated, are the primary CiteAlpha GCI input. "
         f"Source: curated IR catalog (not a live exchange feed)."
     )
 
 
 # Prefer stable IR / filings pages on hosts already in ingest.ALLOWLIST_HOSTS.
 _URLS: Dict[str, str] = {
-    "infy": "https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html",
+    "infy": "https://www.infosys.com/investors.html",
     "tcs": "https://www.tcs.com/investor-relations",
     "wipro": "https://www.wipro.com/investors/",
     "hcltech": "https://www.hcltech.com/investors",
     "techm": "https://www.techmahindra.com/en-in/investors/",
-    "reliance": "https://www.ril.com/InvestorRelations/FinancialReporting.aspx",
+    "reliance": "https://www.ril.com/Investors/Financials.aspx",
     "hdfcbank": "https://www.hdfcbank.com/personal/about-us/investor-relations",
     "icicibank": "https://www.icicibank.com/about-us/investor-relations",
-    "sbin": "https://www.sbi.co.in/web/corporate-governance/investor-relations",
+    "sbin": "https://www.sbi.co.in/web/investor-relations",
     "kotakbank": "https://www.kotak.com/en/investor-relations.html",
     "axisbank": "https://www.axisbank.com/shareholders-corner/investor-relations",
     "indusindbk": "https://www.indusind.com/in/en/personal/investors.html",
@@ -58,8 +58,8 @@ _URLS: Dict[str, str] = {
     "drreddy": "https://www.drreddys.com/investors",
     "asianpaints": "https://www.asianpaints.com/more/investors.html",
     "titan": "https://www.titancompany.in/investors",
-    "bajajfinance": "https://www.bajajfinserv.in/investors",
-    "bajajfinserv": "https://www.bajajfinserv.in/investors",
+    "bajajfinance": "https://www.bajajfinserv.in/bajaj-finance-investor-relations",
+    "bajajfinserv": "https://www.bajajfinserv.in/investor-relations",
 }
 
 _THEMES: Dict[str, str] = {

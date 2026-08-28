@@ -6,7 +6,7 @@ Hand-label Sensex guidance vs actuals to raise `hand_labeled` cohort quality.
 
 ## Load
 
-- Skills: `intellens-labeling`, `intellens-phase0-labeling`
+- Skills: `citealpha-labeling`, `citealpha-phase0-labeling`
 - Rules: `data-quality`, `gci-scoring`
 - KB: `docs/kb/08-data-labeling.md`
 - Doc: `docs/LABELING_PLAYBOOK.md`

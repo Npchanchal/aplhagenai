@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTour } from "../lib/TourProvider";
-import { TOURS, type TourId } from "../lib/tours";
+import { TOURS, TOUR_GROUPS, type TourId } from "../lib/tours";
 
 /** Compact launcher in the topnav + optional dropdown of all tours. */
 export default function TourMenu() {
@@ -14,7 +14,6 @@ export default function TourMenu() {
     if (!tour) return;
     setOpen(false);
     navigate(tour.startRoute);
-    // Let route settle then start
     window.setTimeout(() => startTour(id), 120);
   }
 
@@ -33,21 +32,26 @@ export default function TourMenu() {
       {open && (
         <div className="tour-menu-dropdown panel" role="menu" data-testid="tour-menu-dropdown">
           <p className="muted" style={{ margin: "0 0 8px", fontSize: 12 }}>
-            Walk through each surface. Esc skips.
+            Walk through each surface. Esc skips without marking complete.
           </p>
-          {TOURS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="menuitem"
-              className="tour-menu-item"
-              data-testid={`tour-start-${t.id}`}
-              onClick={() => launch(t.id)}
-            >
-              <strong>{t.title}</strong>
-              {seen[t.id] ? <span className="pill">seen</span> : null}
-              <span className="muted">{t.blurb}</span>
-            </button>
+          {TOUR_GROUPS.map((group) => (
+            <div key={group.id}>
+              <p className="tour-menu-heading">{group.label}</p>
+              {TOURS.filter((t) => t.group === group.id).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="menuitem"
+                  className="tour-menu-item"
+                  data-testid={`tour-start-${t.id}`}
+                  onClick={() => launch(t.id)}
+                >
+                  <strong>{t.title}</strong>
+                  {seen[t.id] ? <span className="pill">seen</span> : null}
+                  <span className="muted">{t.blurb}</span>
+                </button>
+              ))}
+            </div>
           ))}
           <button
             type="button"

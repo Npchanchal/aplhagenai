@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from app.data import doc_store
 from app.services.crawl import load_state, run_sensex_ir_crawl, save_state
-from app.services.extraction import extract_guidance
+from app.services.extraction import extract_auto
 from app.services.repository import save_pending_extract
 
 
@@ -69,7 +69,7 @@ def run_gci_refresh(
             text = (doc.get("text") or "").strip()
             if len(text) < 40:
                 continue
-            stmts = extract_guidance(text, company_id=cid, period="FY26")
+            stmts = extract_auto(text, company_id=cid, period="FY26")
             if not stmts:
                 extract_report.append(
                     {"company_id": cid, "doc_id": doc["doc_id"], "statements": 0}

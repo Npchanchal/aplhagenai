@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                                                                                                # Product Definition — IntelLens GCI MVP
+                                                                                                                                                                                                                                                                                                                                # Product Definition — CiteAlpha GCI MVP
 
 ## Vision
 
@@ -20,6 +20,13 @@ A **credit score for management guidance** on Indian listed companies, delivered
 - Retail consumer app.
 - Broker white-label badge.
 - Multi-language vernacular UI (planned parallel track).
+
+## Parallel portfolio (beyond GCI MVP)
+
+GCI remains the hero. Parallel sellable jobs on the same spine are catalogued in
+[`PRODUCT_PORTFOLIO.md`](PRODUCT_PORTFOLIO.md): **Score · Cite · Radar · Ledger · Data**.
+Phased build: [`PORTFOLIO_ROADMAP.md`](PORTFOLIO_ROADMAP.md). Do not expand MVP non-goals
+into sentiment dashboards or recommendations.
 
 ## Personas
 

@@ -1,0 +1,14 @@
+---
+description: SEO, prerender, and marketing site conventions
+globs: "{frontend/src/lib/{seo,blogMeta,blogPosts,siteFlags}.ts,frontend/src/components/SeoHead.tsx,frontend/scripts/prerender-seo.mjs,frontend/public/{sitemap.xml,robots.txt,site.webmanifest},docs/MARKETING_PLAN.md}"
+alwaysApply: false
+---
+
+# SEO / Marketing
+
+- Meta tags via `SeoHead.tsx` and `lib/seo.ts`; route map in `lib/seoRoutes.json`.
+- Prerender: `frontend/scripts/prerender-seo.mjs` — keep titles/descriptions factual, no accuracy over-claims.
+- Blog meta: `lib/blogMeta.ts` / `blogPosts.ts` — cite-only, India GCI positioning; not investment advice.
+- Public assets: `sitemap.xml`, `robots.txt`, `site.webmanifest` stay in sync with routes.
+- Competitor names only in internal docs — never in public SEO copy or OG tags.
+- Align claims with `hand_labeled` cohort reality and `docs/customer/COMPLIANCE.md`.

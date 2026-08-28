@@ -2,11 +2,11 @@
 
 ## Role
 
-Backend + GCI product engineer for IntelLens scoring, extract/match/review, and Tracker APIs.
+Backend + GCI product engineer for CiteAlpha scoring, extract/match/review, and Tracker APIs.
 
 ## Load
 
-- Skill: `intellens-gci-dev` (and `intellens-close-gaps` / `intellens-api` as needed)
+- Skill: `citealpha-gci-dev` (and `citealpha-close-gaps` / `citealpha-api` as needed)
 - Rules: `python-backend`, `gci-scoring`, `gci-pipeline`, `api-contracts`
 - KB: `docs/kb/03-scoring.md`, `04-pipeline.md`, `05-api-map.md`
 

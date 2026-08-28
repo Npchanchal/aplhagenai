@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import { GLOSSARY, HELP_SECTIONS } from "../lib/glossary";
+import { CONTACT_EMAIL } from "../lib/legal";
 import { useTour } from "../lib/TourProvider";
-import { TOURS, type TourId } from "../lib/tours";
+import { TOURS, TOUR_GROUPS, type TourId } from "../lib/tours";
 import { useI18n } from "../i18n";
 
 function TermSection({
@@ -48,12 +49,12 @@ function TermSection({
 const QUICK = [
   {
     to: "/about",
-    title: "About IntelLens",
+    title: "About CiteAlpha",
     tip: "gci",
-    text: "What it is, why it matters, how it works, who uses it",
+    text: "Who we are, why GCI exists, how ingest → cite works",
   },
   {
-    to: "/",
+    to: "/tracker",
     title: "Guidance Credibility Index",
     tip: "tracker",
     text: "Screen Sensex GCI · open evidence + charts",
@@ -62,7 +63,7 @@ const QUICK = [
     to: "/desk",
     title: "Desk",
     tip: "desk_sku",
-    text: "Review, Corpus foundation, cite-only Reports, PIT, Parameters",
+    text: "Console, review, Corpus, cite-only Reports, PIT",
   },
   {
     to: "/research",
@@ -71,10 +72,28 @@ const QUICK = [
     text: "Search, cite-only chat, MoM/QoQ/YoY snapshot",
   },
   {
-    to: "/help",
-    title: "Glossary",
-    tip: "tier1",
-    text: "Tier 1 / citability / Granger terms",
+    to: "/sights",
+    title: "Sights",
+    tip: "sights",
+    text: "India IR research OS — Ask, boards, grid",
+  },
+  {
+    to: "/products",
+    title: "Products",
+    tip: "score_sku",
+    text: "Score · Cite · Radar · Ledger · Data · Sights",
+  },
+  {
+    to: "/rankings",
+    title: "GCI Rankings",
+    tip: "rankings",
+    text: "Citeable public rankings — not recommendations",
+  },
+  {
+    to: "/trust",
+    title: "Trust Center",
+    tip: "trust_center",
+    text: "Security, residency, counsel, citations",
   },
   {
     to: "/package",
@@ -106,30 +125,49 @@ export default function HelpPage() {
       </h1>
       <p className="muted lede">{t("help.lede")}</p>
 
-      <div className="panel" data-testid="tours-hub">
+      <div className="panel">
+        <h2 style={{ marginTop: 0 }}>Start here</h2>
+        <div className="help-quick">
+          {QUICK.map((item) => (
+            <Link key={item.to} to={item.to} className="help-quick-card">
+              <strong>
+                {item.title} <InfoTip termId={item.tip} />
+              </strong>
+              <span className="muted">{item.text}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="panel" id="tours" data-testid="tours-hub">
         <h2 style={{ marginTop: 0 }}>Guided tours</h2>
         <p className="muted" style={{ marginTop: 0 }}>
           Spotlight walkthroughs of each surface. Use <strong>Tours</strong> in the
-          header anytime. Esc skips · ←/→ navigate steps.
+          header anytime. Esc skips without marking complete · ←/→ navigate steps.
         </p>
-        <div className="help-quick">
-          {TOURS.map((tour) => (
-            <button
-              key={tour.id}
-              type="button"
-              className="help-quick-card"
-              data-testid={`help-tour-${tour.id}`}
-              onClick={() => launch(tour.id)}
-              style={{ cursor: "pointer", textAlign: "left", border: "none", width: "100%" }}
-            >
-              <strong>
-                {tour.title}
-                {seen[tour.id] ? " · seen" : ""}
-              </strong>
-              <span className="muted">{tour.blurb}</span>
-            </button>
-          ))}
-        </div>
+        {TOUR_GROUPS.map((group) => (
+          <div key={group.id}>
+            <h3 className="help-tour-group">{group.label}</h3>
+            <div className="help-quick">
+              {TOURS.filter((tour) => tour.group === group.id).map((tour) => (
+                <button
+                  key={tour.id}
+                  type="button"
+                  className="help-quick-card"
+                  data-testid={`help-tour-${tour.id}`}
+                  onClick={() => launch(tour.id)}
+                  style={{ cursor: "pointer", textAlign: "left", border: "none", width: "100%" }}
+                >
+                  <strong>
+                    {tour.title}
+                    {seen[tour.id] ? " · seen" : ""}
+                  </strong>
+                  <span className="muted">{tour.blurb}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
         <button
           type="button"
           className="btn ghost"
@@ -146,25 +184,11 @@ export default function HelpPage() {
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="GCI, citeable, Granger, PIT, MoM…"
+          placeholder="GCI, citeable, Sights, Granger, PIT, MoM…"
           data-testid="help-search"
           autoComplete="off"
         />
       </label>
-
-      <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Start here</h2>
-        <div className="help-quick">
-          {QUICK.map((item) => (
-            <Link key={item.to} to={item.to} className="help-quick-card">
-              <strong>
-                {item.title} <InfoTip termId={item.tip} />
-              </strong>
-              <span className="muted">{item.text}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>
@@ -223,6 +247,16 @@ export default function HelpPage() {
             <div className="empty">No glossary terms match “{q.trim()}”.</div>
           )}
       </div>
+
+      <p className="muted" data-testid="help-legal-strip">
+        <Link to="/terms">Terms of Use</Link>
+        {" · "}
+        <Link to="/privacy">Privacy Notice</Link>
+        {" · "}
+        <Link to="/trust">Trust Center</Link>
+        {" · "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      </p>
       <Disclaimer />
     </section>
   );

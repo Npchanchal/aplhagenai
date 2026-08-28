@@ -1,4 +1,4 @@
-# IntelLens Knowledge Base
+# CiteAlpha Knowledge Base
 
 Canonical project memory for humans and Cursor agents. Prefer these pages over reinventing conventions from chat history.
 
@@ -16,20 +16,25 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | QA / release | [10-testing](10-testing.md) |
 | AWS / ops | [11-deploy-aws](11-deploy-aws.md) |
 | Compliance | [12-compliance](12-compliance.md) |
-| Architecture | [02-architecture](02-architecture.md) |
+| Architecture | [02-architecture](02-architecture.md) · [ARCHITECTURE_AND_DESIGN](../ARCHITECTURE_AND_DESIGN.md) · UI `/about/architecture` |
+| Sights SKU | [14-sights](14-sights.md) |
+| Platform admin portal | [15-admin-portal](15-admin-portal.md) |
 
 ## Source-of-truth docs (outside kb/)
 
 | Topic | Doc |
 |---|---|
 | MVP scope | `docs/PRODUCT_DEFINITION.md` |
+| Portfolio SKUs | `docs/PRODUCT_PORTFOLIO.md` · `docs/PORTFOLIO_ROADMAP.md` |
 | Stories | `docs/USER_STORIES.md` |
 | Gaps G01–G23 | `docs/GAPS_AND_ROADMAP.md` |
 | Phases 0–8 | `docs/IMPLEMENTATION_PLAN.md` |
 | Labeling | `docs/LABELING_PLAYBOOK.md` |
 | Parameters | `docs/GCI_PARAMETERS_AND_SOURCES.md` |
 | Research | `docs/RESEARCH_TERMINAL.md` |
-| Customer pack | `docs/customer/` |
+| Customer pack | `docs/customer/` · `docs/customer/skus/` |
+| B2B/B2C production | `docs/PRODUCTION_B2B_B2C.md` · `docs/INFRA_PRODUCTION.md` |
+| Platform admin portal | `docs/ADMIN_PORTAL.md` |
 | Pitch | `docs/PITCH_DECK.md` |
 
 ## Cursor assets

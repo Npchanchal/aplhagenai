@@ -1,0 +1,42 @@
+{
+  "name": "CiteAlpha — Guidance Credibility Index",
+  "short_name": "CiteAlpha",
+  "description": "Evidence-linked management guidance vs delivery scores for Indian equity desks. A product of Ocotillo Innovation Private Limited. Not investment advice.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#059591",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/ca_icon.png",
+      "sizes": "164x148",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

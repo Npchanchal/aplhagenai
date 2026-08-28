@@ -1,0 +1,152 @@
+[
+  {
+    "path": "/",
+    "title": "CiteAlpha — Guidance Credibility Index for Indian Equity Desks",
+    "description": "Evidence-linked Guidance Credibility Index (GCI): did Indian listed management deliver on quantified guidance? Tracker, Desk, Research. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "1.0" }
+  },
+  {
+    "path": "/tracker",
+    "title": "GCI Tracker — CiteAlpha",
+    "description": "Screen Sensex and Nifty names by Guidance Credibility Index. Every score links to guidance, actuals, and sources. Not investment advice.",
+    "sitemap": { "changefreq": "daily", "priority": "0.9" }
+  },
+  {
+    "path": "/desk",
+    "title": "Desk Console — CiteAlpha",
+    "description": "Multi-pane desk for review queue, corpus, PIT/API, and reports — human-in-the-loop GCI workflows for Indian equity research.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.8" }
+  },
+  {
+    "path": "/research",
+    "title": "Research Terminal — CiteAlpha",
+    "description": "Search filings and transcripts with cite-only chat. No hallucinated actuals. Built for Indian IR and concall workflows.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.8" }
+  },
+  {
+    "path": "/sights",
+    "title": "CiteAlpha Sights — India Disclosure Research",
+    "description": "Search, cite-only Ask, Compare Grid, and Desk Agents over public IR and CiteAlpha evidence. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.85" }
+  },
+  {
+    "path": "/sights/search",
+    "title": "Sights Search — CiteAlpha",
+    "description": "India IR document search with Business Lexicon synonym expand.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.7" }
+  },
+  {
+    "path": "/sights/ask",
+    "title": "Sights Ask — CiteAlpha",
+    "description": "Cite-only answers from the India disclosure corpus. Refuses without evidence.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.65" }
+  },
+  {
+    "path": "/products",
+    "title": "Product Portfolio — CiteAlpha",
+    "description": "Score, Cite, Sights, Radar, Ledger, and Data SKUs for Guidance Credibility Index workflows on Indian equity desks. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.8" }
+  },
+  {
+    "path": "/package",
+    "title": "Package & Pricing — CiteAlpha",
+    "description": "Pilot, Desk, and Enterprise API packages for Guidance Credibility Index. India-first institutional research product.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.8" }
+  },
+  {
+    "path": "/rankings",
+    "title": "GCI Rankings — CiteAlpha",
+    "description": "Browse Guidance Credibility Index rankings for covered Indian listings. Evidence-linked scores, not recommendations.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.7" }
+  },
+  {
+    "path": "/about",
+    "title": "About CiteAlpha — GCI by Ocotillo Innovation",
+    "description": "How CiteAlpha builds the Guidance Credibility Index: ingest, extract, match, score, and cite — for Indian equity desks. Product of Ocotillo Innovation Private Limited.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.7" }
+  },
+  {
+    "path": "/about/tiers",
+    "title": "Tier Features — CiteAlpha",
+    "description": "Feature map across CiteAlpha tiers: Tracker, Desk, Research, and Enterprise API capabilities.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.5" }
+  },
+  {
+    "path": "/help",
+    "title": "Help & Glossary — CiteAlpha",
+    "description": "Start here, guided tours, glossary, and source policy for GCI, Desk, Research, and Sights.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.6" }
+  },
+  {
+    "path": "/trust",
+    "title": "Trust Center — CiteAlpha",
+    "description": "Security, legal, and compliance posture for CiteAlpha institutional buyers. Factual research; not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.7" }
+  },
+  {
+    "path": "/blog",
+    "title": "Research Blog — CiteAlpha",
+    "description": "Articles on guidance credibility, Indian earnings evidence trails, and institutional workflows — without Buy/Hold tips.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.9" }
+  },
+  {
+    "path": "/terms",
+    "title": "Terms of Use — CiteAlpha",
+    "description": "Terms of Use for CiteAlpha, a product of Ocotillo Innovation Private Limited.",
+    "robots": "noindex,follow"
+  },
+  {
+    "path": "/privacy",
+    "title": "Privacy Notice — CiteAlpha",
+    "description": "Privacy Notice for CiteAlpha, a product of Ocotillo Innovation Private Limited.",
+    "robots": "noindex,follow"
+  },
+  {
+    "path": "/login",
+    "title": "Log in — CiteAlpha",
+    "description": "Sign in to CiteAlpha Guidance Credibility Index.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/register",
+    "title": "Register — CiteAlpha",
+    "description": "Create a CiteAlpha account for GCI Tracker and Desk access.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/billing",
+    "title": "Billing — CiteAlpha",
+    "description": "CiteAlpha billing and seats.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/admin",
+    "title": "Admin portal — CiteAlpha",
+    "description": "Platform operations console for CiteAlpha operators.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/forgot-password",
+    "title": "Forgot Password — CiteAlpha",
+    "description": "Reset your CiteAlpha account password.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/reset-password",
+    "title": "Reset Password — CiteAlpha",
+    "description": "Set a new password for your CiteAlpha account.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/verify-email",
+    "title": "Verify Email — CiteAlpha",
+    "description": "Confirm your CiteAlpha account email address.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/accept-invite",
+    "title": "Accept Invite — CiteAlpha",
+    "description": "Join your organization on CiteAlpha.",
+    "robots": "noindex,nofollow"
+  }
+]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
@@ -187,6 +188,9 @@ def list_company_summaries(
 
     # Default product path — existing Sensex GCI seed
     if not mid and not iid:
+        from app.data.gci_score_cache import load_cache
+
+        cache_scores = load_cache().get("scores") or {}
         stats = _sector_stats()
         rows: List[CompanySummary] = []
         for c in list_companies():
@@ -201,6 +205,24 @@ def list_company_summaries(
                 reverse=True,
             )
             rank = next((i + 1 for i, (cid, _) in enumerate(ranked) if cid == c["id"]), None)
+            cached = cache_scores.get(c["id"]) or {}
+            hz = {
+                "wow_pct": cached.get("wow_pct"),
+                "mom_pct": cached.get("mom_pct"),
+                "qoq_pct": cached.get("qoq_pct"),
+                "yoy_pct": cached.get("yoy_pct"),
+            }
+            if all(v is None for v in hz.values()) and score is not None:
+                try:
+                    b = gci_change_bundle_for(c["id"])
+                    hz = {
+                        "wow_pct": b.get("wow_pct"),
+                        "mom_pct": b.get("mom_pct"),
+                        "qoq_pct": b.get("qoq_pct"),
+                        "yoy_pct": b.get("yoy_pct"),
+                    }
+                except Exception:
+                    pass
             rows.append(
                 CompanySummary(
                     id=c["id"],
@@ -215,6 +237,7 @@ def list_company_summaries(
                     gci_change_horizon=ch_h,
                     market_id="IN",
                     index_ids=["SENSEX", "NIFTY50"],
+                    **hz,
                 )
             )
         rows.sort(key=lambda r: (r.gci_score is None, -(r.gci_score or 0)))
@@ -284,6 +307,10 @@ def list_company_summaries(
                         sector_avg_gci=avg,
                         gci_change_pct=ch_pct,
                         gci_change_horizon=ch_h,
+                        wow_pct=(cached or {}).get("wow_pct"),
+                        mom_pct=(cached or {}).get("mom_pct"),
+                        qoq_pct=(cached or {}).get("qoq_pct"),
+                        yoy_pct=(cached or {}).get("yoy_pct"),
                         market_id=s.get("market_id", "IN"),
                         index_ids=s.get("index_ids"),
                     )
@@ -307,6 +334,10 @@ def list_company_summaries(
                 sector_avg_gci=avg_map.get(sector),
                 gci_change_pct=(cached or {}).get("gci_change_pct"),
                 gci_change_horizon=(cached or {}).get("gci_change_horizon"),
+                wow_pct=(cached or {}).get("wow_pct"),
+                mom_pct=(cached or {}).get("mom_pct"),
+                qoq_pct=(cached or {}).get("qoq_pct"),
+                yoy_pct=(cached or {}).get("yoy_pct"),
                 market_id=s.get("market_id"),
                 index_ids=s.get("index_ids"),
             )
@@ -330,7 +361,10 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         outcomes = make_provisional_outcomes(
             listing["id"], listing["ticker"], listing.get("sector") or "Equity"
         )
-        score = compute_company_gci(outcomes)
+        from app.services.guidance_flags import collect_audit_flags
+
+        flags = collect_audit_flags(outcomes)
+        score = compute_company_gci(outcomes, audit_flags=flags)
         chmap = _outcome_change_map(outcomes)
         views = []
         for o in outcomes:
@@ -352,6 +386,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
                 threads[v.thread_id].append(v)
         trend = gci_trend_series(outcomes)
         ch_pct, ch_h = _latest_trend_change(trend)
+        audit = _audit_payload(outcomes, company_id=listing["id"], ticker=listing["ticker"])
         return CompanyGCIDetail(
             id=listing["id"],
             name=listing["name"],
@@ -371,6 +406,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
             gci_change_pct=ch_pct,
             gci_change_horizon=ch_h,
             by_metric_changes=_by_metric_changes(outcomes),
+            **audit,
         )
 
     quality = company.get("data_quality", "demo_structured")
@@ -391,7 +427,10 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         if missing_bind or not accepted:
             ensure_company_citation_corpus(company_id)
     outcomes = get_outcomes(company_id)
-    score = compute_company_gci(outcomes)
+    from app.services.guidance_flags import collect_audit_flags
+
+    flags = collect_audit_flags(outcomes)
+    score = compute_company_gci(outcomes, audit_flags=flags)
     chmap = _outcome_change_map(outcomes)
     views = []
     for o in outcomes:
@@ -423,6 +462,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
     sentiment = get_data().get("sentiment", {}).get(company_id, {})
     trend = gci_trend_series(outcomes)
     ch_pct, ch_h = _latest_trend_change(trend)
+    audit = _audit_payload(outcomes, company_id=company_id, ticker=company["ticker"])
 
     return CompanyGCIDetail(
         id=company["id"],
@@ -443,6 +483,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         gci_change_pct=ch_pct,
         gci_change_horizon=ch_h,
         by_metric_changes=_by_metric_changes(outcomes),
+        **audit,
     )
 
 
@@ -491,7 +532,35 @@ def pit_history(company_id: str) -> List[PitPoint]:
     ]
 
 
+def _audit_payload(
+    outcomes: List[Any],
+    *,
+    company_id: str,
+    ticker: str,
+) -> Dict[str, Any]:
+    from app.services.guidance_flags import (
+        audit_summary,
+        company_red_alerts,
+        revision_timeline,
+    )
+
+    summary = audit_summary(outcomes)
+    return {
+        "audit_flags": summary["flags"],
+        "audit_deduction": summary["deduction"],
+        "audit_badges": summary["badges"],
+        "audit_note": summary["note"],
+        "red_alerts": company_red_alerts(outcomes, company_id=company_id, ticker=ticker),
+        "revision_timeline": revision_timeline(
+            outcomes, company_id=company_id, ticker=ticker
+        ),
+    }
+
+
 def list_alerts() -> List[AlertItem]:
+    from app.services.guidance_flags import collect_audit_flags, AUDIT_LABELS, AUDIT_SEVERITY
+    from app.services.gci_scoring import AUDIT_PENALTY_PTS
+
     alerts: List[AlertItem] = []
 
     # Pending IR / transcript docs awaiting analyst review (crawl + ingest)
@@ -525,25 +594,52 @@ def list_alerts() -> List[AlertItem]:
     for c in list_companies():
         outs = get_outcomes(c["id"])
 
-        # Credibility drift — GCI down N consecutive periods (trend, not one miss)
+        # Audit flags → red rail (withdrawal / restatement / definition shift)
+        for flag in collect_audit_flags(outs):
+            pts = AUDIT_PENALTY_PTS.get(flag, 0.0)
+            alerts.append(
+                AlertItem(
+                    company_id=c["id"],
+                    ticker=c["ticker"],
+                    kind=flag,
+                    message=(
+                        f"{c['ticker']}: {AUDIT_LABELS.get(flag, flag)} "
+                        f"(−{pts:.0f} GCI audit pts)"
+                    ),
+                    severity=AUDIT_SEVERITY.get(flag, "medium"),
+                    audit_flag=flag,
+                    deduction_pts=pts,
+                )
+            )
+
+        # Credibility drift — ≥2 down moves in the trailing trend window
         trend = gci_trend_series(outs)
+        recent_ch = [
+            float(p["change_pct"])
+            for p in trend[-5:]
+            if p.get("change_pct") is not None
+        ]
+        down_moves = sum(1 for ch in recent_ch if ch < -0.5)
+        # Also count consecutive negatives from the end (zeros don't break the streak)
         drops = 0
-        for point in reversed(trend):
-            ch = point.get("change_pct")
-            if ch is not None and ch < 0:
+        for ch in reversed(recent_ch):
+            if ch < -0.5:
                 drops += 1
+            elif abs(ch) < 0.05:
+                continue
             else:
                 break
-        if drops >= 2:
+        if down_moves >= 2 or drops >= 2:
+            n = max(down_moves, drops)
             alerts.append(
                 AlertItem(
                     company_id=c["id"],
                     ticker=c["ticker"],
                     kind="credibility_drift",
                     message=(
-                        f"{c['ticker']} GCI down {drops} consecutive periods — credibility drift"
+                        f"{c['ticker']} GCI down {n} periods in recent trend — credibility drift"
                     ),
-                    severity="high" if drops >= 3 else "medium",
+                    severity="high" if n >= 3 else "medium",
                 )
             )
 
@@ -569,6 +665,9 @@ def list_alerts() -> List[AlertItem]:
                                 f"({last.period}) since {last.as_of} — quietly shelved?"
                             ),
                             severity="medium",
+                            period=last.period,
+                            metric=last.metric,
+                            source_url=last.source_url,
                         )
                     )
 
@@ -582,6 +681,9 @@ def list_alerts() -> List[AlertItem]:
                         kind="large_miss",
                         message=f"{c['ticker']} missed {o.metric} guidance for {o.period}",
                         severity="high",
+                        period=o.period,
+                        metric=o.metric,
+                        source_url=o.source_url,
                     )
                 )
             if label == "dropped":
@@ -591,33 +693,53 @@ def list_alerts() -> List[AlertItem]:
                         ticker=c["ticker"],
                         kind="guidance_dropped",
                         message=f"{c['ticker']} dropped {o.metric} guidance ({o.period})",
-                        severity="medium",
+                        severity="high",
+                        period=o.period,
+                        metric=o.metric,
+                        source_url=o.source_url,
                     )
                 )
             if o.thread_id:
                 thread = [x for x in outs if x.thread_id == o.thread_id]
                 if len(thread) >= 2:
-                    vals = [x.guided_value for x in thread]
+                    ordered = sorted(thread, key=lambda x: (x.as_of or "", x.period))
+                    vals = []
+                    for x in ordered:
+                        if x.guided_low is not None and x.guided_high is not None:
+                            vals.append((x.guided_low + x.guided_high) / 2.0)
+                        else:
+                            vals.append(float(x.guided_value))
                     if max(vals) - min(vals) >= 2:
+                        prev_m, cur_m = vals[0], vals[-1]
+                        direction = "raised" if cur_m > prev_m else "lowered"
                         alerts.append(
                             AlertItem(
                                 company_id=c["id"],
                                 ticker=c["ticker"],
                                 kind="guidance_revised",
-                                message=f"{c['ticker']} revised {o.metric} thread materially",
-                                severity="low",
+                                message=(
+                                    f"{c['ticker']} {direction} {o.metric} guidance "
+                                    f"{prev_m:.1f} → {cur_m:.1f}"
+                                ),
+                                severity="medium",
+                                period=o.period,
+                                metric=o.metric,
+                                source_url=o.source_url,
                             )
                         )
                         break
-    # de-dupe messages
+    # de-dupe messages; prefer high severity first
+    severity_rank = {"high": 0, "medium": 1, "low": 2}
+    alerts.sort(key=lambda a: (severity_rank.get(a.severity, 9), a.ticker, a.kind))
     seen = set()
     unique: List[AlertItem] = []
     for a in alerts:
-        if a.message in seen:
+        key = (a.company_id, a.kind, a.message)
+        if key in seen:
             continue
-        seen.add(a.message)
+        seen.add(key)
         unique.append(a)
-    return unique[:100]
+    return unique[:120]
 
 
 def apply_review(
@@ -627,6 +749,7 @@ def apply_review(
     comment: Optional[str],
     edits: Optional[Dict[str, Any]],
     reviewer: str,
+    org_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     data = get_data()
     rows = data["outcomes"].get(company_id)
@@ -670,6 +793,7 @@ def apply_review(
         "comment": comment,
         "edits": edits or {},
         "reviewer": reviewer,
+        "org_id": org_id or reviewer,
         "at": datetime.now(timezone.utc).isoformat(),
     }
     data.setdefault("reviews", []).append(review)
@@ -1101,6 +1225,7 @@ def period_completeness(company_id: str, periods: Optional[List[str]] = None) ->
     return {
         "company_id": company_id,
         "periods": rows,
+        "expected_doc_types": list(EXPECTED_DOC_TYPES),
         "summary": {
             "accepted_periods": accepted,
             "types_complete_periods": types_complete_n,
@@ -1111,6 +1236,14 @@ def period_completeness(company_id: str, periods: Optional[List[str]] = None) ->
             "outcome_count": outcome_n,
             "citeable_pct": citeable_pct,
             "tier1_gate": tier1_gate,
+            "missing_periods": [
+                r["period"] for r in rows if r.get("status") in ("missing", "partial")
+            ],
+            "sla": {
+                "target_citeable_pct": 95.0,
+                "target_types_complete": True,
+                "refresh_hours": float(os.environ.get("INTELLENS_REFRESH_HOURS", "6")),
+            },
         },
         "note": (
             "Automatic corpus preferred — paste ingest is exception path. "
@@ -1119,11 +1252,58 @@ def period_completeness(company_id: str, periods: Optional[List[str]] = None) ->
     }
 
 
+def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
+    """Resolve one name by exchange ticker across seed + India listings.
+
+    Default ``list_company_summaries()`` is Sensex seed only, so NSE_ALL
+    names (20MICRONS, 360ONE, …) 404'd on ``/api/badge/{ticker}``.
+    """
+    clean = (ticker or "").replace(".svg", "").strip()
+    if not clean:
+        return None
+    key = clean.upper()
+
+    for c in list_companies():
+        if (c.get("ticker") or "").upper() == key:
+            outcomes = get_outcomes(c["id"])
+            return {
+                "id": c["id"],
+                "ticker": c["ticker"],
+                "gci_score": compute_company_gci(outcomes),
+                "data_quality": c.get("data_quality", "demo_structured"),
+            }
+
+    from app.data.gci_score_cache import get_listing_score
+    from app.data.india_listings import find_listing_by_ticker
+    from app.services.provisional_gci import QUALITY, score_provisional
+
+    listing = find_listing_by_ticker(clean)
+    if listing is None:
+        return None
+    cached = get_listing_score(listing["id"])
+    if cached and cached.get("gci_score") is not None:
+        score = cached.get("gci_score")
+        quality = cached.get("data_quality") or listing.get("data_quality") or QUALITY
+    else:
+        scored = score_provisional(
+            listing["id"], listing["ticker"], listing.get("sector") or "Equity"
+        )
+        score = scored.get("gci_score")
+        quality = scored.get("data_quality") or QUALITY
+    return {
+        "id": listing["id"],
+        "ticker": listing["ticker"],
+        "gci_score": score,
+        "data_quality": quality,
+    }
+
+
 def gci_change_bundle_for(company_id: str) -> Dict[str, Any]:
-    from app.services.changes import change_bundle
+    from app.services.changes import change_bundle, multi_horizon_gci_series
     from app.services.pit_warehouse import get_pit_series, ensure_pit_series
 
     detail = get_company_gci(company_id)
+    anchor = detail.gci_score
     series = [
         (str(p.get("period") or p.get("as_of") or ""), p.get("gci_score"))
         for p in (detail.trend or [])
@@ -1152,7 +1332,26 @@ def gci_change_bundle_for(company_id: str) -> Dict[str, Any]:
             series_kind = "citeable_pit_short"
             citeable = True
 
-    bundle = change_bundle(detail.gci_score, series)
+    bundle = change_bundle(anchor, series)
+    # If calendar horizons still thin (FY-only citeable series), overlay weekly demo path
+    # for analytics chips — marked non-citeable / hybrid.
+    need = [bundle.get("wow_pct"), bundle.get("mom_pct"), bundle.get("qoq_pct"), bundle.get("yoy_pct")]
+    if anchor is not None and sum(1 for x in need if x is not None) < 3:
+        mh = multi_horizon_gci_series(company_id, float(anchor))
+        filled = change_bundle(anchor, mh)
+        for key in ("wow_pct", "mom_pct", "qoq_pct", "yoy_pct"):
+            if bundle.get(key) is None:
+                bundle[key] = filled.get(key)
+        if series_kind.startswith("citeable"):
+            series_kind = "hybrid_pit_horizons"
+            citeable = False
+        elif series_kind == "seed_pit":
+            series_kind = "demo_multi_horizon"
+        bundle["history"] = filled.get("history") or bundle.get("history")
+        bundle["pop_pct"] = filled.get("pop_pct", bundle.get("pop_pct"))
+        bundle["pop_horizon"] = filled.get("pop_horizon", bundle.get("pop_horizon"))
+        series = mh
+
     bundle["series_kind"] = series_kind
     bundle["series_n"] = len(series)
     bundle["citeable"] = citeable

@@ -334,9 +334,9 @@ export default function TierFeaturesPage() {
 
       <div className="about-cta-row">
         <Link to="/about" className="btn ghost">
-          About IntelLens
+          About CiteAlpha
         </Link>
-        <Link to="/" className="btn">
+        <Link to="/tracker" className="btn">
           Open Guidance Tracker
         </Link>
         <Link to="/companies/infy" className="btn ghost">

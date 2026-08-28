@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 48" role="img" aria-label="CiteAlpha">
+  <g fill="none">
+    <rect x="0" y="4" width="40" height="40" rx="10" fill="#0f172a"/>
+    <path d="M11 34V14h4.5c4.8 0 8 3 8 7.5S20.3 29 15.5 29H11zm4.5-3.5h.1c2.3 0 3.8-1.5 3.8-4S18 17.5 15.6 17.5H15.5v13z" fill="#e8f0ec"/>
+    <path d="M27 34V14h10v3.5h-6.5v4.5H35v3.5h-4.5v6.5H27z" fill="#14b8a6"/>
+    <path d="M8 12h24" stroke="#14b8a6" stroke-width="2" stroke-linecap="round"/>
+    <path d="M8 36h24" stroke="#14b8a6" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <text x="52" y="33" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#0f172a">Cite</text>
+  <text x="112" y="33" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif" font-size="28" font-weight="600" fill="#0d9488">Alpha</text>
+</svg>

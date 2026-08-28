@@ -11,7 +11,12 @@ from app.data.universe import SENSEX_30
 from app.services.gci_scoring import GuidanceOutcome
 
 
-def _ir(ticker: str) -> str:
+def _ir(company_id: str, ticker: str) -> str:
+    from app.data.ir_sources import target_for
+
+    ir = target_for(company_id)
+    if ir and (ir.get("url") or "").strip():
+        return str(ir["url"]).strip()
     return f"https://www.bseindia.com/stock-share-price/{ticker.lower()}/"
 
 
@@ -37,7 +42,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": thread,
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q4FY22-concall",
             "quote_span": f"revenue growth around {base_rev - 1}–{base_rev + 1}%",
             "as_of": "2023-05-15",
@@ -56,7 +61,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": thread,
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q4FY23-concall",
             "quote_span": f"{base_rev - 2}–{base_rev}%",
             "as_of": "2024-05-12",
@@ -76,7 +81,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CEO",
             "thread_id": thread,
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q4FY24-concall",
             "quote_span": f"{base_rev + 1}–{base_rev + 3}%",
             "as_of": "2025-05-10",
@@ -96,7 +101,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": f"{company_id}-margin",
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q2FY24-concall",
             "quote_span": "EBITDA margin",
             "as_of": "2023-11-01",
@@ -115,7 +120,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": f"{company_id}-margin",
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q4FY24-concall",
             "quote_span": "margin expansion",
             "as_of": "2025-05-10",
@@ -135,7 +140,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": f"{company_id}-capex",
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-AR-FY23",
             "quote_span": "Capex planned",
             "as_of": "2023-07-01",
@@ -154,7 +159,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": f"{company_id}-capex",
             "dropped": True,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q1FY25-concall",
             "quote_span": "capex guidance",
             "as_of": "2024-08-01",
@@ -175,7 +180,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
                 "speaker": "CFO",
                 "thread_id": f"{company_id}-nim",
                 "dropped": False,
-                "source_url": _ir(ticker),
+                "source_url": _ir(company_id, ticker),
                 "source_ref": f"{ticker}-Q3FY25-concall",
                 "quote_span": "3.4–3.6%",
                 "as_of": "2025-01-20",
@@ -195,7 +200,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
                 "speaker": "CEO",
                 "thread_id": f"{company_id}-util",
                 "dropped": False,
-                "source_url": _ir(ticker),
+                "source_url": _ir(company_id, ticker),
                 "source_ref": f"{ticker}-Q3FY25-concall",
                 "quote_span": "Utilization",
                 "as_of": "2025-01-20",
@@ -216,7 +221,7 @@ def _make_outcomes(company_id: str, ticker: str, sector: str) -> List[Dict[str, 
             "speaker": "CFO",
             "thread_id": thread,
             "dropped": False,
-            "source_url": _ir(ticker),
+            "source_url": _ir(company_id, ticker),
             "source_ref": f"{ticker}-Q4FY25-concall",
             "quote_span": f"{base_rev - 1}–{base_rev + 1}%",
             "as_of": "2026-05-01",
@@ -263,23 +268,28 @@ def build_dataset() -> Dict[str, Any]:
         else:
             outcomes[cid] = _make_outcomes(cid, ticker, sector)
 
-    # Nifty-50 extras beyond Sensex — demo_structured GCI (not hand-audited)
+    # Nifty-50 extras beyond Sensex — demo until promoted into HAND_LABELED
+    # (see docs/LABELING_RUNBOOK.md wave P0 / milestone M2→M3).
     from app.data.universe import NIFTY_EXTRA
 
     sensex_ids = {c["id"] for c in companies}
     for cid, name, ticker, sector in NIFTY_EXTRA:
         if cid in sensex_ids:
             continue
+        quality = "hand_labeled" if cid in HAND_LABELED_COMPANY_IDS else "demo_structured"
         companies.append(
             {
                 "id": cid,
                 "name": name,
                 "ticker": ticker,
                 "sector": sector,
-                "data_quality": "demo_structured",
+                "data_quality": quality,
             }
         )
-        outcomes[cid] = _make_outcomes(cid, ticker, sector)
+        if cid in HAND_LABELED:
+            outcomes[cid] = list(HAND_LABELED[cid])
+        else:
+            outcomes[cid] = _make_outcomes(cid, ticker, sector)
 
     # Sentiment stubs for Wordmap integration (G13)
     sentiment = {
@@ -319,25 +329,43 @@ def build_dataset() -> Dict[str, Any]:
         "pending_extracts": [],
         "api_keys": [
             {"key": "intellens-demo", "org": "demo", "role": "analyst"},
-            {"key": "intellens-admin", "org": "demo", "role": "admin"},
+            {"key": "intellens-admin", "org": "demo", "role": "admin", "platform_admin_role": "super"},
             {"key": "intellens-viewer", "org": "demo", "role": "viewer"},
+            {"key": "intellens-retail", "org": "retail", "role": "viewer"},
+            {"key": "intellens-onestop", "org": "onestop-demo", "role": "admin"},
+            {"key": "intellens-onestop-labeler", "org": "onestop-demo", "role": "labeler"},
         ],
         "orgs": {
             "demo": {
-                "name": "IntelLens Pilot Desk",
+                "name": "CiteAlpha Pilot Desk",
                 "plan": "pilot",
+                "account_type": "b2b",
                 "seats": 5,
                 "seats_used": 0,
                 "csm": "Assigned at convert",
+                "legal_entity": "Ocotillo Innovation Private Limited",
                 "api_key_hint": "intellens-demo",
             },
             "onestop-demo": {
-                "name": "IntelLens One-Stop Demo",
+                "name": "CiteAlpha One-Stop Demo",
                 "plan": "onestop",
+                "account_type": "b2b",
                 "seats": 40,
                 "seats_used": 0,
                 "csm": "Named CSM on convert",
-                "api_key_hint": "intellens-demo",
+                "legal_entity": "Ocotillo Innovation Private Limited",
+                "api_key_hint": "intellens-onestop",
+                "labeling_granted": True,
+            },
+            "retail": {
+                "name": "CiteAlpha Retail (B2C)",
+                "plan": "retail",
+                "account_type": "retail",
+                "seats": 10000,
+                "seats_used": 0,
+                "csm": "Self-serve retail",
+                "legal_entity": "Ocotillo Innovation Private Limited",
+                "api_key_hint": None,
             },
         },
         "labeling_queue": [],
@@ -367,6 +395,7 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         doc_id=d.get("doc_id"),
         span_start=None if d.get("span_start") is None else int(d["span_start"]),
         span_end=None if d.get("span_end") is None else int(d["span_end"]),
+        unmapped=bool(d.get("unmapped", False)),
     )
 
 
@@ -413,6 +442,12 @@ def reset_data() -> Dict[str, Any]:
     global _DATA
     _DATA = build_dataset()
     save_data()
+    try:
+        from app.services import labeling as lbl
+
+        lbl.clear_sql_store()
+    except Exception:
+        pass
     return _DATA
 
 

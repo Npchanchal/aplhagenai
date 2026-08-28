@@ -2,13 +2,13 @@
 
 ## What to sell
 
-**IntelLens One-Stop Platform** — a single contract that covers the full India *guidance accountability* stack for a research desk: workbench + Wordmap context + AlphaHunter import + API/PIT + vernacular + compliance posture + enterprise support.
+**CiteAlpha One-Stop Platform** — a single contract that covers the full India *guidance accountability* stack for a research desk: workbench + Wordmap context + AlphaHunter import + API/PIT + vernacular + compliance posture + enterprise support.
 
 It is **one-stop for management guidance credibility**, not a replacement for Bloomberg / FactSet / LSEG terminals (quotes, consensus, OMS).
 
 ## Pitch line
 
-> “One contract for India guidance accountability: extract → match → score → evidence → API — plus analyst review and vernacular blurbs. Keep your terminal for prices; use IntelLens for whether management delivered.”
+> “One contract for India guidance accountability: extract → match → score → evidence → API — plus analyst review and vernacular blurbs. Keep your terminal for prices; use CiteAlpha for whether management delivered.”
 
 ## What’s in One-Stop (vs Desk / API alone)
 
@@ -63,7 +63,7 @@ Often cheaper than buying Desk seats *plus* a separate maxed Enterprise API with
 Keep it. One-Stop adds India management delivery scores Bloomberg does not productize as a GCI.
 
 **“We want everything in one UI.”**  
-One-Stop is the single IntelLens surface (Tracker + evidence + Wordmap context + API). Deep filings search can stay on AlphaSense/Tijori; we integrate via import + API.
+One-Stop is the single CiteAlpha surface (Tracker + evidence + Wordmap context + API). Deep filings search can stay on AlphaSense/Tijori; we integrate via import + API.
 
 **“Can you white-label for our clients?”**  
 Badge / Trust Score path is inside One-Stop Year-2 option — factual metric only, not advice.

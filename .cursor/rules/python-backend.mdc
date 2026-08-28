@@ -1,5 +1,5 @@
 ---
-description: Python FastAPI backend conventions for IntelLens
+description: Python FastAPI backend conventions for CiteAlpha
 globs: backend/**/*.py
 alwaysApply: false
 ---

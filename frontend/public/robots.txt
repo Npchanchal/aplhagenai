@@ -1,0 +1,12 @@
+# CiteAlpha — https://citealpha.com
+User-agent: *
+Allow: /
+Disallow: /billing
+Disallow: /accept-invite
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://citealpha.com/sitemap.xml

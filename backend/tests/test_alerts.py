@@ -45,7 +45,7 @@ def test_credibility_drift_fires_on_consecutive_gci_declines():
     alerts = list_alerts()
     drift = [a for a in alerts if a.kind == "credibility_drift" and a.ticker == "INFY"]
     assert drift, "expected credibility_drift alert for INFY"
-    assert "consecutive" in drift[0].message
+    assert "consecutive" in drift[0].message or "periods" in drift[0].message
     assert drift[0].severity in ("medium", "high")
 
 

@@ -92,6 +92,31 @@ variable "oidc_redirect_uri" {
   description = "Must match IdP app registration (usually https://host/api/auth/sso/callback)"
 }
 
+variable "openai_api_key" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Optional OpenAI (or compatible) key for LLM extract + embeddings. Empty = heuristic/TF-IDF."
+}
+
+variable "force_https" {
+  type        = bool
+  default     = false
+  description = "Set FORCE_HTTPS=true on the API task (app-level redirect + HSTS with enable_hsts)"
+}
+
+variable "enable_hsts" {
+  type        = bool
+  default     = false
+  description = "Set ENABLE_HSTS=true on the API task"
+}
+
+variable "intellens_public_url" {
+  type        = string
+  default     = ""
+  description = "Public site URL (e.g. https://citealpha.com) for absolute links / OIDC hints"
+}
+
 variable "alphahunter_api_url" {
   type        = string
   default     = ""
@@ -107,6 +132,24 @@ variable "alphahunter_api_key" {
 variable "csm_email" {
   type    = string
   default = ""
+}
+
+variable "radar_digest" {
+  type        = bool
+  default     = false
+  description = "Set RADAR_DIGEST=1 on the API task (email/webhook digests)"
+}
+
+variable "ir_mirror" {
+  type        = bool
+  default     = false
+  description = "Set IR_MIRROR=1 on the API task (corporate IR Mirror ledger)"
+}
+
+variable "portfolio_stretch" {
+  type        = bool
+  default     = true
+  description = "Set PORTFOLIO_STRETCH on the API task (NCI + workbench; default on)"
 }
 
 variable "enable_eip" {
@@ -137,4 +180,66 @@ variable "manage_dns" {
   type        = bool
   default     = true
   description = "When domain_name is set, create Route53 zone + ACM validation + A/ALIAS records"
+}
+
+variable "hostinger_mail_dns" {
+  type        = bool
+  default     = false
+  description = "When true (and manage_dns), create Hostinger MX/SPF/DKIM/DMARC + autodiscover/autoconfig in Route53"
+}
+
+variable "use_db_auth" {
+  type        = bool
+  default     = true
+  description = "Set USE_DB_AUTH=1 on the API task (SQLite or Postgres persistence)"
+}
+
+variable "auth_sqlite_path" {
+  type        = string
+  default     = "/data/auth.db"
+  description = "SQLite auth DB path when USE_DB_AUTH=1 and Postgres is not configured"
+}
+
+variable "enable_auth_efs" {
+  type        = bool
+  default     = true
+  description = "Mount EFS at /data so auth.db survives ECS redeploys"
+}
+
+variable "smtp_host" {
+  type        = string
+  default     = ""
+  description = "SMTP_HOST for verify/reset/invite mail (empty = stubbed)"
+}
+
+variable "smtp_port" {
+  type        = string
+  default     = "587"
+  description = "SMTP_PORT (587 or 2525 for Mailtrap)"
+}
+
+variable "smtp_from" {
+  type        = string
+  default     = ""
+  description = "SMTP_FROM — e.g. CiteAlpha <no-reply@citealpha.com>"
+}
+
+variable "smtp_user" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "SMTP_USER"
+}
+
+variable "smtp_pass" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "SMTP_PASS"
+}
+
+variable "intellens_auth_dev_tokens" {
+  type        = bool
+  default     = false
+  description = "Expose one-time tokens in API when SMTP unset (never true in prod)"
 }

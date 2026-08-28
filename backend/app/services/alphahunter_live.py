@@ -28,7 +28,7 @@ def connector_status() -> Dict[str, Any]:
 
 
 def _fetch_remote(url: str, api_key: Optional[str]) -> Any:
-    headers = {"Accept": "application/json", "User-Agent": "IntelLens-GCI/1.0"}
+    headers = {"Accept": "application/json", "User-Agent": "CiteAlpha-GCI/1.0"}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
         headers["X-API-Key"] = api_key

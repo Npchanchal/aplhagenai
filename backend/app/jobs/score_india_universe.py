@@ -1,4 +1,4 @@
-"""Score full India NSE/BSE universe with gci_scoring v2.
+"""Score full India NSE/BSE universe with active gci_scoring (default v3).
 
   python -m app.jobs.score_india_universe
   python -m app.jobs.score_india_universe --limit 100
@@ -26,6 +26,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "algorithm": report.get("algorithm"),
                 "count": report.get("count"),
                 "scored_count": report.get("scored_count"),
+                "horizons_yoy_count": report.get("horizons_yoy_count"),
+                "horizons_full_count": report.get("horizons_full_count"),
                 "as_of": report.get("as_of"),
                 "note": report.get("note"),
             },

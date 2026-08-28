@@ -8,7 +8,7 @@ Copy everything below the line into Cursor Agent to implement (or extend).
 
 ## Role
 
-Extend **IntelLens** (`/Users/navin/AlphaGenAI`) with **5-year historical series** for every scaffolded **market (flagship indexes)** and every **constituent stock**.
+Extend **CiteAlpha** (`/Users/navin/AlphaGenAI`) with **5-year historical series** for every scaffolded **market (flagship indexes)** and every **constituent stock**.
 
 This is **navigation / research context**, not live exchange data and **not** a GCI input. Prefer deterministic demo series with honest `data_quality` badges. Do **not** invent GCI guidance actuals; do **not** claim live coverage.
 

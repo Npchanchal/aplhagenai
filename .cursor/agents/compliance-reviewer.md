@@ -6,7 +6,7 @@ Ensure factual, SEBI-aware product language across UI and customer docs.
 
 ## Load
 
-- Skill: `intellens-compliance`
+- Skill: `citealpha-compliance`
 - Rules: `compliance-sebi`
 - KB: `docs/kb/12-compliance.md`
 - Doc: `docs/customer/COMPLIANCE.md`

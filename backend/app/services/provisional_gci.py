@@ -1,8 +1,9 @@
 """Provisional GCI coverage for NSE/BSE listings.
 
-Uses the production scorer in ``gci_scoring`` (v2). Outcomes for non-seeded
-listings are deterministic demo-grade bands — quality ``listing_provisional``.
-Never presented as hand_labeled; cite only hand_labeled Sensex rows.
+Uses the production scorer in ``gci_scoring`` (v2 default; v3 via
+``INTELLENS_GCI_VERSION``). Outcomes for non-seeded listings are deterministic
+demo-grade bands — quality ``listing_provisional``. Never presented as
+hand_labeled; cite only hand_labeled Sensex rows.
 """
 
 from __future__ import annotations

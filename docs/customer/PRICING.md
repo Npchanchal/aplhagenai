@@ -70,7 +70,22 @@ Full pitch, inclusions matrix, and refuse-list: [ONE_STOP.md](ONE_STOP.md).
 | Extra seats | Pro-rata Desk rate (or One-Stop à la carte) |
 | Custom universe (beyond Sensex) | Scoping + labeling fee |
 | On-prem / VPC deploy | Enterprise / One-Stop |
+| Cite API higher limits | Embed / copilots (portfolio Cite SKU) |
+| Radar digest | Weekly email / webhook (roadmap P2) |
+| Ledger PDF / board pack | Accountability dossier export (roadmap P3) |
 | Broker Trust Score badge | Year-2 white-label; not sold standalone in MVP |
+
+## Product lines vs access tiers
+
+| Job SKU | Typical access |
+|---|---|
+| **Score** | Desk seats + rankings |
+| **Cite** | Desk + Research; Cite API add-on |
+| **Radar** | Desk alerts; digest add-on |
+| **Ledger** | Desk dossier; PDF / IR Mirror later |
+| **Data** | Enterprise API / One-Stop |
+
+Catalog: [`../PRODUCT_PORTFOLIO.md`](../PRODUCT_PORTFOLIO.md) · one-pagers: [`skus/`](skus/README.md).
 
 ## What’s not charged separately
 
@@ -79,3 +94,7 @@ Help glossary, outcome labels, evidence UI, SEBI factual note — included in De
 ## Procurement
 
 Use [ORDER_FORM.md](ORDER_FORM.md). Pricing excludes GST. Multi-year: −10% (2y) / −15% (3y) illustrative.
+
+## Payment rails (ops)
+
+In-app today: MSA issue + e-sign stub, retail UPI intent. **Live Razorpay / Stripe is not wired** — confirm requires a real payment reference unless `BILLING_DEMO=1` on non-prod. Conversion path: Pilot checklist → MSA issued → signed → Desk seats (`from_pilot` on `/api/billing/msa`).

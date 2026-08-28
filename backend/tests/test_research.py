@@ -33,6 +33,13 @@ def test_snapshot_and_estimates():
 def test_watchlist_nonempty():
     w = research.watchlist()
     assert len(w["items"]) >= 5
+    assert w.get("source") == "default"
+
+
+def test_watchlist_prefers_company_ids():
+    w = research.watchlist(company_ids=["infy", "tcs"])
+    assert w["source"] == "preferences"
+    assert [r["company_id"] for r in w["items"]] == ["infy", "tcs"]
 
 
 def test_promise_brief_shapes_open_promises():

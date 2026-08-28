@@ -6,7 +6,7 @@ Verification gate: unit, functional, frontend build, docker, Playwright.
 
 ## Load
 
-- Skill: `intellens-test-deploy`
+- Skill: `citealpha-test-deploy`
 - Rules: `testing-deploy`
 - KB: `docs/kb/10-testing.md`
 - Script: `./scripts/verify-all.sh`

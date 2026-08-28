@@ -1,6 +1,6 @@
 # Production OIDC (SSO)
 
-IntelLens SSO is **OIDC authorization-code** → token → userinfo/email → desk session.
+CiteAlpha SSO is **OIDC authorization-code** → token → userinfo/email → desk session.
 
 ## Env (API task)
 
@@ -10,7 +10,7 @@ IntelLens SSO is **OIDC authorization-code** → token → userinfo/email → de
 | `OIDC_CLIENT_ID` | yes | IdP application client id |
 | `OIDC_CLIENT_SECRET` | yes | confidential client |
 | `OIDC_ISSUER` | yes | e.g. `https://accounts.google.com` or Azure/Okta issuer |
-| `OIDC_REDIRECT_URI` | yes | Must match IdP + public URL, e.g. `https://ocotilloinnovation.in/api/auth/sso/callback` |
+| `OIDC_REDIRECT_URI` | yes | Must match IdP + public URL, e.g. `https://citealpha.com/api/auth/sso/callback` |
 | `OIDC_SCOPE` | no | default `openid email profile` |
 | `OIDC_DISCOVERY_URL` / `OIDC_TOKEN_URL` / `OIDC_USERINFO_URL` | no | override discovery |
 | `OIDC_FRONTEND_REDIRECT` | no | post-login path (default `/`) |
@@ -33,4 +33,6 @@ Wire via repo `.env` (gitignored) — `scripts/aws-deploy.sh` maps them to `TF_V
 
 - Do not enable `OIDC_DEMO_ASSERT` in production.
 - Redirect URI must be HTTPS in customer IdP (after domain NS cutover).
-- Seat metering still applies for first-time SSO users (`org=demo` until multi-tenant orgs land).
+- Seat metering applies for first-time SSO users.
+- Org mapping: set `email_domain` on the org (`PUT /api/orgs/{id}/oidc`) so SSO users land on that tenant instead of `demo`.
+- Optional per-org `oidc_issuer` / `oidc_client_id` fields are stored for IdP inventory (global `OIDC_*` env still drives the authorize flow in MVP).

@@ -141,7 +141,7 @@ def _get(path: str, params: Dict[str, Any]) -> Any:
     q = dict(params)
     q["apikey"] = key
     url = f"{BASE_URL}{path}?{urlencode(q)}"
-    req = Request(url, headers={"User-Agent": "IntelLens/1.0"})
+    req = Request(url, headers={"User-Agent": "CiteAlpha/1.0"})
     with urlopen(req, timeout=20) as resp:  # noqa: S310 — fixed FMP host
         return json.loads(resp.read().decode("utf-8"))
 

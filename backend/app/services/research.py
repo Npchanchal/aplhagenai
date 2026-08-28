@@ -11,7 +11,48 @@ from app.data import consensus_store, doc_store
 from app.data.seed import get_data
 from app.services import repository
 from app.services.analytics import track
-from app.services.feature_flags import consensus_import_enabled, research_llm_enabled
+from app.services.feature_flags import (
+    consensus_import_enabled,
+    embeddings_enabled,
+    research_llm_enabled,
+)
+
+_EMBED_CACHE: Dict[str, List[float]] = {}
+
+
+def _api_embed_scores(query: str, docs: List[Dict[str, Any]]) -> Optional[List[float]]:
+    """OpenAI-compatible embeddings cosine; None if unavailable."""
+    if not embeddings_enabled():
+        return None
+    from app.services import llm_client
+
+    if not llm_client.llm_configured() or not docs:
+        return None
+    try:
+        texts = [f"{d.get('title', '')} {d.get('body', d.get('snippet', ''))}"[:4000] for d in docs]
+        # Cache per doc id
+        missing_idx = []
+        missing_texts = []
+        vectors: List[Optional[List[float]]] = [None] * len(docs)
+        for i, d in enumerate(docs):
+            did = str(d.get("id") or i)
+            if did in _EMBED_CACHE:
+                vectors[i] = _EMBED_CACHE[did]
+            else:
+                missing_idx.append(i)
+                missing_texts.append(texts[i])
+        if missing_texts:
+            new_vecs = llm_client.embed_texts(missing_texts)
+            for j, vec in zip(missing_idx, new_vecs):
+                did = str(docs[j].get("id") or j)
+                _EMBED_CACHE[did] = vec
+                vectors[j] = vec
+        qv = llm_client.embed_texts([query[:4000]])[0]
+        return [
+            llm_client.cosine(qv, v) if v is not None else 0.0 for v in vectors
+        ]
+    except Exception:
+        return None
 
 
 def _tokenize(text: str) -> List[str]:
@@ -97,15 +138,24 @@ def search_documents(
             continue
         filtered.append(d)
 
+    embed_mode = "none"
     if not q:
         hits = [{**d, "score": 1.0} for d in filtered[:limit]]
+        engine = "intellens-browse-v1"
     elif hybrid:
-        scores = _tfidf_scores(query, filtered)
+        api_scores = _api_embed_scores(query, filtered)
+        if api_scores is not None:
+            scores = api_scores
+            embed_mode = "api_embeddings"
+            engine = "intellens-embed-hybrid-v1"
+        else:
+            scores = _tfidf_scores(query, filtered)
+            embed_mode = "local_tfidf"
+            engine = "intellens-hybrid-v1"
         ranked = sorted(
             ({**d, "score": float(s)} for d, s in zip(filtered, scores)),
             key=lambda x: -x["score"],
         )
-        # also boost keyword hits
         for h in ranked:
             blob = f"{h['title']} {h['body']}".lower()
             if q in blob:
@@ -118,6 +168,7 @@ def search_documents(
         if not hits:
             hits = ranked[:limit]
     else:
+        engine = "intellens-keyword-v1"
         hits = []
         for d in filtered:
             blob = f"{d['title']} {d['body']}".lower()
@@ -130,14 +181,38 @@ def search_documents(
         "query": query,
         "count": len(hits),
         "results": hits,
-        "engine": "intellens-hybrid-v1" if hybrid else "intellens-keyword-v1",
-        "product": "Intellens Search",
+        "engine": engine,
+        "embed_mode": embed_mode,
+        "product": "CiteAlpha Search",
         "llm_mode": research_llm_enabled(),
     }
 
 
+def _numbered_cite_answer(bits: List[str], records: List[Dict[str, Any]], gci_note: str) -> str:
+    """Grounded draft with [n] markers matching citation records."""
+    marked = []
+    for i, bit in enumerate(bits[:3], start=1):
+        snippet = (bit or "").strip()
+        if len(snippet) > 220:
+            snippet = snippet[:217] + "…"
+        marked.append(f"{snippet} [{i}]")
+    refs = "; ".join(
+        f"[{r.get('n')}] {(r.get('ticker') or '')} {(r.get('title') or '')}".strip()
+        for r in records
+    )
+    body = " ".join(marked) if marked else "No quote spans available."
+    note = gci_note.strip()
+    prefix = f"{note} " if note else ""
+    return (
+        f"{prefix}Based only on indexed CiteAlpha sources: {body} "
+        f"Sources: {refs}. Factual draft, not investment advice."
+    )
+
+
 def research_chat(question: str, company_id: Optional[str] = None) -> Dict[str, Any]:
     """Cite-only: answer only from retrieved chunks; refuse if empty."""
+    from app.services.citations import document_to_citation
+
     track("research_chat", {"question": question[:120], "company_id": company_id})
     q = (question or "").strip()
     if not q:
@@ -152,7 +227,6 @@ def research_chat(question: str, company_id: Optional[str] = None) -> Dict[str, 
     citations = []
     for c in search["results"][:5]:
         blob = f"{c.get('title', '')} {c.get('body', '')} {c.get('snippet', '')}".lower()
-        # require at least one meaningful token overlap (len>3) or strong score
         overlap = [t for t in q_toks if len(t) > 3 and t in blob]
         if overlap or float(c.get("score") or 0) >= 0.25:
             citations.append(c)
@@ -175,43 +249,49 @@ def research_chat(question: str, company_id: Optional[str] = None) -> Dict[str, 
             "question": q,
             "company_id": company_id,
             "answer": (
-                "I don't have cited evidence in the Intellens document store for that question. "
+                "I don't have cited evidence in the CiteAlpha document store for that question. "
                 "Ingest a filing/transcript or narrow to a covered Sensex name."
             ),
             "citations": [],
             "refused": True,
-            "engine": "intellens-cite-only-v1",
-            "product": "Intellens Research Chat",
+            "engine": "citealpha-cite-only-v2",
+            "product": "CiteAlpha Research Chat",
             "disclaimer": "Not investment advice. Cite-only mode — no answer without sources.",
             "llm_mode": research_llm_enabled(),
         }
 
+    records = [document_to_citation(c, n=i) for i, c in enumerate(citations, start=1)]
     bits = [c["snippet"] for c in citations]
-    answer = (
-        f"Based only on indexed Intellens sources:{gci_note} "
-        + " | ".join(bits[:2])
-        + " — Factual draft, not investment advice."
-    )
+    engine = "citealpha-cite-only-v2"
+    answer = _numbered_cite_answer(bits, records, gci_note)
+    if research_llm_enabled():
+        try:
+            from app.services import llm_client
+
+            if llm_client.llm_configured():
+                rewritten = llm_client.rewrite_cite_only_answer(q, bits, gci_note=gci_note)
+                if rewritten:
+                    marks = " ".join(f"[{i}]" for i in range(1, len(records) + 1))
+                    if "[1]" not in rewritten:
+                        rewritten = f"{rewritten.rstrip()} {marks}"
+                    answer = rewritten + " Factual draft, not investment advice."
+                    engine = "citealpha-cite-only-llm-v2"
+        except Exception:
+            pass
     return {
         "question": q,
         "company_id": company_id,
         "answer": answer,
-        "citations": [
-            {
-                "id": c["id"],
-                "title": c["title"],
-                "doc_type": c["doc_type"],
-                "ticker": c["ticker"],
-                "snippet": c["snippet"],
-                "date": c["date"],
-                "company_id": c["company_id"],
-            }
-            for c in citations
-        ],
+        "citations": records,
         "refused": False,
-        "engine": "intellens-cite-only-v1",
-        "product": "Intellens Research Chat",
-        "disclaimer": "Not investment advice. Answers restricted to retrieved citations.",
+        "engine": engine,
+        "retrieve_engine": search.get("engine"),
+        "embed_mode": search.get("embed_mode"),
+        "product": "CiteAlpha Research Chat",
+        "disclaimer": (
+            "Not investment advice. Answers restricted to retrieved citations. "
+            "Every claim maps to a numbered source."
+        ),
         "llm_mode": research_llm_enabled(),
     }
 
@@ -427,15 +507,25 @@ def news_feed(company_id: Optional[str] = None, limit: int = 20) -> Dict[str, An
     return {
         "count": min(len(docs), limit),
         "items": docs[:limit],
-        "product": "Intellens News & Filings",
+        "product": "CiteAlpha News & Filings",
     }
 
 
-def watchlist() -> Dict[str, Any]:
+def watchlist(company_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Watchlist tape. When company_ids is set (prefs / query), use that order; else first 15."""
     from app.services.changes import change_bundle
 
+    summaries = repository.list_company_summaries()
+    by_id = {c.id: c for c in summaries}
+    if company_ids:
+        companies = [by_id[cid] for cid in company_ids if cid in by_id]
+        source = "preferences"
+    else:
+        companies = summaries[:15]
+        source = "default"
+
     rows = []
-    for c in repository.list_company_summaries()[:15]:
+    for c in companies:
         price = _demo_price(c.ticker)
         price_series = [
             (f"2025-{m:02d}", round(price * (0.94 + i * 0.015), 2))
@@ -463,8 +553,11 @@ def watchlist() -> Dict[str, Any]:
         )
     return {
         "items": rows,
-        "product": "Intellens Watchlist",
-        "note": "Tape and GCI shown as level + MoM/QoQ/YoY change where available.",
+        "count": len(rows),
+        "source": source,
+        "product": "CiteAlpha Watchlist",
+        "note": "Tape and GCI shown as level + MoM/QoQ/YoY change where available. "
+        "Persist picks via PUT /api/auth/preferences { watchlist: [company_id, ...] }.",
     }
 
 
@@ -482,7 +575,10 @@ def chat_eval_hit_rate(cases: List[Dict[str, Any]]) -> Dict[str, Any]:
     hits = 0
     for case in cases:
         out = research_chat(case["q"], company_id=case.get("company_id"))
-        cite_ids: Set[str] = {c["id"] for c in out.get("citations", [])}
+        cite_ids: Set[str] = {
+            str(c.get("citation_id") or c.get("doc_id") or c.get("id") or "")
+            for c in out.get("citations", [])
+        }
         expected = set(case.get("expect_any_ids") or [])
         expect_company = case.get("expect_company_id")
         ok = False

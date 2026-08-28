@@ -50,7 +50,7 @@ output "domain_name" {
 
 output "route53_nameservers" {
   value       = try(aws_route53_zone.app[0].name_servers, [])
-  description = "Set these NS at Hostinger for ocotilloinnovation.in so ACM validates and HTTPS works"
+  description = "Set these NS at Hostinger for citealpha.com so ACM validates and HTTPS works"
 }
 
 output "acm_certificate_arn_effective" {
@@ -70,4 +70,17 @@ output "eip_public_ip" {
 output "app_url_hint" {
   value       = "Static review: http://${aws_lb.app.dns_name}"
   description = "Prefer ALB DNS from ./scripts/aws-app-url.sh"
+}
+
+output "auth_efs_id" {
+  value       = try(aws_efs_file_system.auth[0].id, "")
+  description = "EFS file system for persistent auth.db (empty when disabled)"
+}
+
+output "auth_persistence" {
+  value = {
+    use_db_auth     = var.use_db_auth
+    auth_sqlite_path = var.auth_sqlite_path
+    efs_enabled     = var.enable_auth_efs && var.use_db_auth
+  }
 }

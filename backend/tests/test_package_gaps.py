@@ -30,7 +30,7 @@ def test_p11_wordmap_has_source():
 def test_p13_em_csv_export():
     r = client.get(
         "/api/export/em-factor/infy?format=csv",
-        headers={"X-API-Key": "intellens-demo"},
+        headers={"X-API-Key": "intellens-onestop"},
     )
     assert r.status_code == 200
     assert "text/csv" in r.headers.get("content-type", "")
@@ -71,7 +71,7 @@ def test_p21_org_seats_and_entitlements():
 
 
 def test_p21_seat_limit_on_register():
-    # Fill pilot seats (5)
+    # Fill pilot seats on shared demo tenant (5)
     for i in range(5):
         r = client.post(
             "/api/auth/register",
@@ -79,12 +79,22 @@ def test_p21_seat_limit_on_register():
                 "email": f"seat{i}@example.com",
                 "password": "secret1",
                 "name": f"Seat {i}",
+                "accept_terms": True,
+                "account_type": "b2b",
+                "org_id": "demo",
             },
         )
         assert r.status_code == 200, r.text
     over = client.post(
         "/api/auth/register",
-        json={"email": "overflow@example.com", "password": "secret1", "name": "Over"},
+        json={
+            "email": "overflow@example.com",
+            "password": "secret1",
+            "name": "Over",
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_id": "demo",
+        },
     )
     assert over.status_code == 403
 

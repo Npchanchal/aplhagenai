@@ -19,31 +19,44 @@ ALLOWLIST_HOSTS: Set[str] = {
     "www.hul.co.in",
     "www.marutisuzuki.com",
     "www.itcportal.com",
+    "itcportal.com",
     "www.ril.com",
     "www.wipro.com",
     "www.hcltech.com",
     "www.hdfcbank.com",
+    "www.hdfc.bank.in",
+    "hdfc.bank.in",
     "www.icicibank.com",
+    "www.icici.bank.in",
+    "icici.bank.in",
     "www.sbi.co.in",
+    "sbi.co.in",
     "www.tatamotors.com",
     "www.tatasteel.com",
     "www.techmahindra.com",
+    "insights.techmahindra.com",
     "www.drreddys.com",
     "www.sunpharma.com",
+    "sunpharma.com",
     "www.airtel.in",
+    "assets.airtel.in",
     "www.asianpaints.com",
     "www.bajajfinserv.in",
-    "www.bajajfinserv.in",
+    "cms-assets.bajajfinserv.in",
     "www.nestle.in",
     "www.ntpc.co.in",
+    "ntpc.co.in",
     "www.powergrid.in",
     "www.larsentoubro.com",
     "www.mahindra.com",
     "www.kotak.com",
     "www.jsw.in",
     "www.axisbank.com",
+    "www.axis.bank.in",
+    "axis.bank.in",
     "www.indusind.com",
     "www.titancompany.in",
+    "www.kotak.com",
 }
 
 
@@ -113,7 +126,7 @@ def ingest_html_url(company_id: str, url: str, *, title: Optional[str] = None) -
         # allow exact allowlist or subdomain of allowlisted apex — keep strict: hostname must match
         if host not in ALLOWLIST_HOSTS:
             raise ValueError(f"Host not allowlisted: {host}")
-    req = Request(url, headers={"User-Agent": "IntelLensBot/1.0"})
+    req = Request(url, headers={"User-Agent": "CiteAlphaBot/1.0"})
     with urlopen(req, timeout=15) as resp:  # noqa: S310 — allowlist gated
         raw = resp.read().decode("utf-8", errors="ignore")
     parser = _TextExtractor()
@@ -147,7 +160,7 @@ def bootstrap_top_companies(limit: int = 10) -> int:
         body = transcripts.get(cid) or (
             f"{name} ({ticker}) investor relations summary. "
             f"Management discussed growth outlook, margins, and capital allocation. "
-            f"Guidance bands remain the primary accountability signal for IntelLens GCI."
+            f"Guidance bands remain the primary accountability signal for CiteAlpha GCI."
         )
         doc_store.upsert_document(
             company_id=cid,

@@ -50,6 +50,71 @@ _load_tf_env() {
       CSM_EMAIL)
         [[ -z "${TF_VAR_csm_email:-}" ]] && export TF_VAR_csm_email="$val"
         ;;
+      OPENAI_API_KEY|INTELLENS_LLM_API_KEY)
+        [[ -z "${TF_VAR_openai_api_key:-}" ]] && export TF_VAR_openai_api_key="$val"
+        ;;
+      FORCE_HTTPS)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_force_https=true ;; esac
+        ;;
+      ENABLE_HSTS)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_enable_hsts=true ;; esac
+        ;;
+      INTELLENS_PUBLIC_URL)
+        [[ -z "${TF_VAR_intellens_public_url:-}" ]] && export TF_VAR_intellens_public_url="$val"
+        ;;
+      VITE_PLAUSIBLE_DOMAIN|VITE_GA_MEASUREMENT_ID|VITE_GSC_VERIFICATION)
+        export "$key=$val"
+        ;;
+      RADAR_DIGEST)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_radar_digest=true ;;
+          false|0|no|off) export TF_VAR_radar_digest=false ;;
+        esac
+        ;;
+      IR_MIRROR)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_ir_mirror=true ;;
+          false|0|no|off) export TF_VAR_ir_mirror=false ;;
+        esac
+        ;;
+      PORTFOLIO_STRETCH)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_portfolio_stretch=true ;;
+          false|0|no|off) export TF_VAR_portfolio_stretch=false ;;
+        esac
+        ;;
+      USE_DB_AUTH)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_use_db_auth=true ;;
+          false|0|no|off) export TF_VAR_use_db_auth=false ;;
+        esac
+        ;;
+      AUTH_SQLITE_PATH)
+        [[ -z "${TF_VAR_auth_sqlite_path:-}" ]] && export TF_VAR_auth_sqlite_path="$val"
+        ;;
+      SMTP_HOST)
+        [[ -z "${TF_VAR_smtp_host:-}" ]] && export TF_VAR_smtp_host="$val"
+        ;;
+      SMTP_PORT)
+        [[ -z "${TF_VAR_smtp_port:-}" ]] && export TF_VAR_smtp_port="$val"
+        ;;
+      SMTP_FROM)
+        [[ -z "${TF_VAR_smtp_from:-}" ]] && export TF_VAR_smtp_from="$val"
+        ;;
+      SMTP_USER)
+        [[ -z "${TF_VAR_smtp_user:-}" ]] && export TF_VAR_smtp_user="$val"
+        ;;
+      SMTP_PASS)
+        [[ -z "${TF_VAR_smtp_pass:-}" ]] && export TF_VAR_smtp_pass="$val"
+        ;;
+      INTELLENS_AUTH_DEV_TOKENS)
+        v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
+        case "$v" in true|1|yes|on) export TF_VAR_intellens_auth_dev_tokens=true ;;
+          false|0|no|off) export TF_VAR_intellens_auth_dev_tokens=false ;;
+        esac
+        ;;
     esac
   done < "$envf"
   return 0
@@ -62,11 +127,38 @@ if [[ -n "${TF_VAR_fmp_api_key:-}" ]]; then
 else
   echo "== No FMP key — market tape stays demo_deterministic =="
 fi
+if [[ -n "${TF_VAR_openai_api_key:-}" ]]; then
+  echo "== LLM key detected (wiring OPENAI_API_KEY into ECS task) =="
+else
+  echo "== No LLM key — extract/embeddings stay local fallback =="
+fi
+if [[ "${TF_VAR_force_https:-}" == "true" ]]; then
+  echo "== FORCE_HTTPS=true (app-level HTTPS redirect + HSTS) =="
+fi
 if [[ "${TF_VAR_sso_enabled:-}" == "true" ]]; then
   echo "== SSO=true (OIDC env will be wired if CLIENT_ID/ISSUER/REDIRECT set) =="
 fi
 if [[ -n "${TF_VAR_alphahunter_api_url:-}" ]]; then
   echo "== AlphaHunter live URL detected =="
+fi
+if [[ "${TF_VAR_radar_digest:-}" == "true" ]]; then
+  echo "== RADAR_DIGEST=1 (Radar email/webhook digests) =="
+fi
+if [[ "${TF_VAR_ir_mirror:-}" == "true" ]]; then
+  echo "== IR_MIRROR=1 (IR Mirror ledger) =="
+fi
+if [[ "${TF_VAR_portfolio_stretch:-}" == "false" ]]; then
+  echo "== PORTFOLIO_STRETCH=0 (NCI/workbench off) =="
+elif [[ "${TF_VAR_portfolio_stretch:-}" == "true" ]]; then
+  echo "== PORTFOLIO_STRETCH=1 =="
+fi
+if [[ "${TF_VAR_use_db_auth:-true}" == "true" ]]; then
+  echo "== USE_DB_AUTH=1 (SQLite on EFS at ${TF_VAR_auth_sqlite_path:-/data/auth.db}) =="
+fi
+if [[ -n "${TF_VAR_smtp_host:-}" ]]; then
+  echo "== SMTP configured (${TF_VAR_smtp_host}:${TF_VAR_smtp_port:-587}) =="
+else
+  echo "== No SMTP — verify/reset mail stays stubbed =="
 fi
 
 echo "== AWS identity =="
@@ -80,7 +172,17 @@ terraform init -input=false
 if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
   terraform apply -input=false -auto-approve
 else
-  terraform apply -input=false -auto-approve -target=aws_ecs_task_definition.app
+  # Task def + service + persistent auth EFS when enabled
+  TF_TARGETS=(
+    -target=aws_security_group.efs
+    -target=aws_efs_file_system.auth
+    -target=aws_efs_mount_target.auth
+    -target=aws_efs_access_point.auth
+    -target=aws_iam_role_policy.ecs_task_efs
+    -target=aws_ecs_task_definition.app
+    -target=aws_ecs_service.app
+  )
+  terraform apply -input=false -auto-approve "${TF_TARGETS[@]}"
   echo "== Tip: TF_FULL_APPLY=1 for ALB/HTTPS/ACM; needs Route53 NS live =="
 fi
 
@@ -101,32 +203,60 @@ docker build "${BUILD_OPTS[@]}" -t "${ECR_API}:${TAG}" "$ROOT/backend"
 docker push "${ECR_API}:${TAG}"
 
 echo "== Build & push Web image (nginx -> localhost:8000) =="
-docker build "${BUILD_OPTS[@]}" -f "$ROOT/frontend/Dockerfile.aws" -t "${ECR_WEB}:${TAG}" "$ROOT/frontend"
+WEB_BUILD_ARGS=()
+[[ -n "${VITE_PLAUSIBLE_DOMAIN:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}")
+[[ -n "${VITE_GA_MEASUREMENT_ID:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}")
+[[ -n "${VITE_GSC_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GSC_VERIFICATION=${VITE_GSC_VERIFICATION}")
+docker build "${BUILD_OPTS[@]}" "${WEB_BUILD_ARGS[@]}" -f "$ROOT/frontend/Dockerfile.aws" -t "${ECR_WEB}:${TAG}" "$ROOT/frontend"
 docker push "${ECR_WEB}:${TAG}"
 
 echo "== Force ECS redeploy =="
 aws ecs update-service --region "$REGION" --cluster "$CLUSTER" \
   --service "$SERVICE" --force-new-deployment >/dev/null
 
-echo "== Waiting for ALB /health =="
-APP_URL="$(cd "$AWS_DIR" && echo "http://$(terraform output -raw alb_dns_name)")"
+echo "== Waiting for ECS rollout =="
 for i in $(seq 1 60); do
-  if curl -sf "${APP_URL}/health" >/dev/null 2>&1; then
-    echo "Healthy after ~$((i * 5))s via ALB"
+  read -r RUNNING ROLLOUT <<<"$(aws ecs describe-services --region "$REGION" --cluster "$CLUSTER" \
+    --services "$SERVICE" \
+    --query 'services[0].deployments[?status==`PRIMARY`].[runningCount,rolloutState] | [0]' \
+    --output text 2>/dev/null || echo "0 IN_PROGRESS")"
+  if [[ "${RUNNING:-0}" -ge 1 && "${ROLLOUT:-}" == "COMPLETED" ]]; then
+    echo "ECS steady after ~$((i * 5))s"
     break
   fi
   sleep 5
   if [[ "$i" -eq 60 ]]; then
-    echo "Timed out waiting for ALB /health — try task IP via aws-app-url fallback"
+    echo "Timed out waiting for ECS rollout — continuing health check anyway"
+  fi
+done
+
+echo "== Waiting for ALB /health =="
+APP_URL="$(cd "$AWS_DIR" && terraform output -raw app_url 2>/dev/null || true)"
+if [[ -z "$APP_URL" || "$APP_URL" != https://* ]]; then
+  APP_URL="https://$(cd "$AWS_DIR" && terraform output -raw alb_dns_name)"
+fi
+for i in $(seq 1 60); do
+  if curl -sf "${APP_URL}/health" >/dev/null 2>&1; then
+    echo "Healthy after ~$((i * 5))s via ${APP_URL}"
+    break
+  fi
+  sleep 5
+  if [[ "$i" -eq 60 ]]; then
+    echo "Timed out waiting for ${APP_URL}/health — try task IP via aws-app-url fallback"
     exit 1
   fi
 done
 
 echo ""
-echo "AWS deployment ready (static ALB DNS)"
+echo "AWS deployment ready"
 echo "  App:      ${APP_URL}"
 echo "  Package:  ${APP_URL}/package"
 echo "  Health:   ${APP_URL}/health"
 echo "  API docs: ${APP_URL}/docs"
 echo "  Meta:     ${APP_URL}/api/meta"
 curl -sf "${APP_URL}/api/meta" | python3 -m json.tool | head -20
+
+if [[ -n "${BOOTSTRAP_SUPER_EMAIL:-}" && -n "${BOOTSTRAP_SUPER_PASSWORD:-}" ]]; then
+  echo "== Bootstrap platform super user =="
+  python3 "$ROOT/scripts/bootstrap-super-user.py" --api "$APP_URL"
+fi

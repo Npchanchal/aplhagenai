@@ -10,4 +10,5 @@ alwaysApply: false
 - Vernacular blurbs always accompany disclaimer; do not imply advice.
 - Persist language/market/index prefs via auth preferences APIs when available.
 - SSO remains stub until OIDC is explicitly wired; do not fake production SSO.
+- Production auth/billing: rule `production-monetization.mdc` · skill `citealpha-production`.
 - See `docs/kb/09-i18n-auth-markets.md`.

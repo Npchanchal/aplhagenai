@@ -2,6 +2,8 @@
 
 Goal: every Sensex outcome used externally is **citation-ready**.
 
+**Executable waves (P0 Nifty-extra → provisional):** [`LABELING_RUNBOOK.md`](LABELING_RUNBOOK.md) · batch CSV [`labeling/batch_p0_nifty_extra.csv`](labeling/batch_p0_nifty_extra.csv) · `./scripts/labeling-status.sh`
+
 ## Steps per company
 
 1. Open IR / guidance-vs-actuals / results press release.

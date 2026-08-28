@@ -6,7 +6,7 @@ Own `/research` modes and `/api/research/*` — primary-source search and cite-o
 
 ## Load
 
-- Skill: `intellens-research`
+- Skill: `citealpha-research`
 - Rules: `research-terminal`, `api-contracts`
 - KB: `docs/kb/07-research-terminal.md`
 - Doc: `docs/RESEARCH_TERMINAL.md`

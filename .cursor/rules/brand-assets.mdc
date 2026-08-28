@@ -1,0 +1,29 @@
+---
+description: Do not change CiteAlpha logos, favicons, or brand mark assets
+alwaysApply: true
+---
+
+# Brand assets — do not change
+
+**Never modify logos, favicons, app icons, or brand marks** unless the user explicitly asks for a branding change.
+
+## Do not touch
+
+- **Public assets:** `frontend/public/favicon.ico`, `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `ca_icon.png`, `citealpha-logo.png`
+- **Source / marketing assets:** `docs/citealpha-logo.svg`, `docs/citealpha-mark.svg`, `docs/citealpha-mark.png`, `docs/citealpha-og.png`
+- **Manifest & HTML:** `frontend/public/site.webmanifest` icon entries; favicon / apple-touch links in `frontend/index.html`
+- **Logo component:** do not change `LOGO_SRC`, image `src`, or swap asset files in `frontend/src/components/BrandLogo.tsx` (layout/CSS around the logo is OK if requested)
+
+## Also avoid without explicit request
+
+- Regenerating, resizing, re-exporting, or replacing brand images (including via AI image tools)
+- Renaming brand asset files or changing their paths
+- Pointing favicon, manifest, SEO `logo`, or header components at new image files
+
+## Allowed
+
+- Fix broken **paths** only when the user reports a 404 and the asset file already exists at a different canonical path
+- Accessibility tweaks that do not change the image (`alt` text, `aria-label`) when requested
+- Non-brand images (screenshots, diagrams, blog hero art unrelated to CiteAlpha mark)
+
+If a task would improve UX by changing branding, **stop and ask** — do not substitute a new logo or favicon on your own.

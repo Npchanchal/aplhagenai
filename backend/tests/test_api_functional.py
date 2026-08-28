@@ -22,7 +22,7 @@ def test_us001_list_companies_sensex30():
     r = client.get("/api/companies")
     assert r.status_code == 200
     data = r.json()
-    # Seed GCI cohort: 30 hand_labeled Sensex + 10 demo_structured Nifty extras
+    # Seed GCI cohort: Sensex hand_labeled + Nifty-extra (demo until promoted; Cipla HL in P0)
     assert len(data) == 40
     sensex = client.get("/api/companies", params={"market": "IN", "index": "SENSEX"}).json()
     assert len(sensex) == 30

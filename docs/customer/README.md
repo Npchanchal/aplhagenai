@@ -1,10 +1,11 @@
-# IntelLens GCI — Customer Package
+# CiteAlpha GCI — Customer Package
 
 Sales-ready materials for institutional pilots and paid seats. Share this folder (or the in-app **Package** page) with prospects.
 
 | Document | Use |
 |---|---|
-| [ONE_PAGER.md](ONE_PAGER.md) | Leave-behind / email attach |
+| [ONE_PAGER.md](ONE_PAGER.md) | Leave-behind / email attach (Score / GCI) |
+| [skus/](skus/README.md) | Parallel SKU one-pagers: Score · Cite · Radar · Ledger · Data |
 | [PRICING.md](PRICING.md) | Seat + API commercial tiers |
 | [PACKAGE_CLAIMS_GAPS.md](../PACKAGE_CLAIMS_GAPS.md) | Claims vs shipped + implementation plan |
 | [MSA_CHECKLIST.md](MSA_CHECKLIST.md) | Commercial MSA / ops items (CSM, HTTPS, OIDC) |
@@ -19,8 +20,9 @@ Sales-ready materials for institutional pilots and paid seats. Share this folder
 **Live product**
 
 - Workbench UI (Guidance Tracker + evidence + help)
+- Portfolio overview: `/products`
 - REST API with `X-API-Key`
 - In-app summary: `/package`
 
 **Positioning (one line)**  
-India-first Guidance Credibility Index — management promises vs delivery, with an auditable evidence trail. Not investment advice.
+India-first Guidance Credibility Index — management promises vs delivery, with an auditable evidence trail. Parallel jobs: Cite, Radar, Ledger, Data. Not investment advice.

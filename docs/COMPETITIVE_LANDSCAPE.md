@@ -1,10 +1,10 @@
 # Competitive Landscape — Products on the Path to GCI
 
-Products already shipping pieces of the journey toward a **Guidance Credibility Index** (management promises vs delivery). IntelLens whitespace: **India-first** guidance accountability scoring.
+Products already shipping pieces of the journey toward a **Guidance Credibility Index** (management promises vs delivery). CiteAlpha whitespace: **India-first** guidance accountability scoring.
 
 ## Closest (already do “promises vs delivery”)
 
-| Product | What they implemented | Gap vs IntelLens |
+| Product | What they implemented | Gap vs CiteAlpha |
 |---|---|---|
 | [Marvin Labs](https://www.marvin-labs.com/features/guidance-tracking/) | Full **Guidance Tracking**: extract forward-looking statements → restatement history → score met / missed / exceeded / dropped → management accuracy & discipline scores | US/global coverage focus; not India NSE/BSE–native |
 | FinCatch | Prior guidance graded significantly missed → exceeded vs actuals; trend over time | SEC/global transcripts; not India-first |
@@ -40,12 +40,12 @@ These are the nearest finished products to the GCI idea.
 
 ---
 
-## IntelLens / AlphaHunter assets (own stepping stones)
+## CiteAlpha / AlphaHunter assets (own stepping stones)
 
 | Asset | Role on the path |
 |---|---|
 | **AlphaHunter Excel spine** | Facts + `guidance_change` / actuals tables (Sensex-30 research ops) |
-| **IntelLens Wordmap v20** | Sentiment, notes, evidence UI, Accept/Edit/Reject feedback loop |
+| **CiteAlpha Wordmap v20** | Sentiment, notes, evidence UI, Accept/Edit/Reject feedback loop |
 | **GCI MVP (this repo)** | Score + evidence-trail calculator (seed/demo data today) |
 
 ---
@@ -55,7 +55,7 @@ These are the nearest finished products to the GCI idea.
 ```text
 Filings/data  →  Sentiment/notes  →  Guidance extract  →  Match vs actuals  →  Credibility score
    Tijori           Trendlyne           Marvin              Marvin/FinCatch       Marvin (US)
-   Screener         Wordmap v20         (not India yet)     (not India yet)       ← IntelLens GCI target
+   Screener         Wordmap v20         (not India yet)     (not India yet)       ← CiteAlpha GCI target
    AlphaSense       AlphaSense
 ```
 
@@ -65,7 +65,7 @@ Filings/data  →  Sentiment/notes  →  Guidance extract  →  Match vs actuals
 | 2. Sentiment / AI research notes | AlphaSense, Marvin, Trendlyne | Trendlyne, Wordmap v20 |
 | 3. Guidance extraction | Marvin, FinCatch | **Whitespace** |
 | 4. Guidance vs actual matching | Marvin, FinCatch | **Whitespace** |
-| 5. Longitudinal credibility index | Marvin (US) | **IntelLens target** |
+| 5. Longitudinal credibility index | Marvin (US) | **CiteAlpha target** |
 
 ---
 

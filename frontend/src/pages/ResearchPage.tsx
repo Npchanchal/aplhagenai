@@ -9,6 +9,10 @@ import QualityBadge from "../components/QualityBadge";
 import ScoreReveal from "../components/ScoreReveal";
 import SectorLeaderboard from "../components/SectorLeaderboard";
 import TabBar from "../components/TabBar";
+import CitationCard from "../components/CitationCard";
+import CitedAnswer from "../components/CitedAnswer";
+import WatchlistToggle from "../components/WatchlistToggle";
+import PlanAccessGate from "../components/PlanAccessGate";
 import {
   fetchCompanies,
   fetchResearchBrief,
@@ -22,6 +26,7 @@ import {
   type CompanySummary,
   type PromiseBrief,
   type ResearchDoc,
+  type CitationRecord,
   type ResearchEstimateRow,
   type ResearchSnapshot,
   type WatchlistItem,
@@ -30,8 +35,10 @@ import { formatScore, scoreClass } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../i18n";
+import { useSourceViewer } from "../lib/SourceViewerContext";
+import { withTextHighlight } from "../lib/sourceHighlight";
 
-type Tab = "search" | "chat" | "desk" | "news" | "watch";
+type Tab = "search" | "chat" | "desk" | "sectors" | "news" | "watch";
 
 const TABS: { id: Tab; label: string; title: string }[] = [
   {
@@ -50,6 +57,11 @@ const TABS: { id: Tab; label: string; title: string }[] = [
     title: tipText("research_terminal"),
   },
   {
+    id: "sectors",
+    label: "Sectors",
+    title: "Sector credibility leaderboard — average GCI by sector",
+  },
+  {
     id: "news",
     label: "News & filings",
     title: "Chronological news and filings feed for the focus name or universe.",
@@ -64,8 +76,9 @@ const TABS: { id: Tab; label: string; title: string }[] = [
 const DOC_TYPES = ["all", "guidance", "transcript", "filing", "news", "expert"] as const;
 
 export default function ResearchPage() {
-  const { preferences } = useAuth();
+  const { preferences, token, updatePreferences } = useAuth();
   const { t } = useI18n();
+  const { openSource } = useSourceViewer();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: Tab = TABS.some((x) => x.id === tabParam)
@@ -90,7 +103,7 @@ export default function ResearchPage() {
     "How credible is management guidance on revenue growth?"
   );
   const [answer, setAnswer] = useState<string | null>(null);
-  const [citations, setCitations] = useState<ResearchDoc[]>([]);
+  const [citations, setCitations] = useState<CitationRecord[]>([]);
   const [snapshot, setSnapshot] = useState<ResearchSnapshot | null>(null);
   const [brief, setBrief] = useState<PromiseBrief | null>(null);
   const [estimates, setEstimates] = useState<ResearchEstimateRow[]>([]);
@@ -135,11 +148,12 @@ export default function ResearchPage() {
         .catch((err: Error) => setError(err.message));
     }
     if (tab === "watch") {
-      fetchResearchWatchlist()
+      const ids = preferences?.watchlist?.length ? preferences.watchlist : undefined;
+      fetchResearchWatchlist({ companyIds: ids, token })
         .then((w) => setWatch(w.items))
         .catch((err: Error) => setError(err.message));
     }
-  }, [tab, companyId]);
+  }, [tab, companyId, preferences?.watchlist, token]);
 
   const filteredResults = useMemo(() => {
     if (docType === "all") return results;
@@ -165,7 +179,7 @@ export default function ResearchPage() {
     try {
       const res = await fetchResearchChat(question, companyId || undefined);
       setAnswer(res.answer);
-      setCitations(res.citations as ResearchDoc[]);
+      setCitations(res.citations || []);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -174,6 +188,14 @@ export default function ResearchPage() {
   };
 
   return (
+    <PlanAccessGate
+      feature="research"
+      title={t("research.title")}
+      kicker={t("research.kicker")}
+      description={`${t("research.lede")} Pilot and retail plans unlock the full Research Terminal.`}
+      returnTo="/research"
+      testId="research-access-gate"
+    >
     <section className="research-page" data-testid="research-page">
       <p className="page-kicker">{t("research.kicker")}</p>
       <h1>
@@ -201,9 +223,14 @@ export default function ResearchPage() {
         />
       </div>
 
-      <SectorLeaderboard market="IN" index="SENSEX" limit={20} compact />
-
       {error && <p className="error">{error}</p>}
+
+      {tab === "sectors" && (
+        <div data-testid="research-sectors-tab">
+          <SectorLeaderboard market="IN" index="SENSEX" limit={40} />
+          <Disclaimer />
+        </div>
+      )}
 
       {tab === "search" && (
         <div className="panel">
@@ -246,11 +273,23 @@ export default function ResearchPage() {
                 </div>
                 <div>{r.title}</div>
                 <p className="muted">{r.snippet}</p>
-                {r.url && (
-                  <a href={r.url} target="_blank" rel="noreferrer">
-                    Cite source →
-                  </a>
-                )}
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() =>
+                    openSource({
+                      doc_id: r.id,
+                      title: r.title,
+                      source_url: r.url,
+                      highlight_url: withTextHighlight(r.url, r.snippet),
+                      quote: r.snippet,
+                      document_text: r.body,
+                      company_id: r.company_id,
+                    })
+                  }
+                >
+                  Open source →
+                </button>
               </li>
             ))}
             {results.length > 0 && filteredResults.length === 0 && (
@@ -261,6 +300,14 @@ export default function ResearchPage() {
       )}
 
       {tab === "chat" && (
+        <PlanAccessGate
+          feature="research_chat"
+          variant="panel"
+          title="Research chat"
+          description="Cite-only answers from the document store. Refuses when evidence is missing — Pilot+ plans required."
+          returnTo="/research?tab=chat"
+          testId="research-chat-gate"
+        >
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>Research chat</h2>
           <p className="muted">
@@ -283,18 +330,18 @@ export default function ResearchPage() {
           </button>
           {answer && (
             <div className="chat-answer" data-testid="research-answer">
-              <p>{answer}</p>
+              <CitedAnswer text={answer} citations={citations} />
               {citations.length > 0 ? (
                 <>
                   <h3>Citations</h3>
-                  <ul className="doc-list">
-                    {citations.map((c) => (
-                      <li key={c.id}>
-                        <strong>{c.title}</strong>
-                        <p className="muted">{c.snippet}</p>
-                      </li>
+                  <div className="citation-stack">
+                    {citations.map((c, idx) => (
+                      <CitationCard
+                        key={c.citation_id || c.doc_id || String(idx)}
+                        citation={c}
+                      />
                     ))}
-                  </ul>
+                  </div>
                 </>
               ) : (
                 <p className="muted">No citations returned.</p>
@@ -302,6 +349,7 @@ export default function ResearchPage() {
             </div>
           )}
         </div>
+        </PlanAccessGate>
       )}
 
       {tab === "desk" && snapshot && (
@@ -538,7 +586,23 @@ export default function ResearchPage() {
           <ul className="doc-list">
             {transcripts.map((t) => (
               <li key={t.id}>
-                <strong>{t.title}</strong>
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() =>
+                    openSource({
+                      doc_id: t.id,
+                      title: t.title,
+                      source_url: t.url,
+                      highlight_url: withTextHighlight(t.url, t.snippet || t.body?.slice(0, 80)),
+                      quote: t.snippet,
+                      document_text: t.body,
+                      company_id: t.company_id,
+                    })
+                  }
+                >
+                  <strong>{t.title}</strong>
+                </button>
                 <p className="muted">{t.body}</p>
               </li>
             ))}
@@ -571,6 +635,23 @@ export default function ResearchPage() {
                 </div>
                 <div>{n.title}</div>
                 <p className="muted">{n.snippet}</p>
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() =>
+                    openSource({
+                      doc_id: n.id,
+                      title: n.title,
+                      source_url: n.url,
+                      highlight_url: withTextHighlight(n.url, n.snippet),
+                      quote: n.snippet,
+                      document_text: n.body,
+                      company_id: n.company_id,
+                    })
+                  }
+                >
+                  Open source →
+                </button>
               </li>
             ))}
             {news.length === 0 && <li className="muted">No items yet.</li>}
@@ -582,12 +663,20 @@ export default function ResearchPage() {
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>Watchlist</h2>
           <p className="muted" style={{ fontSize: 13 }}>
-            Last + MoM/QoQ/YoY, GCI + Δ. Click ticker for desk snapshot.
+            Star names on the Tracker or dossier to customize this list. Empty prefs → default
+            universe slice. Last + MoM/QoQ/YoY, GCI + Δ. Click ticker for desk snapshot.
           </p>
+          {(!preferences?.watchlist || preferences.watchlist.length === 0) && (
+            <p className="muted" style={{ fontSize: 13 }}>
+              Showing default names. Add tickers via ★ on{" "}
+              <Link to="/tracker">GCI Tracker</Link>.
+            </p>
+          )}
           <div className="table-scroll">
             <table className="table" data-testid="research-watchlist">
               <thead>
                 <tr>
+                  <th aria-label="Watchlist" />
                   <th>Ticker</th>
                   <th>Name</th>
                   <th>Last</th>
@@ -599,6 +688,9 @@ export default function ResearchPage() {
               <tbody>
                 {watch.map((w) => (
                   <tr key={w.company_id} className="row-link">
+                    <td>
+                      <WatchlistToggle companyId={w.company_id} compact />
+                    </td>
                     <td>
                       <button
                         type="button"
@@ -635,8 +727,20 @@ export default function ResearchPage() {
               </tbody>
             </table>
           </div>
+          {watch.length > 0 && preferences?.watchlist && preferences.watchlist.length > 0 && (
+            <p style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => void updatePreferences({ watchlist: [] })}
+              >
+                Reset to default list
+              </button>
+            </p>
+          )}
         </div>
       )}
     </section>
+    </PlanAccessGate>
   );
 }

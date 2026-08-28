@@ -1,0 +1,14 @@
+---
+description: Portfolio SKUs — Score, Cite, Radar, Ledger, Data composition rules
+globs: "{backend/app/services/portfolio.py,docs/PRODUCT_PORTFOLIO.md,docs/PORTFOLIO_ROADMAP.md,docs/customer/skus/**,frontend/src/pages/*Product*,frontend/src/pages/PackagePage.tsx}"
+alwaysApply: false
+---
+
+# Portfolio SKUs
+
+- Six sellable jobs: **Score · Cite · Radar · Ledger · Data · Sights** — each usable without GCI if buyer only wants that job.
+- Compose existing services (`repository`, `research`, alerts, `promise_brief`) — no parallel data stacks.
+- Catalog source: `backend/app/services/portfolio.py` · docs: `docs/PRODUCT_PORTFOLIO.md`.
+- Every SKU: primary disclosure + evidence; factual only; no Buy/Hold/Sell.
+- Entitlements gate features per plan ∩ role — do not union SKU access.
+- Customer one-pagers: `docs/customer/skus/*.md` · UI: `/products`, `/package`.

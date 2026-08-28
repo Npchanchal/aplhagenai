@@ -59,7 +59,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   exceeded: {
     id: "exceeded",
     term: "Exceeded",
-    tip: "Actual beat above the band. Scores high (85–100). Beats are not treated like misses.",
+    tip: "Actual beat above the band. Default scorer v3 uses an exponential distance function (γ=1.0); legacy v2 floors beats ≥85. Beats are not treated like misses.",
   },
   missed: {
     id: "missed",
@@ -69,7 +69,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   dropped: {
     id: "dropped",
     term: "Dropped",
-    tip: "Management stopped reiterating guidance. Fixed mid-low score (~35) — distinct from a miss.",
+    tip: "Management stopped reiterating guidance. Default scorer v3 excludes the row from the average and applies a company −15 withdrawal deduction. Legacy v2 scored dropped ≈35. Distinct from a miss.",
   },
   pending: {
     id: "pending",
@@ -134,12 +134,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   nse_bse: {
     id: "nse_bse",
     term: "NSE_ALL / BSE_ALL",
-    tip: "Full India equity masters. Every name gets a GCI via production scorer v2. Hand-labeled Sensex is citeable; Provisional = deterministic demo outcomes until IR-labeled.",
+    tip: "Full India equity masters. Default scorer is v3 (legacy v2 available). Hand-labeled Sensex is citeable; Provisional = deterministic demo outcomes until IR-labeled.",
   },
   listing_provisional: {
     id: "listing_provisional",
     term: "Provisional GCI",
-    tip: "Same gci_scoring v2 algorithm as Sensex, fed by deterministic provisional guidance/actuals for coverage. Not hand-audited — do not cite externally.",
+    tip: "Same gci_scoring algorithm as Sensex (default v3), fed by deterministic provisional guidance/actuals for coverage. Not hand-audited — do not cite externally.",
   },
   source: {
     id: "source",
@@ -199,7 +199,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   one_stop: {
     id: "one_stop",
     term: "One-Stop Platform",
-    tip: "Single contract for Tracker + evidence + API/PIT + facts import + Wordmap + vernacular + CSM. Guidance accountability only — not a Bloomberg replacement.",
+    tip: "Single contract for Tracker + evidence + API/PIT + facts import + Wordmap + vernacular + CSM. Guidance accountability only — keep your market terminal for prices.",
   },
   csm: {
     id: "csm",
@@ -251,12 +251,60 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
     term: "Corpus status",
     tip: "gci_citeable = hand-labeled with sources; gci_available = scored/docs present; listed_not_in_corpus = exchange listing only.",
   },
+  sights: {
+    id: "sights",
+    term: "CiteAlpha Sights",
+    tip: "India disclosure research OS: search, cite-only Ask, boards, compare grid, and desk agents over public IR and labeled evidence. Complements GCI — not a price terminal.",
+  },
+  score_sku: {
+    id: "score_sku",
+    term: "CiteAlpha Score",
+    tip: "GCI 0–100 plus peer delivery benchmarks. The brand wedge — management promises vs delivery.",
+  },
+  radar: {
+    id: "radar",
+    term: "CiteAlpha Radar",
+    tip: "Feed of guidance changes, misses, drops, and withdrawals — for PMs, risk, and IR-watch. Not a news ticker.",
+  },
+  ledger: {
+    id: "ledger",
+    term: "CiteAlpha Ledger",
+    tip: "Promise ledger: what was committed, by whom, when, and status. For compliance, credit, IR, and board packs.",
+  },
+  data_sku: {
+    id: "data_sku",
+    term: "CiteAlpha Data",
+    tip: "Point-in-time guidance-outcome dataset and factor export. Backtestable series — no look-ahead.",
+  },
+  rankings: {
+    id: "rankings",
+    term: "GCI Rankings",
+    tip: "Public ranking of citeable GCI names. Evidence-linked scores, not recommendations.",
+  },
+  trust_center: {
+    id: "trust_center",
+    term: "Trust Center",
+    tip: "Public security, legal, and citation posture for procurement. Honest runtime flags — not marketing claims.",
+  },
 };
 
 export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
   {
     title: "Where to work",
-    ids: ["tracker", "desk_sku", "research_terminal", "one_stop", "tier1"],
+    ids: [
+      "tracker",
+      "desk_sku",
+      "research_terminal",
+      "sights",
+      "score_sku",
+      "radar",
+      "ledger",
+      "data_sku",
+      "rankings",
+      "one_stop",
+      "trust_center",
+      "tier1",
+    ],
   },
   {
     title: "Language, identity & markets",

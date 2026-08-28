@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 from app.data.gci_score_cache import build_india_gci_cache, clear_memory_cache, get_listing_score
-from app.data.india_listings import find_listing, listing_counts
+from app.data.india_listings import find_listing, find_listing_by_ticker, listing_counts
 from app.data.markets import list_constituents, list_indexes
 from app.data.seed import get_data, get_outcomes, outcome_from_dict, reset_data
 from app.main import app
@@ -43,7 +43,7 @@ def test_score_universe_cache_subset():
     clear_memory_cache()
     report = build_india_gci_cache(limit=80)
     assert report["scored_count"] >= 40
-    assert report["algorithm"] == "gci_scoring_v2"
+    assert report["algorithm"] == "gci_scoring_v3"
     # A non-seed listing in the first 80 should be cached
     listing = next(
         r
@@ -84,6 +84,13 @@ def test_companies_api_nse_all_has_scores():
     body = r2.json()
     assert len(body) == 20
     assert all(row["gci_score"] is not None for row in body)
+
+
+def test_find_listing_by_ticker_numeric_symbol():
+    row = find_listing_by_ticker("20MICRONS")
+    assert row is not None
+    assert row["ticker"] == "20MICRONS"
+    assert row["id"] == "nse_20microns"
 
 
 def test_listing_dossier_has_provisional_gci():

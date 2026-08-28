@@ -9,6 +9,10 @@ export type CompanySummary = {
   sector_avg_gci?: number | null;
   gci_change_pct?: number | null;
   gci_change_horizon?: string | null;
+  wow_pct?: number | null;
+  mom_pct?: number | null;
+  qoq_pct?: number | null;
+  yoy_pct?: number | null;
   market_id?: string | null;
   index_ids?: string[] | null;
 };
@@ -78,6 +82,35 @@ export type CompanyGCIDetail = {
       pop_pct?: number | null;
     }
   >;
+  audit_flags?: string[];
+  audit_deduction?: number;
+  audit_badges?: Array<{
+    flag: string;
+    label: string;
+    points: number;
+    severity: string;
+  }>;
+  red_alerts?: Array<{
+    company_id: string;
+    ticker: string;
+    kind: string;
+    message: string;
+    severity: string;
+    period?: string;
+    metric?: string;
+    source_url?: string | null;
+  }>;
+  revision_timeline?: Array<{
+    as_of?: string;
+    period?: string;
+    metric?: string;
+    kind?: string;
+    label?: string;
+    detail?: string;
+    severity?: string;
+    source_url?: string | null;
+  }>;
+  audit_note?: string | null;
 };
 
 export type AlertItem = {
@@ -86,10 +119,15 @@ export type AlertItem = {
   kind: string;
   message: string;
   severity: string;
+  period?: string | null;
+  metric?: string | null;
+  source_url?: string | null;
+  audit_flag?: string | null;
+  deduction_pts?: number | null;
 };
 
 export type ResearchDoc = {
-  id: string;
+  id?: string;
   company_id: string;
   ticker: string;
   name?: string;
@@ -101,6 +139,42 @@ export type ResearchDoc = {
   snippet: string;
   body?: string;
   score?: number;
+};
+
+export type CitationRecord = {
+  citation_id?: string | null;
+  kind?: string;
+  n?: number | null;
+  company_id?: string | null;
+  ticker?: string | null;
+  name?: string | null;
+  title?: string | null;
+  date?: string | null;
+  source_url?: string | null;
+  url?: string | null;
+  quote?: string | null;
+  quote_span?: string | null;
+  snippet?: string | null;
+  speaker?: string | null;
+  doc_id?: string | null;
+  doc_type?: string | null;
+  period?: string | null;
+  metric?: string | null;
+  span_start?: number | null;
+  span_end?: number | null;
+  locator?: string | null;
+  citeable?: boolean;
+  cite_reason?: string | null;
+  bibliographic?: string;
+  markdown?: string;
+  ic_footnote?: string;
+  permalink?: string | null;
+  retrieved_at?: string | null;
+  document_text?: string | null;
+  document_title?: string | null;
+  highlight_url?: string | null;
+  excerpt_only?: boolean;
+  indexed_excerpt?: boolean;
 };
 
 export type ResearchSnapshot = {
@@ -184,12 +258,76 @@ export type WatchlistItem = {
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const API_KEY = import.meta.env.VITE_API_KEY ?? "intellens-demo";
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  retail_marketing_allowed?: boolean;
+  detail?: unknown;
+
+  constructor(
+    message: string,
+    opts: {
+      status: number;
+      code?: string;
+      retail_marketing_allowed?: boolean;
+      detail?: unknown;
+    },
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = opts.status;
+    this.code = opts.code;
+    this.retail_marketing_allowed = opts.retail_marketing_allowed;
+    this.detail = opts.detail;
+  }
+}
+
+function throwFromResponse(status: number, body: unknown): never {
+  const raw = (body as { detail?: unknown } | null)?.detail;
+  if (typeof raw === "string") {
+    throw new ApiError(raw, { status, detail: raw });
+  }
+  if (raw && typeof raw === "object") {
+    const d = raw as { message?: string; code?: string; retail_marketing_allowed?: boolean };
+    throw new ApiError(d.message || `Request failed: ${status}`, {
+      status,
+      code: d.code,
+      retail_marketing_allowed: d.retail_marketing_allowed,
+      detail: raw,
+    });
+  }
+  throw new ApiError(`Request failed: ${status}`, { status, detail: body });
+}
+
 async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, init);
+  const headers = new Headers(init?.headers || {});
+  try {
+    const tkn = localStorage.getItem("intellens.auth.token");
+    if (tkn && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${tkn}`);
+    }
+  } catch {
+    /* ignore */
+  }
+  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+    let body: unknown = null;
+    try {
+      body = await res.json();
+    } catch {
+      /* ignore */
+    }
+    throwFromResponse(res.status, body);
   }
   return res.json() as Promise<T>;
+}
+
+export function recordCiteCopy(companyId?: string): void {
+  void getJson("/api/activity/cite-copy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ company_id: companyId || null }),
+  }).catch(() => undefined);
 }
 
 export function fetchCompanies(opts?: {
@@ -414,12 +552,150 @@ export function fetchReportTemplates(): Promise<{
 export function postGenerateReport(body: {
   company_id: string;
   template_id: string;
-}): Promise<{ markdown: string; template_name: string }> {
+  format?: "markdown" | "json" | "pdf";
+}): Promise<{
+  markdown?: string;
+  template_name: string;
+  format?: string;
+  dossier?: Record<string, unknown>;
+  citeable_count?: number;
+  pdf_base64?: string;
+}> {
   return getJson("/api/reports/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
     body: JSON.stringify(body),
   });
+}
+
+/** Download IC audit PDF (binary response). */
+export async function downloadIcAuditPdf(companyId: string): Promise<Blob> {
+  const res = await fetch("/api/reports/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify({
+      company_id: companyId,
+      template_id: "ic_audit",
+      format: "pdf",
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `PDF export failed (${res.status})`);
+  }
+  return res.blob();
+}
+
+export function fetchOpsThroughput(): Promise<{
+  universe: Record<string, number>;
+  backlog: Record<string, number>;
+  throughput_hints: { next_actions: string[]; bottlenecks: string[] };
+  note?: string;
+}> {
+  return getJson("/api/ops/throughput", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function fetchPilotChecklist(orgId: string): Promise<{
+  org_id: string;
+  progress: { done: number; total: number; pct: number };
+  items: Array<{ id: string; phase: string; label: string; done: boolean }>;
+  convert_intent: string | null;
+  target_sku: string | null;
+  conversion_ready: boolean;
+  next_step: string;
+  success_metrics: Record<string, string | number>;
+  notes?: string;
+  activity?: {
+    feedback_logged?: number;
+    quality_feedback?: number;
+    convert_intent?: number;
+    citations_in_notes?: number;
+    citations_copied?: number;
+    dossier_opens?: number;
+  };
+}> {
+  return getJson(`/api/orgs/${encodeURIComponent(orgId)}/pilot-checklist`, {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function patchPilotChecklist(
+  orgId: string,
+  body: {
+    item_id?: string;
+    done?: boolean;
+    notes?: string;
+    convert_intent?: string;
+    target_sku?: string;
+  },
+): Promise<Record<string, unknown>> {
+  return getJson(`/api/orgs/${encodeURIComponent(orgId)}/pilot-checklist`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify(body),
+  });
+}
+
+export function postProvisionPilot(body: {
+  name: string;
+  owner_email?: string;
+  seats?: number;
+}): Promise<{ org: { id: string; name: string; plan: string }; checklist: unknown }> {
+  return getJson("/api/orgs/pilot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchPublicGciRankings(opts?: {
+  limit?: number;
+  format?: "json" | "markdown";
+}): Promise<{
+  title: string;
+  as_of: string;
+  universe_n: number;
+  top: Array<{
+    rank: number;
+    ticker: string;
+    name: string;
+    sector: string;
+    gci_score: number;
+    citeable_outcomes: number;
+    company_id: string;
+  }>;
+  bottom: Array<{
+    rank: number;
+    ticker: string;
+    name: string;
+    sector: string;
+    gci_score: number;
+    citeable_outcomes: number;
+    company_id: string;
+  }>;
+  methodology: string;
+  legal: string;
+  markdown?: string;
+}> {
+  const params = new URLSearchParams();
+  if (opts?.limit != null) params.set("limit", String(opts.limit));
+  if (opts?.format) params.set("format", opts.format);
+  const qs = params.toString();
+  return getJson(`/api/public/gci-rankings${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchPitContract(): Promise<Record<string, unknown>> {
+  return getJson("/api/v1/pit/contract");
+}
+
+export function fetchPitHistoryV1(companyId: string): Promise<{
+  contract_version: string;
+  series_kind: string;
+  citeable: boolean;
+  points: Array<{ as_of: string; gci_score: number | null }>;
+  note?: string;
+}> {
+  return getJson(`/api/v1/pit/companies/${encodeURIComponent(companyId)}/history`);
 }
 
 export function postEnsureCitations(opts?: {
@@ -459,6 +735,507 @@ export function fetchSectorBenchmark(sector: string): Promise<{
 
 export function fetchAlerts(): Promise<AlertItem[]> {
   return getJson("/api/alerts");
+}
+
+export type PortfolioProduct = {
+  id: string;
+  name: string;
+  job: string;
+  status: string;
+  buyer: string;
+  endpoints: string[];
+  ui: string[];
+  docs: string;
+};
+
+export function fetchProductsCatalog(): Promise<{
+  product: string;
+  entity: string;
+  note: string;
+  disclaimer: string;
+  catalog_doc: string;
+  roadmap_doc: string;
+  products: PortfolioProduct[];
+}> {
+  return getJson("/api/products");
+}
+
+export type SightsMeta = {
+  product: string;
+  sku_id: string;
+  enabled: boolean;
+  job: string;
+  flags: Record<string, boolean>;
+  brand_map: Record<string, string>;
+  refuse: string[];
+  enterprise: Record<string, string>;
+  stretch: Record<string, string>;
+  disclaimer: string;
+};
+
+export function fetchSightsMeta(): Promise<SightsMeta> {
+  return getJson("/api/sights/meta");
+}
+
+export function fetchSightsSearch(opts: {
+  q: string;
+  companyId?: string;
+  limit?: number;
+}): Promise<{
+  product: string;
+  query: string;
+  original_query?: string;
+  expanded_query?: string;
+  lexicon_expanded?: boolean;
+  count: number;
+  results: ResearchDoc[];
+  disclaimer?: string;
+}> {
+  const params = new URLSearchParams();
+  params.set("q", opts.q);
+  if (opts.companyId) params.set("company_id", opts.companyId);
+  if (opts.limit) params.set("limit", String(opts.limit));
+  return getJson(`/api/sights/search?${params}`);
+}
+
+export function postSightsAsk(body: {
+  question: string;
+  company_id?: string;
+  web_assist?: boolean;
+}): Promise<{
+  product: string;
+  answer: string;
+  refused: boolean;
+  citations: CitationRecord[];
+  web_assist?: { requested: boolean; enabled: boolean; used: boolean; note: string };
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchSightsThemes(opts?: {
+  companyId?: string;
+  sector?: string;
+  limit?: number;
+}): Promise<{
+  product: string;
+  themes: { theme: string; count: number; kind: string; note: string }[];
+  metric_themes: { metric: string; labels: Record<string, number>; dominant: string | null }[];
+  sample_rows: Record<string, unknown>[];
+  disclaimer?: string;
+}> {
+  const params = new URLSearchParams();
+  if (opts?.companyId) params.set("company_id", opts.companyId);
+  if (opts?.sector) params.set("sector", opts.sector);
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  const qs = params.toString();
+  return getJson(`/api/sights/themes${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchSightsStreet(companyId: string): Promise<{
+  product: string;
+  company_id: string;
+  note: string;
+  estimates: unknown;
+  public_filing_snippets: {
+    id?: string;
+    title?: string;
+    date?: string;
+    snippet?: string;
+    url?: string;
+    doc_type?: string;
+  }[];
+  disclaimer?: string;
+}> {
+  return getJson(`/api/sights/street/${encodeURIComponent(companyId)}`);
+}
+
+export function fetchSightsField(companyId: string): Promise<{
+  product: string;
+  company_id: string;
+  ticker: string;
+  name: string;
+  data_quality: string;
+  gci_score: number | null;
+  outcomes: Record<string, unknown>[];
+  citations: CitationRecord[];
+  empty_demo?: boolean;
+  note: string;
+  disclaimer?: string;
+}> {
+  return getJson(`/api/sights/field/${encodeURIComponent(companyId)}`);
+}
+
+export function postSightsGrid(body: {
+  prompts: string[];
+  company_ids?: string[];
+}): Promise<{
+  product: string;
+  company_ids: string[];
+  rows: {
+    prompt: string;
+    cells: {
+      company_id: string;
+      answer?: string;
+      refused: boolean;
+      citations: CitationRecord[];
+    }[];
+  }[];
+  refused?: boolean;
+  message?: string;
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/grid", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function postSightsDeepDive(body: {
+  topic: string;
+  company_id?: string;
+}): Promise<{
+  product: string;
+  topic?: string;
+  refused: boolean;
+  message?: string;
+  steps: { step: number; query: string; refused: boolean; answer?: string; citations: CitationRecord[] }[];
+  report?: string | null;
+  citations?: CitationRecord[];
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/deep-dive", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchSightsFundamentals(companyId: string): Promise<{
+  product: string;
+  company_id: string;
+  snapshot: ResearchSnapshot;
+  note: string;
+  disclaimer?: string;
+}> {
+  return getJson(`/api/sights/fundamentals/${encodeURIComponent(companyId)}`);
+}
+
+export function fetchSightsAgents(): Promise<{
+  product: string;
+  enabled: boolean;
+  templates: { id: string; name: string; description: string }[];
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/agents");
+}
+
+export function postSightsAgentRun(body: {
+  template_id: string;
+  company_id: string;
+}): Promise<{
+  product: string;
+  template_id: string;
+  company_id: string;
+  ticker: string;
+  body: unknown;
+  citations: CitationRecord[];
+  refused: boolean;
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/agents/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchSightsHooks(): Promise<{
+  product: string;
+  channels: { id: string; path: string; enabled?: boolean; flag?: string; note?: string }[];
+  deferred: string[];
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/hooks");
+}
+
+export function fetchSightsExport(
+  companyId: string,
+  format: "markdown" | "csv" | "json" = "markdown",
+): Promise<{
+  product: string;
+  format: string;
+  company_id: string;
+  content?: string;
+  payload?: unknown;
+  pdf_hint?: string;
+  disclaimer?: string;
+}> {
+  return getJson(
+    `/api/sights/export/${encodeURIComponent(companyId)}?format=${encodeURIComponent(format)}`,
+  );
+}
+
+export function fetchSightsEnterprise(): Promise<{
+  product: string;
+  links: Record<string, string>;
+  sso_configured_flag: boolean;
+  note: string;
+  disclaimer?: string;
+}> {
+  return getJson("/api/sights/enterprise");
+}
+
+export type RadarFeedItem = {
+  source: string;
+  company_id: string;
+  ticker: string;
+  kind: string;
+  message: string;
+  severity: string;
+  period?: string | null;
+  metric?: string | null;
+  source_url?: string | null;
+  audit_flag?: string | null;
+  deduction_pts?: number | null;
+  as_of?: string | null;
+};
+
+export function fetchRadarFeed(opts?: {
+  companyId?: string;
+  limit?: number;
+  includeRevisions?: boolean;
+}): Promise<{
+  product: string;
+  company_id?: string | null;
+  count: number;
+  items: RadarFeedItem[];
+  note: string;
+  disclaimer: string;
+}> {
+  const q = new URLSearchParams();
+  if (opts?.companyId) q.set("company_id", opts.companyId);
+  if (opts?.limit != null) q.set("limit", String(opts.limit));
+  if (opts?.includeRevisions === false) q.set("include_revisions", "false");
+  const qs = q.toString();
+  return getJson(`/api/radar/feed${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchCompanyLedger(
+  companyId: string,
+  opts?: { creditOnly?: boolean; mirror?: boolean },
+): Promise<{
+  product: string;
+  company_id: string;
+  name: string;
+  ticker: string;
+  sector: string;
+  data_quality?: string;
+  gci_score?: number | null;
+  filter?: string;
+  mode?: string;
+  summary: {
+    closed_count: number;
+    open_promise_count: number;
+    by_status: Record<string, number>;
+  };
+  closed_promises: Record<string, unknown>[];
+  open_promises: Record<string, unknown>[];
+  note: string;
+  disclaimer: string;
+}> {
+  const q = new URLSearchParams();
+  if (opts?.creditOnly) q.set("credit_only", "true");
+  if (opts?.mirror) q.set("mirror", "true");
+  const qs = q.toString();
+  return getJson(`/api/ledger/${encodeURIComponent(companyId)}${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchDataCatalog(): Promise<{
+  product: string;
+  note: string;
+  disclaimer: string;
+  exports: { id: string; path: string; format: string; description: string }[];
+  roadmap: string[];
+  docs: string;
+}> {
+  return getJson("/api/data/catalog");
+}
+
+export function fetchRadarDiffBrief(companyId: string): Promise<{
+  feature: string;
+  company_id: string;
+  ticker: string;
+  count: number;
+  diffs: {
+    metric?: string;
+    prior_period?: string;
+    current_period?: string;
+    band_delta?: number | null;
+    kind: string;
+    detail?: string;
+    severity?: string;
+  }[];
+}> {
+  return getJson(`/api/radar/diff/${encodeURIComponent(companyId)}`);
+}
+
+export function fetchRadarCalendar(limit = 15): Promise<{
+  feature: string;
+  count: number;
+  windows: {
+    company_id: string;
+    ticker: string;
+    open_promise_count: number;
+    periods: string[];
+  }[];
+}> {
+  return getJson(`/api/radar/calendar?limit=${limit}`);
+}
+
+export function fetchRadarDigestPreview(): Promise<{ subject: string; body: string }> {
+  return getJson("/api/radar/digest/preview");
+}
+
+export function fetchCiteTiers(): Promise<{
+  tiers: { id: string; name: string; rpm: number; note: string }[];
+}> {
+  return getJson("/api/cite/tiers");
+}
+
+export function fetchVernacularDigest(
+  companyId: string,
+  lang = "hi",
+): Promise<{ text: string; text_en: string; text_hi: string; sources: { url?: string }[] }> {
+  return getJson(`/api/digest/vernacular/${encodeURIComponent(companyId)}?lang=${lang}`);
+}
+
+export function fetchNarrativeConsistency(companyId: string): Promise<{
+  nci_score: number;
+  conflicts: { kind: string; detail?: string }[];
+  status: string;
+  gate?: string;
+  disclaimer?: string;
+}> {
+  return getJson(`/api/score/narrative-consistency/${encodeURIComponent(companyId)}`);
+}
+
+export async function downloadLedgerPdf(
+  companyId: string,
+  opts?: { creditOnly?: boolean },
+): Promise<Blob> {
+  const q = opts?.creditOnly ? "?credit_only=true" : "";
+  const res = await fetch(`/api/ledger/${encodeURIComponent(companyId)}/pdf${q}`, {
+    headers: { "X-API-Key": API_KEY },
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `Ledger PDF failed (${res.status})`);
+  }
+  return res.blob();
+}
+
+export function fetchLedgerMirror(companyId: string): Promise<{
+  product: string;
+  mode?: string;
+  mirror_note?: string;
+  ticker: string;
+  summary: {
+    closed_count: number;
+    open_promise_count: number;
+    by_status: Record<string, number>;
+  };
+  peer_context?: {
+    sector?: string;
+    sector_avg_gci?: number | null;
+    peer_rank_in_sector?: number | null;
+  };
+  closed_promises: Record<string, unknown>[];
+  open_promises: Record<string, unknown>[];
+  disclaimer: string;
+}> {
+  return getJson(`/api/ledger/mirror/${encodeURIComponent(companyId)}`);
+}
+
+export function fetchCiteUsage(): Promise<{
+  tier: string;
+  citations_served_session: number;
+  tier_detail?: { name: string; rpm: number; note: string };
+  tiers: { id: string; name: string; rpm: number; note: string }[];
+}> {
+  return getJson("/api/cite/usage", { headers: { "X-API-Key": API_KEY } });
+}
+
+export async function downloadOutcomesExport(
+  format: "json" | "csv" | "parquet" = "csv",
+  limit = 200,
+): Promise<Blob> {
+  const res = await fetch(
+    `/api/data/export/outcomes?format=${format}&limit=${limit}`,
+    { headers: { "X-API-Key": API_KEY } },
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `Export failed (${res.status})`);
+  }
+  return res.blob();
+}
+
+export function postRadarDigestSend(to: string, limit = 15): Promise<{
+  status: string;
+  detail?: string;
+  mail?: { status: string };
+  preview?: { subject: string };
+}> {
+  return getJson("/api/radar/digest/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify({ to, limit }),
+  });
+}
+
+export function fetchKpiDictionary(sector?: string): Promise<{
+  metric_count: number;
+  families: Record<string, string[]>;
+  metrics: { id: string; display_name: string; family: string }[];
+}> {
+  const qs = sector ? `?sector=${encodeURIComponent(sector)}` : "";
+  return getJson(`/api/data/kpi-dictionary${qs}`);
+}
+
+export function fetchWorkbenchExtraction(): Promise<{
+  product: string;
+  status: string;
+  pending_extract_batches: number;
+  throughput: {
+    backlog?: Record<string, number>;
+    throughput_hints?: { bottlenecks?: string[]; next_actions?: string[] };
+  };
+  gate?: string;
+}> {
+  return getJson("/api/workbench/extraction", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function fetchTrustBadgeChannel(ticker: string): Promise<{
+  ticker: string;
+  gci_score: number | null;
+  embed_path: string;
+  svg_path: string;
+  gate?: string;
+  disclaimer: string;
+}> {
+  return getJson(`/api/channel/trust-badge/${encodeURIComponent(ticker)}`);
+}
+
+export function fetchMetaFlags(): Promise<{
+  feature_flags?: Record<string, boolean | string>;
+}> {
+  return getJson("/api/meta");
 }
 
 export function fetchHistory(
@@ -698,6 +1475,85 @@ export function fetchDocuments(params?: {
   return getJson(`/api/documents${qs}`);
 }
 
+export function fetchDocument(docId: string): Promise<{
+  doc_id: string;
+  company_id?: string | null;
+  doc_type?: string | null;
+  title: string;
+  text: string;
+  url?: string | null;
+  date?: string | null;
+  source?: string | null;
+  period?: string | null;
+  review_status?: string | null;
+}> {
+  return getJson(`/api/documents/${encodeURIComponent(docId)}`);
+}
+
+export function postDocumentReview(body: {
+  doc_id: string;
+  action: "accept" | "reject";
+}): Promise<{ ok: boolean; document: Record<string, unknown> }> {
+  return getJson("/api/documents/review", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": API_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchCorpusCoverage(): Promise<{
+  companies?: number;
+  tier1_pass?: number;
+  tier1_rate_pct?: number;
+  note?: string;
+  [key: string]: unknown;
+}> {
+  return getJson("/api/ops/corpus-coverage", {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function fetchPendingDepth(bootstrap = false): Promise<Record<string, unknown>> {
+  const qs = bootstrap ? "?bootstrap=true" : "";
+  return getJson(`/api/ops/pending-depth${qs}`, {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function postPendingDepthBootstrap(): Promise<Record<string, unknown>> {
+  return getJson("/api/ops/pending-depth/bootstrap", {
+    method: "POST",
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function postConsensusImport(
+  rows: Record<string, unknown>[],
+  opts?: { demo?: boolean },
+): Promise<{ ok: boolean; imported: number; demo?: boolean }> {
+  const qs = opts?.demo ? "?demo=true" : "";
+  return getJson(`/api/consensus/import${qs}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": API_KEY,
+    },
+    body: JSON.stringify({ rows }),
+  });
+}
+
+export function fetchConsensusStats(): Promise<{
+  row_count: number;
+  company_count: number;
+}> {
+  return getJson("/api/consensus/stats", {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
 export function fetchResearchSearch(
   q: string,
   companyId?: string
@@ -710,12 +1566,27 @@ export function fetchResearchSearch(
 export function fetchResearchChat(
   question: string,
   companyId?: string
-): Promise<{ answer: string; citations: ResearchDoc[] }> {
+): Promise<{ answer: string; citations: CitationRecord[]; refused?: boolean }> {
   return getJson("/api/research/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, company_id: companyId }),
   });
+}
+
+export function fetchCitation(citationId: string): Promise<CitationRecord> {
+  return getJson(`/api/citations/${encodeURIComponent(citationId)}`);
+}
+
+export function fetchCompanyCitations(
+  companyId: string,
+  citeableOnly = true
+): Promise<{ count: number; citations: CitationRecord[] }> {
+  const q = new URLSearchParams({
+    company_id: companyId,
+    citeable_only: citeableOnly ? "true" : "false",
+  });
+  return getJson(`/api/citations?${q}`);
 }
 
 export function fetchResearchSnapshot(id: string): Promise<ResearchSnapshot> {
@@ -779,8 +1650,103 @@ export function fetchResearchNews(
   return getJson(`/api/research/news${qs ? `?${qs}` : ""}`);
 }
 
-export function fetchResearchWatchlist(): Promise<{ items: WatchlistItem[] }> {
-  return getJson("/api/research/watchlist");
+export function fetchResearchWatchlist(opts?: {
+  companyIds?: string[];
+  token?: string | null;
+}): Promise<{ items: WatchlistItem[]; source?: string; count?: number }> {
+  const params = new URLSearchParams();
+  if (opts?.companyIds?.length) {
+    params.set("ids", opts.companyIds.join(","));
+  }
+  const qs = params.toString();
+  const headers: Record<string, string> = {};
+  if (opts?.token) headers.Authorization = `Bearer ${opts.token}`;
+  return getJson(`/api/research/watchlist${qs ? `?${qs}` : ""}`, {
+    headers: Object.keys(headers).length ? headers : undefined,
+  });
+}
+
+export type TrustCenterPayload = {
+  product: string;
+  legal_entity: string;
+  domain: string;
+  copyright?: {
+    counsel_status?: string;
+    counsel_note?: string;
+    terms_version?: string;
+    privacy_version?: string;
+    contact_email?: string;
+    line?: string;
+  };
+  security: {
+    force_https: boolean;
+    hsts: boolean;
+    headers: string[];
+    auth_modes: string[];
+    csp?: string;
+    backups?: string;
+  };
+  sso: {
+    enabled?: boolean;
+    configured?: boolean;
+    production_ready?: boolean;
+    note?: string;
+  };
+  citations: {
+    model: string;
+    endpoints: string[];
+    research_chat: string;
+  };
+  compliance: {
+    posture: string;
+    sebi: string;
+    terms_version?: string;
+    privacy_version?: string;
+    counsel_status?: string;
+    counsel_note?: string;
+    contact_email?: string;
+    links: Record<string, string>;
+  };
+  data: {
+    beachhead: string;
+    gci: string;
+    invent_actuals: boolean;
+    quality_badges?: string;
+  };
+  residency?: {
+    region: string;
+    provider: string;
+    note: string;
+  };
+  tenancy?: {
+    model: string;
+    auth: string;
+  };
+  subprocessors?: { name: string; role: string; optional: boolean }[];
+  incident?: { contact: string; note: string };
+  llm?: { configured: boolean; note: string };
+  labeling_governance?: {
+    two_person_review?: boolean;
+    drafts?: number;
+    submitted?: number;
+    accepted?: number;
+    note?: string;
+    recent?: Array<{
+      id?: string;
+      company_id?: string;
+      period?: string;
+      metric?: string;
+      status?: string;
+      submitter_id?: string;
+      reviewer_id?: string;
+      updated_at?: string;
+    }>;
+  };
+  feature_flags_public?: Record<string, unknown>;
+};
+
+export function fetchTrustCenter(): Promise<TrustCenterPayload> {
+  return getJson("/api/trust");
 }
 
 export function fetchResearchTranscripts(
@@ -829,6 +1795,7 @@ export type BadgePayload = {
   svg_url: string;
   status: string;
   disclaimer: string;
+  data_quality?: string | null;
 };
 
 export type OrgPayload = {
@@ -844,10 +1811,17 @@ export type OrgPayload = {
 };
 
 function authHeaders(): HeadersInit {
-  return {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-API-Key": API_KEY,
   };
+  try {
+    const tkn = localStorage.getItem("intellens.auth.token");
+    if (tkn) headers.Authorization = `Bearer ${tkn}`;
+  } catch {
+    /* ignore */
+  }
+  return headers;
 }
 
 export function fetchWordmap(id: string): Promise<WordmapPayload> {
@@ -915,7 +1889,8 @@ export function fetchNiftyMilestones(): Promise<{
     target: string;
     status: string;
   }>;
-  counts: Record<string, number>;
+  counts: Record<string, number | string[]>;
+  nifty_extra_ids?: string[];
   progress: { done: number; total: number };
   note: string;
   day1_claim: boolean;
@@ -946,6 +1921,16 @@ export function fetchCsmDashboard(orgId = "demo"): Promise<{
     within_target: boolean | null;
   };
   labeling_open: number;
+  labeling_audit?: Array<{
+    id?: string;
+    company_id?: string;
+    period?: string;
+    metric?: string;
+    status?: string;
+    submitter_id?: string;
+    reviewer_id?: string;
+    updated_at?: string;
+  }>;
   tickets_open: number;
   tickets: Array<{ id: string; subject: string; severity: string; status: string }>;
   vpc: { status: string; private_subnet_example: string; note: string };
@@ -971,9 +1956,11 @@ export function fetchSsoStatus(): Promise<{
   enabled: boolean;
   configured: boolean;
   ready?: boolean;
+  production_ready?: boolean;
   coming_soon?: boolean;
   note?: string;
   login_url?: string | null;
+  checklist?: Record<string, boolean>;
 }> {
   return getJson("/api/auth/sso/status");
 }
@@ -1043,13 +2030,186 @@ export type UserPreferences = {
   watchlist: string[];
   show_demo_tape: boolean;
   density?: "comfortable" | "compact";
+  saved_queries?: string[];
+  analytics_consent?: boolean | null;
+  dossier_opens?: number;
 };
+
+export type Entitlements = {
+  plan: string;
+  role: string;
+  kind?: string;
+  org_id?: string | null;
+  features: string[];
+  skus?: string[];
+  limits?: Record<string, number>;
+  labeling_granted?: boolean;
+  design_partner?: boolean;
+  source?: string;
+};
+
+export function fetchEntitlementsMe(): Promise<Entitlements> {
+  return getJson("/api/entitlements/me");
+}
+
+export type AdminPortalSection = { id: string; label: string };
+
+export type AdminPortalMe = {
+  platform_admin_role: string;
+  permissions: string[];
+  source?: string;
+  email?: string | null;
+  name?: string | null;
+  sections: AdminPortalSection[];
+};
+
+export type AdminPortalUser = {
+  id: string;
+  email?: string | null;
+  name?: string;
+  kind?: string;
+  account_type?: string;
+  org_id?: string | null;
+  role?: string;
+  platform_admin_role?: string | null;
+  email_verified?: boolean;
+  active?: boolean;
+  created_at?: string;
+};
+
+export function fetchAdminPortalMe(token?: string | null): Promise<AdminPortalMe> {
+  return authJson("/api/admin/portal/me", undefined, token);
+}
+
+export function fetchAdminPortalOrgs(token?: string | null): Promise<{ orgs: OrgPayload[] }> {
+  return authJson("/api/admin/portal/orgs", undefined, token);
+}
+
+export function fetchAdminPortalUsers(token?: string | null): Promise<{ users: AdminPortalUser[] }> {
+  return authJson("/api/admin/portal/users", undefined, token);
+}
+
+export function patchAdminPortalUserRole(
+  userId: string,
+  platformAdminRole: string | null,
+  token?: string | null,
+): Promise<{ id: string; email?: string; platform_admin_role?: string }> {
+  return authJson(
+    `/api/admin/portal/users/${encodeURIComponent(userId)}/platform-role`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ platform_admin_role: platformAdminRole }),
+    },
+    token,
+  );
+}
+
+export function fetchAdminPortalFeedback(
+  token?: string | null,
+  status?: string,
+): Promise<{ items: FeedbackItem[] }> {
+  const q = status ? `?status=${encodeURIComponent(status)}` : "";
+  return authJson(`/api/admin/portal/feedback${q}`, undefined, token);
+}
+
+export function patchAdminPortalFeedback(
+  itemId: string,
+  status: string,
+  token?: string | null,
+): Promise<FeedbackItem> {
+  return authJson(
+    `/api/admin/portal/feedback/${encodeURIComponent(itemId)}`,
+    { method: "PATCH", body: JSON.stringify({ status }) },
+    token,
+  );
+}
+
+export function fetchAdminPortalLegal(token?: string | null): Promise<Record<string, unknown>> {
+  return authJson("/api/admin/portal/legal", undefined, token);
+}
+
+export function postAdminPortalLegalAttest(
+  body: { kind: string; attested_by: string; note?: string },
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson(
+    "/api/admin/portal/legal/attest",
+    { method: "POST", body: JSON.stringify(body) },
+    token,
+  );
+}
+
+export function fetchAdminPortalBilling(
+  token?: string | null,
+): Promise<{ invoices: Record<string, unknown>[] }> {
+  return authJson("/api/admin/portal/billing", undefined, token);
+}
+
+export function fetchAdminPortalAudit(token?: string | null): Promise<Record<string, number>> {
+  return authJson("/api/admin/portal/audit", undefined, token);
+}
+
+export function postAdminPortalPilot(
+  name: string,
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson(
+    "/api/admin/portal/pilot",
+    { method: "POST", body: JSON.stringify({ name }) },
+    token,
+  );
+}
+
+export type PilotRequestItem = {
+  id: string;
+  name: string;
+  email: string;
+  firm: string;
+  role?: string;
+  team_size?: string;
+  message?: string;
+  status: "pending" | "approved" | "rejected";
+  org_id?: string | null;
+  admin_note?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_at?: string;
+};
+
+export function fetchAdminPortalPilotRequests(
+  status?: string,
+  token?: string | null,
+): Promise<{ items: PilotRequestItem[] }> {
+  const q = status ? `?status=${encodeURIComponent(status)}` : "";
+  return authJson(`/api/admin/portal/pilot-requests${q}`, undefined, token);
+}
+
+export function patchAdminPortalPilotRequest(
+  requestId: string,
+  body: { action: "approve" | "reject"; note?: string },
+  token?: string | null,
+): Promise<{ ok: boolean; request: PilotRequestItem }> {
+  return authJson(
+    `/api/admin/portal/pilot-requests/${encodeURIComponent(requestId)}`,
+    { method: "PATCH", body: JSON.stringify(body) },
+    token,
+  );
+}
 
 export type AuthUser = {
   id: string;
   email: string | null;
   name: string;
   kind: "registered" | "guest";
+  account_type?: "retail" | "b2b" | "guest";
+  org_id?: string | null;
+  role?: string;
+  platform_admin_role?: string;
+  email_verified?: boolean;
+  active?: boolean;
+  terms_version?: string;
+  terms_accepted_at?: string;
+  privacy_version?: string;
   preferences: UserPreferences;
   created_at?: string;
 };
@@ -1057,6 +2217,35 @@ export type AuthUser = {
 export type AuthSession = {
   token: string;
   user: AuthUser;
+};
+
+export type LegalSection = { id: string; heading: string; body: string };
+
+export type LegalDocument = {
+  version: string;
+  title: string;
+  legal_entity: string;
+  effective_date: string;
+  counsel_status?: string;
+  contact_email?: string;
+  sections: LegalSection[];
+  copyright: string;
+};
+
+export type LegalMeta = {
+  legal_entity: string;
+  product: string;
+  year: string;
+  line: string;
+  terms_version: string;
+  privacy_version: string;
+  counsel_status?: string;
+  counsel_note?: string;
+  contact_email?: string;
+  domain?: string;
+  retail_marketing_allowed?: boolean;
+  sebi_retail_status?: string;
+  retail_marketing_note?: string;
 };
 
 export type Market = {
@@ -1086,14 +2275,13 @@ async function authJson<T>(
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   if (!res.ok) {
-    let detail = `Request failed: ${res.status}`;
+    let body: unknown = null;
     try {
-      const body = (await res.json()) as { detail?: string };
-      if (body.detail) detail = body.detail;
+      body = await res.json();
     } catch {
       /* ignore */
     }
-    throw new Error(detail);
+    throwFromResponse(res.status, body);
   }
   return res.json() as Promise<T>;
 }
@@ -1104,6 +2292,10 @@ export function postRegister(body: {
   name: string;
   guest_token?: string;
   preferences?: Partial<UserPreferences>;
+  accept_terms?: boolean;
+  account_type?: "retail" | "b2b";
+  org_name?: string;
+  org_id?: string;
 }): Promise<AuthSession> {
   return authJson("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
 }
@@ -1115,8 +2307,131 @@ export function postLogin(email: string, password: string): Promise<AuthSession>
   });
 }
 
-export function postGuest(): Promise<AuthSession> {
-  return authJson("/api/auth/guest", { method: "POST", body: "{}" });
+export function postGuest(body?: { accept_terms?: boolean }): Promise<AuthSession> {
+  return authJson("/api/auth/guest", {
+    method: "POST",
+    body: JSON.stringify({ accept_terms: body?.accept_terms ?? false }),
+  });
+}
+
+export function fetchLegalMeta(): Promise<LegalMeta> {
+  return authJson("/api/legal/meta");
+}
+
+export function fetchLegalTerms(): Promise<LegalDocument> {
+  return authJson("/api/legal/terms");
+}
+
+export function fetchLegalPrivacy(): Promise<LegalDocument> {
+  return authJson("/api/legal/privacy");
+}
+
+export function postVerifyEmailRequest(email: string): Promise<{ status: string; dev_token?: string }> {
+  return authJson("/api/auth/verify-email/request", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function postVerifyEmailConfirm(token: string): Promise<{ status: string; user: AuthUser }> {
+  return authJson("/api/auth/verify-email/confirm", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export function postPasswordResetRequest(email: string): Promise<{ status: string; dev_token?: string }> {
+  return authJson("/api/auth/password-reset/request", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function postPasswordResetConfirm(
+  token: string,
+  password: string,
+): Promise<{ status: string }> {
+  return authJson("/api/auth/password-reset/confirm", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}
+
+export function postAcceptInvite(body: {
+  token: string;
+  password: string;
+  name?: string;
+  accept_terms: boolean;
+}): Promise<AuthSession> {
+  return authJson("/api/auth/accept-invite", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function fetchOrgMembers(
+  orgId: string,
+  token: string,
+): Promise<{ org_id: string; members: AuthUser[] }> {
+  return authJson(`/api/orgs/${encodeURIComponent(orgId)}/members`, undefined, token);
+}
+
+export function postOrgInvite(
+  orgId: string,
+  token: string,
+  email: string,
+  role = "viewer",
+): Promise<{ status: string; dev_token?: string; mail_status?: string }> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/invites`,
+    { method: "POST", body: JSON.stringify({ email, role }) },
+    token,
+  );
+}
+
+export function postPartnerInvite(
+  orgId: string,
+  token: string,
+  email: string,
+): Promise<{ status: string; dev_token?: string; expires_at?: string }> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/partner-invite`,
+    { method: "POST", body: JSON.stringify({ email }) },
+    token,
+  );
+}
+
+export function postMemberRole(
+  orgId: string,
+  token: string,
+  userId: string,
+  role: string,
+): Promise<{ ok: boolean; user: AuthUser }> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/members/${encodeURIComponent(userId)}/role`,
+    { method: "POST", body: JSON.stringify({ role }) },
+    token,
+  );
+}
+
+export function postOrgRevoke(
+  orgId: string,
+  token: string,
+  userId: string,
+): Promise<{ status: string }> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/revoke`,
+    { method: "POST", body: JSON.stringify({ user_id: userId }) },
+    token,
+  );
+}
+
+export function postOrgApiKey(
+  orgId: string,
+  token: string,
+): Promise<{ api_key: string; org_id: string }> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/api-keys`,
+    { method: "POST", body: "{}" },
+    token,
+  );
 }
 
 export function postLogout(token: string): Promise<{ status: string }> {
@@ -1237,4 +2552,157 @@ export function fetchStockHistory(
   return getJson(
     `/api/stocks/${encodeURIComponent(stockId)}/history?years=${years}`,
   );
+}
+
+export type LabelDraft = {
+  id: string;
+  status: string;
+  company_id: string;
+  period: string;
+  metric: string;
+  guided_low?: number | null;
+  guided_high?: number | null;
+  guided_value?: number | null;
+  actual_value?: number | null;
+  guided_text?: string;
+  quote_span?: string | null;
+  source_url?: string | null;
+  source_ref?: string | null;
+  submitter_id?: string;
+  reviewer_id?: string | null;
+};
+
+export function fetchLabelCompanies(): Promise<{
+  count: number;
+  companies: {
+    company_id: string;
+    ticker: string;
+    name: string;
+    data_quality: string;
+    gci_score: number | null;
+  }[];
+}> {
+  return getJson("/api/labeling/companies", { headers: authHeaders() });
+}
+
+export function fetchLabelDrafts(opts?: {
+  companyId?: string;
+  status?: string;
+}): Promise<{ count: number; drafts: LabelDraft[] }> {
+  const params = new URLSearchParams();
+  if (opts?.companyId) params.set("company_id", opts.companyId);
+  if (opts?.status) params.set("status", opts.status);
+  const qs = params.toString();
+  return getJson(`/api/labeling/drafts${qs ? `?${qs}` : ""}`, {
+    headers: authHeaders(),
+  });
+}
+
+export function postLabelDraft(body: Record<string, unknown>): Promise<{
+  ok: boolean;
+  draft: LabelDraft;
+}> {
+  return getJson("/api/labeling/drafts", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function postLabelDraftAction(
+  draftId: string,
+  action: "submit" | "accept" | "reject",
+  comment?: string,
+): Promise<{ ok: boolean; draft: LabelDraft }> {
+  return getJson(`/api/labeling/drafts/${encodeURIComponent(draftId)}/${action}`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(action === "reject" ? { comment: comment || "" } : {}),
+  });
+}
+
+export function postLabelImportCsv(csv: string): Promise<{
+  ok: boolean;
+  created: number;
+  errors: { line: number; detail: string }[];
+}> {
+  return getJson("/api/labeling/import", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ csv }),
+  });
+}
+
+export type FeedbackItem = {
+  id: string;
+  company_id?: string | null;
+  org_id?: string | null;
+  period?: string | null;
+  metric?: string | null;
+  kind: string;
+  comment: string;
+  status: string;
+  nps?: number | null;
+  created_at?: string;
+};
+
+export function fetchFeedback(status?: string): Promise<{
+  count: number;
+  items: FeedbackItem[];
+}> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+  return getJson(`/api/feedback${qs}`, { headers: authHeaders() });
+}
+
+export function postFeedback(body: {
+  company_id?: string;
+  period?: string;
+  metric?: string;
+  kind: string;
+  comment?: string;
+  nps?: number;
+}): Promise<{ ok: boolean; item: FeedbackItem }> {
+  return getJson("/api/feedback", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export type AbuseChallenge = {
+  challenge_id: string;
+  prompt: string;
+  expires_in_sec: number;
+};
+
+export function fetchAbuseChallenge(): Promise<AbuseChallenge> {
+  return getJson("/api/auth/abuse-challenge");
+}
+
+export function postPilotRequest(body: {
+  name: string;
+  email: string;
+  firm: string;
+  role?: string;
+  team_size?: string;
+  message?: string;
+  challenge_id?: string;
+  challenge_answer?: string;
+}): Promise<{ ok: boolean; request_id: string; status: string; submitted_at: string }> {
+  return getJson("/api/pilot-request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function patchFeedback(
+  itemId: string,
+  status: string,
+): Promise<{ ok: boolean; item: FeedbackItem }> {
+  return getJson(`/api/feedback/${encodeURIComponent(itemId)}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
 }

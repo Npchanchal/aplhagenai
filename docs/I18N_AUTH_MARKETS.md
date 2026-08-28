@@ -1,6 +1,6 @@
 # i18n · Auth · Markets
 
-IntelLens ships three product layers on top of India-first GCI:
+CiteAlpha ships three product layers on top of India-first GCI:
 
 1. **Language selector** — UI chrome for major Indian + global languages  
 2. **Register / login / guest** — lightweight identity with preferences  

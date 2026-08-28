@@ -1,16 +1,24 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import TermsAccept from "../components/TermsAccept";
 import { useAuth } from "../lib/auth";
 import { fetchSsoLogin, fetchSsoStatus } from "../lib/api";
 import { useI18n } from "../i18n";
+import { LEGAL_ENTITY } from "../lib/legal";
 
 export default function LoginPage() {
   const { login, continueAsGuest } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo =
+    (location.state as { from?: string } | null)?.from?.startsWith("/") === true
+      ? (location.state as { from: string }).from
+      : "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [ssoHint, setSsoHint] = useState<string | null>(null);
@@ -28,7 +36,7 @@ export default function LoginPage() {
         } else if (st.enabled && !st.configured) {
           setSsoHint(t("auth.ssoConfig"));
         } else {
-          setSsoHint(t("auth.ssoOff"));
+          setSsoHint(null);
         }
       } catch {
         /* ignore */
@@ -45,7 +53,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      navigate("/");
+      navigate(redirectTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -70,13 +78,31 @@ export default function LoginPage() {
     }
   }
 
+  async function onGuest() {
+    if (!acceptTerms) {
+      setError(t("auth.termsRequired"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await continueAsGuest(true);
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <section className="auth-page" data-testid="login-page">
       <p className="page-kicker">{t("common.account")}</p>
       <h1>{t("auth.loginTitle")}</h1>
       <p className="muted lede">
         Sign in for preferences sync. Guest works for Tracker, Desk Corpus, and Research —
-        GCI remains factual delivery research, not advice.
+        GCI remains factual delivery research, not advice.{" "}
+        <span className="legal-entity">© {LEGAL_ENTITY}.</span>
       </p>
       <form className="auth-form panel" onSubmit={onSubmit}>
         <label>
@@ -106,6 +132,9 @@ export default function LoginPage() {
         <button type="submit" className="btn-primary" disabled={busy} data-testid="login-submit">
           {t("common.login")}
         </button>
+        <p className="muted">
+          <Link to="/forgot-password">Forgot password?</Link>
+        </p>
         <button
           type="button"
           className="btn-ghost"
@@ -116,13 +145,16 @@ export default function LoginPage() {
           {t("auth.ssoLogin")}
         </button>
         {ssoHint && <p className="muted">{ssoHint}</p>}
+        <TermsAccept
+          checked={acceptTerms}
+          onChange={setAcceptTerms}
+          id="guest-accept-terms"
+        />
         <button
           type="button"
           className="btn-ghost"
-          disabled={busy}
-          onClick={() => {
-            void continueAsGuest().then(() => navigate("/"));
-          }}
+          disabled={busy || !acceptTerms}
+          onClick={() => void onGuest()}
           data-testid="guest-continue"
         >
           {t("common.guest")}

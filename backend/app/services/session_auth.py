@@ -18,9 +18,11 @@ from fastapi import Header, HTTPException
 
 _USERS_PATH = Path(__file__).resolve().parent.parent / "data" / "users.json"
 _SESSIONS_PATH = Path(__file__).resolve().parent.parent / "data" / "sessions.json"
+_TOKENS_PATH = Path(__file__).resolve().parent.parent / "data" / "auth_tokens.json"
 
 _USERS: Optional[Dict[str, Any]] = None
 _SESSIONS: Optional[Dict[str, Any]] = None
+_TOKENS: Optional[Dict[str, Any]] = None
 
 DEFAULT_PREFS: Dict[str, Any] = {
     "language": "en",
@@ -29,7 +31,15 @@ DEFAULT_PREFS: Dict[str, Any] = {
     "watchlist": [],
     "show_demo_tape": True,
     "density": "comfortable",
+    "saved_queries": [],
+    "analytics_consent": None,
+    "citations_copied": 0,
+    "dossier_opens": 0,
 }
+
+ALLOWED_ROLES = frozenset(
+    {"viewer", "analyst", "labeler", "reviewer", "admin", "owner", "member", "guest"}
+)
 
 _PBKDF2_ITERS = 120_000
 
@@ -40,8 +50,13 @@ def _now() -> str:
 
 def _load_users() -> Dict[str, Any]:
     global _USERS
+    from app.db.auth_db import apply_schema, list_users, use_db_auth
+
     if _USERS is None:
-        if _USERS_PATH.exists():
+        if use_db_auth():
+            apply_schema()
+            _USERS = {"users": list_users()}
+        elif _USERS_PATH.exists():
             _USERS = json.loads(_USERS_PATH.read_text())
         else:
             _USERS = {"users": []}
@@ -59,25 +74,79 @@ def _load_sessions() -> Dict[str, Any]:
 
 
 def _save_users() -> None:
+    from app.db.auth_db import apply_schema, replace_all_users, use_db_auth
+
+    store = _load_users()
+    if use_db_auth():
+        apply_schema()
+        replace_all_users(store["users"])
+        return
     _USERS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _USERS_PATH.write_text(json.dumps(_load_users(), indent=2))
+    _USERS_PATH.write_text(json.dumps(store, indent=2))
 
 
 def _save_sessions() -> None:
+    from app.db.auth_db import clear_sessions, put_session, use_db_auth
+
+    store = _load_sessions()
+    if use_db_auth():
+        clear_sessions()
+        for token, row in store.get("sessions", {}).items():
+            put_session(token, row["user_id"], row.get("created_at") or _now())
+        return
     _SESSIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _SESSIONS_PATH.write_text(json.dumps(_load_sessions(), indent=2))
+    _SESSIONS_PATH.write_text(json.dumps(store, indent=2))
+
+
+def _load_tokens() -> Dict[str, Any]:
+    global _TOKENS
+    if _TOKENS is None:
+        if _TOKENS_PATH.exists():
+            _TOKENS = json.loads(_TOKENS_PATH.read_text())
+        else:
+            _TOKENS = {"tokens": {}}
+    return _TOKENS
+
+
+def _save_tokens() -> None:
+    from app.db.auth_db import clear_tokens, put_token, use_db_auth
+
+    store = _load_tokens()
+    if use_db_auth():
+        clear_tokens()
+        for token, row in store.get("tokens", {}).items():
+            put_token(
+                token,
+                row["kind"],
+                row.get("email") or "",
+                {k: v for k, v in row.items() if k not in ("kind", "email", "created_at")},
+                row.get("created_at") or _now(),
+            )
+        return
+    _TOKENS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _TOKENS_PATH.write_text(json.dumps(store, indent=2))
 
 
 def reset_auth_store() -> None:
     """Test helper — wipe in-memory + on-disk auth state."""
-    global _USERS, _SESSIONS
-    _USERS = {"users": []}
-    _SESSIONS = {"sessions": {}}
-    if _USERS_PATH.exists():
-        _USERS_PATH.unlink()
-    if _SESSIONS_PATH.exists():
-        _SESSIONS_PATH.unlink()
+    global _USERS, _SESSIONS, _TOKENS
+    from app.db.auth_db import use_db_auth, wipe_all
 
+    _USERS = None
+    _SESSIONS = None
+    _TOKENS = None
+    for path in (_USERS_PATH, _SESSIONS_PATH, _TOKENS_PATH):
+        if path.exists():
+            path.unlink()
+    if use_db_auth():
+        wipe_all()
+
+
+def reload_users_cache() -> None:
+    """Reload users from SQL/JSON after external updates (platform admin roles, etc.)."""
+    global _USERS
+    _USERS = None
+    _load_users()
 
 def _hash_password(password: str, salt: Optional[str] = None) -> Dict[str, str]:
     salt_b = bytes.fromhex(salt) if salt else secrets.token_bytes(16)
@@ -93,14 +162,25 @@ def _verify_password(password: str, salt: str, expected_hash: str) -> bool:
 
 
 def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
-    return {
+    out = {
         "id": user["id"],
         "email": user.get("email"),
         "name": user.get("name"),
         "kind": user.get("kind", "registered"),
+        "account_type": user.get("account_type", "retail"),
+        "org_id": user.get("org_id"),
+        "role": user.get("role", "member"),
+        "email_verified": bool(user.get("email_verified")),
+        "active": user.get("active", True) is not False,
+        "terms_version": user.get("terms_version"),
+        "terms_accepted_at": user.get("terms_accepted_at"),
+        "privacy_version": user.get("privacy_version"),
         "preferences": {**DEFAULT_PREFS, **(user.get("preferences") or {})},
         "created_at": user.get("created_at"),
     }
+    if user.get("platform_admin_role"):
+        out["platform_admin_role"] = user["platform_admin_role"]
+    return out
 
 
 def _issue_session(user_id: str) -> str:
@@ -133,8 +213,21 @@ def register(
     *,
     merge_preferences: Optional[Dict[str, Any]] = None,
     guest_token: Optional[str] = None,
-    org_id: str = "demo",
+    org_id: Optional[str] = None,
+    account_type: str = "retail",
+    org_name: Optional[str] = None,
+    accept_terms: bool = False,
+    invite_role: Optional[str] = None,
 ) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services.legal import PRIVACY_VERSION, TERMS_VERSION
+
+    if not accept_terms:
+        raise HTTPException(
+            status_code=400,
+            detail="You must accept the Terms of Use and Privacy Notice to register",
+        )
+
     email = email.strip().lower()
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email required")
@@ -143,10 +236,54 @@ def register(
     if _find_by_email(email):
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    # Seat metering (Package Pilot/Desk/One-Stop caps)
-    from app.services import orgs as org_svc
+    acct = (account_type or "retail").strip().lower()
+    if acct not in ("retail", "b2b"):
+        raise HTTPException(status_code=400, detail="account_type must be retail or b2b")
 
-    org_svc.consume_seat(org_id)
+    org_svc.ensure_builtin_orgs()
+
+    role = "member"
+    if org_id:
+        # Explicit org (admin/API invite path) — must exist
+        org_svc.org_snapshot(org_id)
+        resolved_org = org_id
+        if acct == "b2b":
+            acct = str(org_svc.org_snapshot(org_id).get("account_type") or "b2b")
+    elif acct == "b2b":
+        label = (org_name or f"{(name or email.split('@')[0]).strip()} Desk").strip()
+        if len(label) < 2:
+            raise HTTPException(status_code=400, detail="org_name required for B2B accounts")
+        created = org_svc.create_org(
+            name=label,
+            plan="pilot",
+            account_type="b2b",
+            owner_email=email,
+        )
+        resolved_org = created["id"]
+        role = "owner"
+    else:
+        # Retail B2C — personal micro-tenant for isolation
+        display = (name or email.split("@")[0]).strip() or "Retail"
+        created = org_svc.create_org(
+            name=f"{display} (Retail)",
+            plan="retail",
+            account_type="retail",
+            owner_email=email,
+        )
+        resolved_org = created["id"]
+        role = "owner"
+
+    org_svc.consume_seat(resolved_org)
+
+    if invite_role:
+        mapped = str(invite_role).strip().lower()
+        if mapped in ("member", "partner"):
+            mapped = "viewer"
+        if mapped not in ALLOWED_ROLES or mapped in ("guest", "owner"):
+            mapped = "viewer"
+        role = mapped
+    elif role == "member":
+        role = "viewer"
 
     prefs = dict(DEFAULT_PREFS)
     if guest_token:
@@ -162,7 +299,14 @@ def register(
         "email": email,
         "name": (name or email.split("@")[0]).strip(),
         "kind": "registered",
-        "org_id": org_id,
+        "account_type": acct,
+        "org_id": resolved_org,
+        "role": role,
+        "email_verified": False,
+        "active": True,
+        "terms_version": TERMS_VERSION,
+        "privacy_version": PRIVACY_VERSION,
+        "terms_accepted_at": _now(),
         "password_salt": hashed["salt"],
         "password_hash": hashed["hash"],
         "preferences": prefs,
@@ -179,25 +323,48 @@ def register(
         _save_sessions()
 
     token = _issue_session(user["id"])
-    return {"token": token, "user": _public_user(user)}
+    verify_info = request_email_verification(email)
+    out: Dict[str, Any] = {"token": token, "user": _public_user(user)}
+    if verify_info.get("dev_token"):
+        out["verify_dev_token"] = verify_info["dev_token"]
+    out["verification"] = {
+        "email_verified": False,
+        "mail_status": verify_info.get("mail_status"),
+    }
+    return out
 
 
 def login(email: str, password: str) -> Dict[str, Any]:
     user = _find_by_email(email)
     if user is None or user.get("kind") == "guest":
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if user.get("active") is False:
+        raise HTTPException(status_code=403, detail="Account revoked — contact your org admin")
     if not _verify_password(password, user["password_salt"], user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     token = _issue_session(user["id"])
     return {"token": token, "user": _public_user(user)}
 
 
-def create_guest() -> Dict[str, Any]:
+def create_guest(*, accept_terms: bool = False) -> Dict[str, Any]:
+    from app.services.legal import PRIVACY_VERSION, TERMS_VERSION
+
+    if not accept_terms:
+        raise HTTPException(
+            status_code=400,
+            detail="You must accept the Terms of Use and Privacy Notice to continue as guest",
+        )
     user = {
         "id": f"guest-{uuid.uuid4().hex[:12]}",
         "email": None,
         "name": "Guest",
         "kind": "guest",
+        "account_type": "guest",
+        "org_id": None,
+        "role": "guest",
+        "terms_version": TERMS_VERSION,
+        "privacy_version": PRIVACY_VERSION,
+        "terms_accepted_at": _now(),
         "preferences": dict(DEFAULT_PREFS),
         "created_at": _now(),
     }
@@ -240,6 +407,7 @@ def update_preferences(token: Optional[str], patch: Dict[str, Any]) -> Dict[str,
     if user is None:
         raise HTTPException(status_code=401, detail="Session expired")
     prefs = {**DEFAULT_PREFS, **(user.get("preferences") or {})}
+    patch = dict(patch)
     for key in DEFAULT_PREFS:
         if key in patch:
             prefs[key] = patch[key]
@@ -268,3 +436,250 @@ def optional_session(
     authorization: Optional[str] = Header(default=None),
 ) -> Optional[Dict[str, Any]]:
     return resolve_token(extract_bearer(authorization))
+
+
+def _issue_one_time(*, kind: str, email: str, extra: Optional[Dict[str, Any]] = None) -> str:
+    token = secrets.token_urlsafe(24)
+    store = _load_tokens()
+    store["tokens"][token] = {
+        "kind": kind,
+        "email": email.strip().lower(),
+        "created_at": _now(),
+        **(extra or {}),
+    }
+    _save_tokens()
+    return token
+
+
+def _consume_token(token: str, *, kind: str) -> Dict[str, Any]:
+    store = _load_tokens()
+    row = store["tokens"].pop(token, None)
+    _save_tokens()
+    if not row or row.get("kind") != kind:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    expires = row.get("expires_at")
+    if expires:
+        try:
+            exp = datetime.fromisoformat(str(expires).replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) > exp:
+                raise HTTPException(status_code=400, detail="Invalid or expired token")
+        except ValueError:
+            pass
+    return row
+
+
+def request_email_verification(email: str) -> Dict[str, Any]:
+    from app.services import mailer
+
+    email = email.strip().lower()
+    user = _find_by_email(email)
+    if user is None or user.get("kind") == "guest":
+        return {"status": "ok", "mail_status": "skipped"}
+    if user.get("email_verified"):
+        return {"status": "ok", "already_verified": True}
+    token = _issue_one_time(kind="verify_email", email=email, extra={"user_id": user["id"]})
+    link = f"{mailer.public_base_url()}/verify-email?token={token}"
+    mail = mailer.send_mail(
+        to=email,
+        subject="Verify your CiteAlpha email",
+        body=(
+            f"Verify your email for CiteAlpha (Ocotillo Innovation Private Limited):\n\n"
+            f"{link}\n\nIf you did not register, ignore this message."
+        ),
+    )
+    out: Dict[str, Any] = {"status": "ok", "mail_status": mail.get("status")}
+    if mailer.auth_dev_tokens_enabled():
+        out["dev_token"] = token
+        out["dev_link"] = link
+    return out
+
+
+def confirm_email_verification(token: str) -> Dict[str, Any]:
+    row = _consume_token(token, kind="verify_email")
+    user = _find_user(row.get("user_id") or "") or _find_by_email(row["email"])
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    user["email_verified"] = True
+    _save_users()
+    return {"status": "ok", "user": _public_user(user)}
+
+
+def request_password_reset(email: str) -> Dict[str, Any]:
+    from app.services import mailer
+
+    email = email.strip().lower()
+    user = _find_by_email(email)
+    if user is None or user.get("kind") == "guest" or user.get("active") is False:
+        return {"status": "ok", "mail_status": "skipped"}
+    token = _issue_one_time(kind="reset_password", email=email, extra={"user_id": user["id"]})
+    link = f"{mailer.public_base_url()}/reset-password?token={token}"
+    mail = mailer.send_mail(
+        to=email,
+        subject="Reset your CiteAlpha password",
+        body=(
+            f"Reset your CiteAlpha password:\n\n{link}\n\n"
+            "If you did not request this, ignore this message."
+        ),
+    )
+    out: Dict[str, Any] = {"status": "ok", "mail_status": mail.get("status")}
+    if mailer.auth_dev_tokens_enabled():
+        out["dev_token"] = token
+        out["dev_link"] = link
+    return out
+
+
+def confirm_password_reset(token: str, new_password: str) -> Dict[str, Any]:
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    row = _consume_token(token, kind="reset_password")
+    user = _find_user(row.get("user_id") or "") or _find_by_email(row["email"])
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    hashed = _hash_password(new_password)
+    user["password_salt"] = hashed["salt"]
+    user["password_hash"] = hashed["hash"]
+    _save_users()
+    sessions = _load_sessions()
+    drop = [t for t, s in sessions["sessions"].items() if s.get("user_id") == user["id"]]
+    for t in drop:
+        sessions["sessions"].pop(t, None)
+    _save_sessions()
+    return {"status": "ok"}
+
+
+def list_org_members(org_id: str) -> List[Dict[str, Any]]:
+    return [
+        _public_user(u)
+        for u in _load_users()["users"]
+        if u.get("org_id") == org_id and u.get("kind") != "guest"
+    ]
+
+
+def revoke_org_member(*, org_id: str, user_id: str, actor: Dict[str, Any]) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+
+    if actor.get("org_id") != org_id:
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    if actor.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+
+    user = _find_user(user_id)
+    if user is None or user.get("org_id") != org_id:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if user.get("role") == "owner":
+        raise HTTPException(status_code=400, detail="Cannot revoke org owner")
+    if user.get("id") == actor.get("id"):
+        raise HTTPException(status_code=400, detail="Cannot revoke yourself")
+    user["active"] = False
+    _save_users()
+    org_svc.release_seat(org_id)
+    sessions = _load_sessions()
+    drop = [t for t, s in sessions["sessions"].items() if s.get("user_id") == user_id]
+    for t in drop:
+        sessions["sessions"].pop(t, None)
+    _save_sessions()
+    return {"status": "ok", "user": _public_user(user)}
+
+
+def accept_org_invite(
+    *,
+    invite_token: str,
+    password: str,
+    name: str = "",
+    accept_terms: bool = False,
+) -> Dict[str, Any]:
+    if not accept_terms:
+        raise HTTPException(status_code=400, detail="You must accept Terms to join")
+    row = _consume_token(invite_token, kind="org_invite")
+    email = row["email"]
+    org_id = row["org_id"]
+    if _find_by_email(email):
+        raise HTTPException(status_code=409, detail="Email already registered — log in instead")
+    return register(
+        email,
+        password,
+        name or email.split("@")[0],
+        org_id=org_id,
+        account_type="b2b",
+        accept_terms=True,
+        invite_role=str(row.get("role") or "viewer"),
+    )
+
+
+def set_member_role(*, org_id: str, user_id: str, role: str, actor: Dict[str, Any]) -> Dict[str, Any]:
+    if actor.get("org_id") != org_id:
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    if actor.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    mapped = (role or "viewer").strip().lower()
+    if mapped in ("member", "partner"):
+        mapped = "viewer"
+    if mapped not in ALLOWED_ROLES or mapped in ("guest", "owner"):
+        raise HTTPException(status_code=400, detail="Invalid role")
+    user = _find_user(user_id)
+    if user is None or user.get("org_id") != org_id:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if user.get("role") == "owner":
+        raise HTTPException(status_code=400, detail="Cannot change owner role")
+    user["role"] = mapped
+    _save_users()
+    return {"ok": True, "user": _public_user(user)}
+
+
+def bump_dossier_open(token: Optional[str]) -> Dict[str, Any]:
+    """Count dossier opens. Guests hard-cap at 15; registered users are uncapped."""
+    from app.services import activity as activity_svc
+    from app.services.legal import copyright_meta
+
+    public = resolve_token(token)
+    if not public:
+        return {"ok": True, "capped": False}
+    user = _find_user(public["id"])
+    if user is None:
+        return {"ok": True, "capped": False}
+    prefs = {**DEFAULT_PREFS, **(user.get("preferences") or {})}
+    used = int(prefs.get("dossier_opens") or 0) + 1
+    prefs["dossier_opens"] = used
+    user["preferences"] = prefs
+    _save_users()
+    oid = user.get("org_id")
+    if oid and user.get("kind") != "guest":
+        activity_svc.bump(str(oid), "dossier_opens")
+    cap = 15
+    if user.get("kind") == "guest" and used > cap:
+        meta = copyright_meta()
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "guest_dossier_cap",
+                "message": "Guest preview limit reached — register to keep reading dossiers",
+                "cap": cap,
+                "retail_marketing_allowed": bool(meta.get("retail_marketing_allowed")),
+            },
+        )
+    return {"ok": True, "capped": False, "dossier_opens": used, "cap": cap}
+
+
+def record_cite_copy(token: Optional[str], *, company_id: Optional[str] = None) -> Dict[str, Any]:
+    """Habit ping — no quote text stored."""
+    from app.services import activity as activity_svc
+
+    public = resolve_token(token)
+    if not public:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user = _find_user(public["id"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="Session expired")
+    prefs = {**DEFAULT_PREFS, **(user.get("preferences") or {})}
+    prefs["citations_copied"] = int(prefs.get("citations_copied") or 0) + 1
+    user["preferences"] = prefs
+    _save_users()
+    oid = user.get("org_id")
+    if oid and user.get("kind") != "guest":
+        activity_svc.bump(str(oid), "cite_copies")
+    _ = company_id
+    return {"ok": True, "citations_copied": prefs["citations_copied"]}
+
+
+def bump_guest_dossier(token: Optional[str]) -> Dict[str, Any]:
+    return bump_dossier_open(token)

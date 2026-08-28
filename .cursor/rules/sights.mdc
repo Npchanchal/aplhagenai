@@ -1,0 +1,16 @@
+---
+description: CiteAlpha Sights SKU — cite-only India disclosure research OS
+globs: "{frontend/src/pages/sights/**,backend/app/services/sights.py,docs/kb/14-sights.md,docs/customer/skus/SIGHTS.md}"
+alwaysApply: false
+---
+
+# Sights
+
+- Parallel SKU at `/sights/*` — composes research, GCI, citations, Radar hooks.
+- **Cite-only or refuse**; never invent actuals or filings.
+- **Never:** competitor trademarks in UI, unlicensed broker PDF proxy, expert-call marketplace, Buy/Hold.
+- Backend: `backend/app/services/sights.py` · APIs: `/api/sights/*`.
+- Feature flags: `SIGHTS`, `SIGHTS_DEEP_DIVE`, `SIGHTS_GRID`, `SIGHTS_AGENTS`, `SIGHTS_WEB_ASSIST` (off by default).
+- Entitlements: plan ∩ role; `sights_ask` for Ask/chat surfaces (`entitlements.py`).
+- Cite Research Terminal stays at `/research` (Cite SKU) — do not merge routes.
+- KB: `docs/kb/14-sights.md` · customer: `docs/customer/skus/SIGHTS.md`.

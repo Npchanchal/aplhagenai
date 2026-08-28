@@ -1,5 +1,5 @@
 ---
-description: Frontend conventions for IntelLens Guidance Tracker UI
+description: Frontend conventions for CiteAlpha Guidance Tracker UI
 globs: frontend/**/*.{ts,tsx,css}
 alwaysApply: false
 ---

@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Compliance
 
-- IntelLens is factual guidance-delivery research — **not** investment advice.
+- CiteAlpha is factual guidance-delivery research — **not** investment advice.
 - Never add Buy / Hold / Sell UI, tips, or recommendation language.
 - Show disclaimer on GCI and vernacular surfaces (`Disclaimer` / `/api/compliance/sebi-note`).
 - Keep `hand_labeled` vs `demo_structured` badges honest and visible.

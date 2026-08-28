@@ -478,7 +478,8 @@ def markets_meta() -> Dict[str, Any]:
             f"Non-India markets ship a deterministic top-{MARKET_TOP_N} scaffold "
             f"(data_quality=market_scaffold). India uses NSE ({counts['nse']}) + BSE "
             f"({counts['bse']}) equity masters (merged {counts['merged']}). "
-            "GCI scores use production gci_scoring v2 for every NSE/BSE name: "
+            "GCI scores use production gci_scoring (default v3; INTELLENS_GCI_VERSION=v2 for legacy) "
+            "for every NSE/BSE name: "
             "Sensex hand_labeled / Nifty demo_structured / else listing_provisional "
             "(deterministic demo outcomes — cite hand_labeled only)."
         ),

@@ -357,6 +357,75 @@ resource "aws_route53_record" "www" {
   }
 }
 
+# Hostinger mailbox DNS (site apex/www stay ALB aliases — never Hostinger A 2.57.x)
+locals {
+  hostinger_mail_on = local.domain_enabled && var.manage_dns && var.hostinger_mail_dns
+}
+
+resource "aws_route53_record" "mx" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = var.domain_name
+  type    = "MX"
+  ttl     = 14400
+  records = [
+    "5 mx1.hostinger.com",
+    "10 mx2.hostinger.com",
+  ]
+}
+
+resource "aws_route53_record" "spf" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = var.domain_name
+  type    = "TXT"
+  ttl     = 14400
+  # Apex TXT is one RRset — SPF + Google Search Console verification together.
+  records = [
+    "v=spf1 include:_spf.mail.hostinger.com ~all",
+    "google-site-verification=yo37H-rnMsn-bMsyzOearpVxl4VISl6S7wVb6mZYEZE",
+  ]
+}
+
+resource "aws_route53_record" "dkim_hostinger" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = "hostingermail1._domainkey.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 3600
+  # Provider stores long TXT as chunk1 + `" "` + chunk2 (255-char DNS character-strings).
+  records = [
+    "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtPL2TiEboNfZGBqFiZEauZKtqAkF0A/ACw++eTbLreUxAt6ndtE5S+27CjLN7410+yooFvniFdveBp2jpav/2/xFqnDFXeyx8n1n95L/Hz/twa47i+6WwSsl59kJP23iYScw8DzSI2+hVCpoNYeN4a++sOc1KAWeRLuGng0+2rUj28BSX6Kcfuq6L+Qr55qJt\" \"1eOTF+77haFyBCmcmmUygvKQj+UlEDC4kbWtSKsG7xND9g/sWFKZKOhUohK1O89XXE381b4DIPNZQWbIYXQEv+p3xIbd2MlwxTvuQ5KPfPf1/ZRsSipPx47KQ8cyvCCIjZ0U4OU1oFg+mqtZLhAkQIDAQAB"
+  ]
+}
+
+resource "aws_route53_record" "dmarc" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = "_dmarc.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 3600
+  records = ["v=DMARC1; p=none"]
+}
+
+resource "aws_route53_record" "autodiscover" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = "autodiscover.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["autodiscover.mail.hostinger.com"]
+}
+
+resource "aws_route53_record" "autoconfig" {
+  count   = local.hostinger_mail_on ? 1 : 0
+  zone_id = aws_route53_zone.app[0].zone_id
+  name    = "autoconfig.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["autoconfig.mail.hostinger.com"]
+}
+
 resource "aws_iam_role" "ecs_execution" {
   name = "${local.name_prefix}-ecs-execution"
 
@@ -388,6 +457,91 @@ resource "aws_iam_role" "ecs_task" {
   })
 }
 
+# Persistent auth SQLite (auth.db) — survives ECS task replacement.
+resource "aws_security_group" "efs" {
+  count       = var.enable_auth_efs && var.use_db_auth ? 1 : 0
+  name        = "${local.name_prefix}-efs"
+  description = "NFS from ECS tasks to auth EFS"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port       = 2049
+    to_port         = 2049
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_efs_file_system" "auth" {
+  count          = var.enable_auth_efs && var.use_db_auth ? 1 : 0
+  creation_token = "${local.name_prefix}-auth"
+  encrypted      = true
+
+  tags = {
+    Name = "${local.name_prefix}-auth"
+  }
+}
+
+resource "aws_efs_mount_target" "auth" {
+  count           = var.enable_auth_efs && var.use_db_auth ? length(local.app_subnets) : 0
+  file_system_id  = aws_efs_file_system.auth[0].id
+  subnet_id       = local.app_subnets[count.index]
+  security_groups = [aws_security_group.efs[0].id]
+}
+
+resource "aws_efs_access_point" "auth" {
+  count          = var.enable_auth_efs && var.use_db_auth ? 1 : 0
+  file_system_id = aws_efs_file_system.auth[0].id
+
+  posix_user {
+    uid = 0
+    gid = 0
+  }
+
+  root_directory {
+    path = "/auth"
+    creation_info {
+      owner_uid   = 0
+      owner_gid   = 0
+      permissions = "755"
+    }
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-auth-ap"
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_efs" {
+  count = var.enable_auth_efs && var.use_db_auth ? 1 : 0
+  name  = "${local.name_prefix}-ecs-task-efs"
+  role  = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "elasticfilesystem:ClientMount",
+        "elasticfilesystem:ClientWrite"
+      ]
+      Resource = aws_efs_file_system.auth[0].arn
+      Condition = {
+        StringEquals = {
+          "elasticfilesystem:AccessPointArn" = aws_efs_access_point.auth[0].arn
+        }
+      }
+    }]
+  })
+}
+
 # Single task: API + nginx (proxies /api|/health|/docs → localhost:8000).
 resource "aws_ecs_task_definition" "app" {
   family                   = "${local.name_prefix}-app"
@@ -398,6 +552,21 @@ resource "aws_ecs_task_definition" "app" {
   execution_role_arn       = aws_iam_role.ecs_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
 
+  dynamic "volume" {
+    for_each = var.enable_auth_efs && var.use_db_auth ? [1] : []
+    content {
+      name = "auth-data"
+      efs_volume_configuration {
+        file_system_id     = aws_efs_file_system.auth[0].id
+        transit_encryption = "ENABLED"
+        authorization_config {
+          access_point_id = aws_efs_access_point.auth[0].id
+          iam             = "ENABLED"
+        }
+      }
+    }
+  }
+
   container_definitions = jsonencode([
     {
       name      = "api"
@@ -407,14 +576,41 @@ resource "aws_ecs_task_definition" "app" {
         containerPort = 8000
         protocol      = "tcp"
       }]
+      mountPoints = var.enable_auth_efs && var.use_db_auth ? [
+        {
+          sourceVolume  = "auth-data"
+          containerPath = "/data"
+          readOnly      = false
+        }
+      ] : []
       environment = concat(
         [
           { name = "INTELLENS_ENV", value = "aws" },
           { name = "SSO", value = var.sso_enabled ? "true" : "false" }
         ],
+        var.use_db_auth ? [
+          { name = "USE_DB_AUTH", value = "1" },
+          { name = "AUTH_SQLITE_PATH", value = var.auth_sqlite_path }
+        ] : [],
         var.fmp_api_key != "" ? [
           { name = "INTELLENS_FMP_API_KEY", value = var.fmp_api_key }
         ] : [],
+        var.openai_api_key != "" ? [
+          { name = "OPENAI_API_KEY", value = var.openai_api_key }
+        ] : [],
+        var.force_https ? [
+          { name = "FORCE_HTTPS", value = "true" }
+        ] : [],
+        var.enable_hsts || var.force_https ? [
+          { name = "ENABLE_HSTS", value = "true" }
+        ] : [],
+        var.intellens_public_url != "" ? [
+          { name = "INTELLENS_PUBLIC_URL", value = var.intellens_public_url }
+        ] : (
+          var.domain_name != "" ? [
+            { name = "INTELLENS_PUBLIC_URL", value = "https://${var.domain_name}" }
+          ] : []
+        ),
         var.oidc_client_id != "" ? [
           { name = "OIDC_CLIENT_ID", value = var.oidc_client_id }
         ] : [],
@@ -426,7 +622,11 @@ resource "aws_ecs_task_definition" "app" {
         ] : [],
         var.oidc_redirect_uri != "" ? [
           { name = "OIDC_REDIRECT_URI", value = var.oidc_redirect_uri }
-        ] : [],
+        ] : (
+          var.domain_name != "" ? [
+            { name = "OIDC_REDIRECT_URI", value = "https://${var.domain_name}/api/auth/sso/callback" }
+          ] : []
+        ),
         var.alphahunter_api_url != "" ? [
           { name = "ALPHAHUNTER_API_URL", value = var.alphahunter_api_url }
         ] : [],
@@ -435,7 +635,24 @@ resource "aws_ecs_task_definition" "app" {
         ] : [],
         var.csm_email != "" ? [
           { name = "CSM_EMAIL", value = var.csm_email }
-        ] : []
+        ] : [],
+        var.smtp_host != "" ? [
+          { name = "SMTP_HOST", value = var.smtp_host },
+          { name = "SMTP_PORT", value = var.smtp_port },
+          { name = "SMTP_FROM", value = var.smtp_from },
+          { name = "SMTP_USER", value = var.smtp_user },
+          { name = "SMTP_PASS", value = var.smtp_pass }
+        ] : [],
+        var.intellens_auth_dev_tokens ? [
+          { name = "INTELLENS_AUTH_DEV_TOKENS", value = "1" }
+        ] : [
+          { name = "INTELLENS_AUTH_DEV_TOKENS", value = "0" }
+        ],
+        [
+          { name = "RADAR_DIGEST", value = var.radar_digest ? "1" : "0" },
+          { name = "IR_MIRROR", value = var.ir_mirror ? "1" : "0" },
+          { name = "PORTFOLIO_STRETCH", value = var.portfolio_stretch ? "1" : "0" }
+        ]
       )
       logConfiguration = {
         logDriver = "awslogs"

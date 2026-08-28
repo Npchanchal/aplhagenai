@@ -662,5 +662,637 @@
       "pending_new": 2,
       "extract_batches": 0
     }
+  },
+  {
+    "ts": "2026-08-08T18:17:32.050450+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "ae1dd25b-bb44-42ce-8850-ea6d075dc946",
+      "count": 3
+    }
+  },
+  {
+    "ts": "2026-08-08T18:35:54.524176+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "e816fbb5-38a8-4da6-ba09-f508363b8384",
+      "count": 3
+    }
+  },
+  {
+    "ts": "2026-08-09T11:26:16.132526+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "e9d6aadb-074c-423f-a690-60752e84039d",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-09T11:26:20.708721+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "9f93e4e5-f121-45b3-8a67-053011275afa",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-21T03:03:45.100382+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 3,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-21T03:17:33.477105+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 3,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-21T04:03:40.698719+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 3,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-21T04:03:40.755944+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "dcb44aa8-473c-4832-9266-6f440a1bb326",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-21T04:05:01.164502+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-23T18:37:29.665814+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "f16367aa-5afd-4dd2-bf53-16ba2d7461f3",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-23T18:38:20.366844+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "a85bb2ca-a618-45b2-8902-3b3503b8d142",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-24T03:35:43.289440+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "447741c8-67f1-440a-94a1-64038cec495c",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:04.794376+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "53e19ec2-0103-4e3e-be9d-15b3747a451d",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:07.637146+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "9b739ff3-0fc2-40ed-8026-00dbef4a9955",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:07.724915+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "ca11da25-f9d1-437a-bd26-b69c7d7c66d9",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:20.560781+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "604b50a0-0828-4a81-a5a4-e7752be045d5",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:23.343185+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "b8d04637-6262-45f0-ae00-6ed4e89493f0",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:15:23.468500+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "ad12f3e8-03a1-40d7-8a6d-1fed0c6aee03",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:17:06.995062+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-27T05:17:07.084096+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "6f81a117-917d-4849-8aa1-c911f84c4690",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-27T05:17:09.483308+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-08-28T06:31:26.416185+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "009fbb17-2669-4ac4-ab15-91ffd0a07937",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T06:31:27.840037+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-28T06:32:18.027639+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "c2d52207-dabd-4af2-af85-e51ceba93140",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:09.634415+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "1e7b4520-97c6-476e-a297-bacffc4c3340",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:14.909037+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:14.999494+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "74535d36-495f-4311-bf61-96abc02da96a",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:15.664929+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:15.802416+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "78c9082e-5d2d-4daf-b36b-c5c4af987b99",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:51.941085+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-08-28T20:11:52.414078+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "5c0dacb1-281c-47bb-82e4-32e0e318aed9",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:12:00.416808+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-08-28T20:14:01.884288+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "8bb51078-60cb-46d2-8c07-55db2a739533",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:19:53.804269+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "31d794fb-4e54-4119-86d3-5f625d5caef4",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:19:56.148993+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-08-28T20:19:56.234004+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "689ced01-4ef4-44ba-b6c2-65b041bd760a",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:19:57.831732+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-28T20:19:58.728472+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "77884ff8-7f70-4804-bcc6-11cd54e26c3f",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:20:32.302831+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-08-28T20:20:33.514115+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "f140f16f-8f2a-4b38-8506-8ee413b8890b",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:20:45.336909+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:20.230551+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "02468cf9-1603-497b-84e4-82a3a0551611",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:26.580109+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:26.702200+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "ef96ffaa-41dd-46b5-87a3-76d54afdfe7f",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:29.090405+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:29.242567+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "10b7732f-3dfe-48d0-986a-b8101593ef36",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:47.105171+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:47.602731+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "a5d2f7c9-d0fb-4b1b-bd84-c20a89cc5dfe",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-28T20:22:55.347618+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
   }
 ]

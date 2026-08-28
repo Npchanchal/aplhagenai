@@ -2,6 +2,7 @@
 
 from app.data.hand_labeled import HAND_LABELED, HAND_LABELED_COMPANY_IDS
 from app.data.seed import reset_data
+from app.data.universe import SENSEX_30
 from app.data import doc_store, consensus_store
 from app.services import ingest, research
 from app.services.extraction import extract_guidance
@@ -16,7 +17,9 @@ def setup_function():
 
 def test_phase0_flags_and_sensex_labeled():
     assert "FREEZE_DEMO_PAD" in flags_dict()
-    assert len(HAND_LABELED_COMPANY_IDS) == 30
+    sensex_ids = {r[0] for r in SENSEX_30}
+    assert sensex_ids <= HAND_LABELED_COMPANY_IDS
+    assert len(HAND_LABELED_COMPANY_IDS) >= len(sensex_ids)
 
 
 def test_phase1_every_hand_label_has_source():

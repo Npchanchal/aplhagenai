@@ -6,12 +6,12 @@ Copy everything below the line into Cursor (or another agent) when you want a fu
 
 ## Role
 
-You are a senior product designer + frontend engineer. Rebuild **IntelLens** into a **full professional institutional research site** for Indian equity desks. Ship production-quality React/TypeScript UI that feels like a credible sell-side / buy-side workbench — not a marketing landing page, not a generic SaaS dashboard.
+You are a senior product designer + frontend engineer. Rebuild **CiteAlpha** into a **full professional institutional research site** for Indian equity desks. Ship production-quality React/TypeScript UI that feels like a credible sell-side / buy-side workbench — not a marketing landing page, not a generic SaaS dashboard.
 
 ## Brand & product
 
-- **Brand:** IntelLens (wordmark: Intel + Lens accent)
-- **Pitch:** Keep your market terminal for prices; use IntelLens for **guidance delivery**.
+- **Brand:** CiteAlpha (wordmark: Intel + Lens accent)
+- **Pitch:** Keep your market terminal for prices; use CiteAlpha for **guidance delivery**.
 - **Core score:** Guidance Credibility Index (**GCI**) 0–100 — management guidance vs actuals, with an evidence trail.
 - **Audience:** PMS / AIF / sell-side research / EM quant desks (India Sensex → Nifty path).
 - **Compliance:** Factual product only. **Never** Buy / Hold / Sell. Always show a short SEBI-oriented disclaimer where scores or vernacular blurbs appear.
@@ -85,7 +85,7 @@ Professional research terminal with clear sub-modes:
 Apply these hard rules:
 
 1. **One composition** per viewport — not a widget dashboard.
-2. **Brand first** — IntelLens is a hero-level signal in the shell; product area names are clear but don’t overpower the brand.
+2. **Brand first** — CiteAlpha is a hero-level signal in the shell; product area names are clear but don’t overpower the brand.
 3. **Typography:** expressive, purposeful fonts (not Inter / Roboto / Arial / system default stacks). Serif for brand/headings, refined sans for data.
 4. **Atmosphere:** subtle paper/research texture or soft gradients — not flat white; not neon fintech glow.
 5. **Avoid AI-default looks:** no purple-on-white, no cream+terracotta brochure, no broadsheet newspaper clone, no dark-mode-by-default, no glow, no pill spam, no emoji.
@@ -98,7 +98,7 @@ Apply these hard rules:
 ## Information architecture
 
 ```
-IntelLens
+CiteAlpha
 ├── Guidance Credibility Index   → Tracker + company dossier
 ├── Desk                         → One-Stop analyst console
 ├── Research                     → Search / Chat / Snapshot / News / Watch
@@ -130,7 +130,7 @@ Global header: brand left; primary nav right; optional subtle “Not investment 
 - [ ] Every numeric parameter that has history shows **level + change trend**.
 - [ ] Desk covers Tracker, Evidence, PIT/API, AlphaHunter, Wordmap, Vernacular, CSM without leaving `/desk`.
 - [ ] Research Search/Chat/Desk/News/Watch all work and look like one product family.
-- [ ] Brand test: remove the nav text — the first viewport still reads as IntelLens, not a generic template.
+- [ ] Brand test: remove the nav text — the first viewport still reads as CiteAlpha, not a generic template.
 - [ ] Disclaimer visible on GCI and vernacular surfaces.
 - [ ] Desktop and mobile both load cleanly.
 
@@ -146,4 +146,4 @@ Begin by auditing current pages, then implement the professional shell and the t
 
 ## Optional one-liner (short form)
 
-> Redesign IntelLens into a professional institutional site with three equal products — **Guidance Credibility Index** (tracker + evidence dossier), **Desk** (One-Stop console: PIT, AlphaHunter, Wordmap, vernacular, CSM), and **Research** (search, cite-only chat, desk snapshot, news, watchlist). Always show absolute levels **and** MoM/QoQ/YoY changes; factual GCI only, no Buy/Hold; distinctive research typography and paper atmosphere; keep existing FastAPI routes.
+> Redesign CiteAlpha into a professional institutional site with three equal products — **Guidance Credibility Index** (tracker + evidence dossier), **Desk** (One-Stop console: PIT, AlphaHunter, Wordmap, vernacular, CSM), and **Research** (search, cite-only chat, desk snapshot, news, watchlist). Always show absolute levels **and** MoM/QoQ/YoY changes; factual GCI only, no Buy/Hold; distinctive research typography and paper atmosphere; keep existing FastAPI routes.

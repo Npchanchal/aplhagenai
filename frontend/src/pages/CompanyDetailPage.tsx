@@ -1,30 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ChangeChip, { ChangeTriple } from "../components/ChangeChip";
+import AuditBadges from "../components/AuditBadges";
 import { BarChart, CompareBars, DualLineChart, LineChart } from "../components/Charts";
 import Disclaimer from "../components/Disclaimer";
 import EvidenceTable from "../components/EvidenceTable";
 import InfoTip from "../components/InfoTip";
 import QualityBadge from "../components/QualityBadge";
+import RevisionTimeline from "../components/RevisionTimeline";
 import ScoreReveal from "../components/ScoreReveal";
 import Skeleton from "../components/Skeleton";
 import ThreadTimeline from "../components/ThreadTimeline";
 import Toast from "../components/Toast";
+import WatchlistToggle from "../components/WatchlistToggle";
+import GuestPaywallModal from "../components/GuestPaywallModal";
+import { useSourceViewer } from "../lib/SourceViewerContext";
+import { withTextHighlight } from "../lib/sourceHighlight";
 import {
+  downloadIcAuditPdf,
+  downloadLedgerPdf,
   fetchCompanyAnalytics,
   fetchCompanyChanges,
   fetchCompanyDocs,
   fetchCompanyGci,
+  fetchCompanyLedger,
   fetchHistory,
+  fetchLedgerMirror,
+  fetchNarrativeConsistency,
   fetchNotes,
+  fetchRadarDiffBrief,
   fetchReportTemplates,
   fetchStockHistory,
   fetchVernacular,
+  fetchVernacularDigest,
   fetchWordmap,
+  postExtract,
+  postFeedback,
   postGenerateReport,
   postNote,
-  postExtract,
   postReview,
+  ApiError,
   type CompanyGCIDetail,
   type StockHistory,
   type VernacularPayload,
@@ -33,16 +48,24 @@ import {
 import { tipForLabel } from "../lib/glossary";
 import { scoreClass } from "../lib/score";
 import { useI18n } from "../i18n";
+import { useEntitlements } from "../lib/entitlements";
+import { trackEvent } from "../lib/analytics";
 
-const SECTIONS = [
+const TOC_PRIMARY = [
   { id: "evidence", label: "Evidence" },
+  { id: "ledger", label: "Ledger" },
   { id: "docs", label: "Docs" },
   { id: "trend", label: "Trend" },
+  { id: "report", label: "Report" },
+] as const;
+
+const TOC_MORE = [
+  { id: "radar-diff", label: "Radar" },
+  { id: "revisions", label: "Revisions" },
   { id: "analytics", label: "Analytics" },
   { id: "threads", label: "Threads" },
   { id: "metrics", label: "Metrics" },
   { id: "notes", label: "Notes" },
-  { id: "report", label: "Report" },
   { id: "pit", label: "PIT" },
   { id: "context", label: "Context" },
 ] as const;
@@ -50,6 +73,8 @@ const SECTIONS = [
 export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t } = useI18n();
+  const { has } = useEntitlements();
+  const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [history, setHistory] = useState<
     {
@@ -105,12 +130,37 @@ export default function CompanyDetailPage() {
     Array<{ id: string; name: string }>
   >([]);
   const [reportMd, setReportMd] = useState<string | null>(null);
-  const [templateId, setTemplateId] = useState("ra_delivery");
+  const [templateId, setTemplateId] = useState("ic_audit");
+  const [radarDiffs, setRadarDiffs] = useState<
+    Awaited<ReturnType<typeof fetchRadarDiffBrief>>["diffs"]
+  >([]);
+  const [creditOnly, setCreditOnly] = useState(false);
+  const [ledgerSummary, setLedgerSummary] = useState<{
+    closed_count: number;
+    open_promise_count: number;
+    by_status: Record<string, number>;
+    filter?: string;
+  } | null>(null);
+  const [ledgerRows, setLedgerRows] = useState<
+    { period?: string; metric?: string; status?: string; source_url?: string | null }[]
+  >([]);
+  const [mirrorNote, setMirrorNote] = useState<string | null>(null);
+  const [vernacularDigest, setVernacularDigest] = useState<{
+    text: string;
+    sources: { url?: string }[];
+  } | null>(null);
+  const [nci, setNci] = useState<{
+    nci_score: number;
+    conflicts: { kind: string; detail?: string }[];
+    status: string;
+  } | null>(null);
+  const [paywall, setPaywall] = useState<ApiError | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
 
   const reload = useCallback(() => {
     if (!id) return;
     setError(null);
+    setPaywall(null);
     Promise.all([
       fetchCompanyGci(id),
       fetchHistory(id).catch(() => []),
@@ -145,9 +195,14 @@ export default function CompanyDetailPage() {
       })),
       fetchNotes(id).catch(() => ({ notes: [] })),
       fetchReportTemplates().catch(() => ({ templates: [] })),
+      fetchRadarDiffBrief(id).catch(() => ({ diffs: [] })),
+      fetchCompanyLedger(id, { creditOnly }).catch(() => null),
+      fetchVernacularDigest(id, lang === "hi" ? "hi" : "en").catch(() => null),
+      fetchNarrativeConsistency(id).catch(() => null),
     ])
-      .then(([d, h, w, v, ph, ch, an, dc, nt, tpl]) => {
+      .then(([d, h, w, v, ph, ch, an, dc, nt, tpl, diff, led, vdig, nciRow]) => {
         setDetail(d);
+        trackEvent("open_dossier");
         setHistory(h || []);
         setWordmap(w);
         setVernacular(v);
@@ -158,20 +213,60 @@ export default function CompanyDetailPage() {
         setCompleteness(dc.completeness || null);
         setNotes(nt.notes || []);
         setTemplates(tpl.templates || []);
+        setRadarDiffs(diff.diffs || []);
+        if (led) {
+          setLedgerSummary({
+            closed_count: led.summary.closed_count,
+            open_promise_count: led.summary.open_promise_count,
+            by_status: led.summary.by_status,
+            filter: led.filter,
+          });
+          setLedgerRows(
+            (led.closed_promises as { period?: string; metric?: string; status?: string; source_url?: string | null }[]).slice(
+              0,
+              12,
+            ),
+          );
+        } else {
+          setLedgerSummary(null);
+          setLedgerRows([]);
+        }
+        setVernacularDigest(
+          vdig ? { text: vdig.text, sources: vdig.sources || [] } : null,
+        );
+        setNci(nciRow);
         setError(null);
       })
-      .catch((e: Error) => setError(e.message));
-  }, [id, lang]);
+      .catch((e: Error) => {
+        if (e instanceof ApiError && e.code === "guest_dossier_cap") {
+          setPaywall(e);
+          setError(null);
+          return;
+        }
+        setError(e.message);
+      });
+  }, [id, lang, creditOnly]);
 
   useEffect(() => {
     setDetail(null);
     reload();
   }, [reload]);
 
+  if (paywall) {
+    return (
+      <section>
+        <Link className="back" to="/tracker">
+          ← Universe
+        </Link>
+        <GuestPaywallModal error={paywall} cap={15} />
+      </section>
+    );
+  }
+
   if (error) {
     return (
       <section>
-        <Link className="back" to="/">
+        <Link className="back" to="/tracker">
           ← Universe
         </Link>
         <p className="error">{error}</p>
@@ -182,7 +277,7 @@ export default function CompanyDetailPage() {
   if (!detail) {
     return (
       <section>
-        <Link className="back" to="/">
+        <Link className="back" to="/tracker">
           {t("common.back")}
         </Link>
         <p className="page-kicker">{t("company.kicker")}</p>
@@ -200,7 +295,7 @@ export default function CompanyDetailPage() {
     <section className="dossier-page">
       <Toast message={toast} onDismiss={dismissToast} tone="info" />
 
-      <Link className="back" to="/">
+      <Link className="back" to="/tracker">
         {t("common.back")}
       </Link>
 
@@ -223,10 +318,18 @@ export default function CompanyDetailPage() {
           </div>
         </div>
         <div className="dossier-score-block">
+          <div className="dossier-watch-row">
+            <WatchlistToggle companyId={detail.id} />
+          </div>
           <span className="field-label">
             GCI <InfoTip termId="gci" />
           </span>
           <ScoreReveal score={detail.gci_score} testId="gci-score" />
+          <AuditBadges
+            badges={detail.audit_badges}
+            deduction={detail.audit_deduction}
+            note={detail.audit_note}
+          />
           <div style={{ marginTop: 6 }}>
             {changes ? (
               <ChangeTriple
@@ -249,28 +352,40 @@ export default function CompanyDetailPage() {
 
       <Disclaimer compact />
 
-      <div className="metrics">
-        {Object.entries(detail.label_counts).map(([label, n]) => (
-          <div className="metric" key={label}>
-            <div className="label">
-              {label}{" "}
-              <InfoTip termId={label.toLowerCase()} text={tipForLabel(label)} />
-            </div>
-            <div className="value">{n}</div>
-          </div>
-        ))}
-      </div>
+      {(detail.red_alerts?.length ?? 0) > 0 && (
+        <details className="panel dossier-red-alerts" data-testid="dossier-red-alerts">
+          <summary className="panel-head">
+            <h2>Red alerts ({detail.red_alerts!.length})</h2>
+          </summary>
+          <ul className="alert-list">
+            {detail.red_alerts!.map((a) => (
+              <li key={`${a.kind}-${a.message}`}>
+                <strong>{a.kind.replace(/_/g, " ")}</strong> — {a.message}
+                <span className={`pill ${a.severity}`}>{a.severity}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <nav className="dossier-toc" aria-label="Dossier sections">
-        {SECTIONS.filter((s) => {
-          if (s.id === "threads") return hasThreads;
-          if (s.id === "metrics") return hasMetricChanges;
-          return true;
-        }).map((s) => (
+        {TOC_PRIMARY.map((s) => (
           <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
             {s.label}
           </a>
         ))}
+        <details className="dossier-toc-more">
+          <summary>More</summary>
+          {TOC_MORE.filter((s) => {
+            if (s.id === "threads") return hasThreads;
+            if (s.id === "metrics") return hasMetricChanges;
+            return true;
+          }).map((s) => (
+            <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
+              {s.label}
+            </a>
+          ))}
+        </details>
       </nav>
 
       <div className="panel" id="evidence">
@@ -302,6 +417,17 @@ export default function CompanyDetailPage() {
             Open review queue
           </Link>
         </p>
+        <div className="metrics">
+          {Object.entries(detail.label_counts).map(([label, n]) => (
+            <div className="metric" key={label}>
+              <div className="label">
+                {label}{" "}
+                <InfoTip termId={label.toLowerCase()} text={tipForLabel(label)} />
+              </div>
+              <div className="value">{n}</div>
+            </div>
+          ))}
+        </div>
         {detail.status === "insufficient_data" || detail.outcomes.length === 0 ? (
           <div className="empty" data-testid="empty-state">
             Insufficient data — no matched guidance outcomes yet.
@@ -309,35 +435,218 @@ export default function CompanyDetailPage() {
         ) : (
           <EvidenceTable
             outcomes={detail.outcomes}
+            companyId={detail.id}
             testId="evidence-table"
-            onReview={async (outcomeIndex, action) => {
-              await postReview({
-                company_id: detail.id,
-                outcome_index: outcomeIndex,
-                action,
-                comment: action === "reject" ? "reject from UI" : undefined,
-              });
-              setToast(
-                action === "accept"
-                  ? `Accepted outcome #${outcomeIndex}`
-                  : `Rejected outcome #${outcomeIndex}`
-              );
-              reload();
-            }}
-            onEdit={async (outcomeIndex, edits) => {
-              await postReview({
-                company_id: detail.id,
-                outcome_index: outcomeIndex,
-                action: "edit",
-                comment: "edit from UI",
-                edits,
-              });
-              setToast(`Edited outcome #${outcomeIndex}`);
-              reload();
-            }}
+            onReview={
+              has("desk_write")
+                ? async (outcomeIndex, action) => {
+                    await postReview({
+                      company_id: detail.id,
+                      outcome_index: outcomeIndex,
+                      action,
+                      comment: action === "reject" ? "reject from UI" : undefined,
+                    });
+                    setToast(
+                      action === "accept"
+                        ? `Accepted outcome #${outcomeIndex}`
+                        : `Rejected outcome #${outcomeIndex}`,
+                    );
+                    reload();
+                  }
+                : undefined
+            }
+            onEdit={
+              has("desk_write")
+                ? async (outcomeIndex, edits) => {
+                    await postReview({
+                      company_id: detail.id,
+                      outcome_index: outcomeIndex,
+                      action: "edit",
+                      comment: "edit from UI",
+                      edits,
+                    });
+                    setToast(`Edited outcome #${outcomeIndex}`);
+                    reload();
+                  }
+                : undefined
+            }
+            onFlag={
+              has("feedback")
+                ? async (o) => {
+                    await postFeedback({
+                      company_id: detail.id,
+                      period: o.period,
+                      metric: o.metric,
+                      kind: "wrong_band",
+                      comment: "Flagged from dossier evidence table",
+                    });
+                    trackEvent("feedback_submit");
+                    setToast("Flagged for CiteAlpha reviewers — GCI is unchanged");
+                  }
+                : undefined
+            }
           />
         )}
-        <Disclaimer />
+      </div>
+
+      <div className="panel" id="ledger" data-testid="ledger-panel">
+        <div className="panel-head">
+          <h2>Promise ledger</h2>
+        </div>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          Accountability dossier — closed and open promises with sources. GCI is optional
+          context. Not a credit rating.
+        </p>
+        {ledgerSummary && (
+          <p>
+            {ledgerSummary.closed_count} closed · {ledgerSummary.open_promise_count} open
+            {ledgerSummary.filter ? ` · filter: ${ledgerSummary.filter}` : ""}
+          </p>
+        )}
+        <div className="queue-ingest-row" style={{ flexWrap: "wrap", gap: 8 }}>
+          <label className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={creditOnly}
+              onChange={(e) => setCreditOnly(e.target.checked)}
+              data-testid="ledger-credit-only"
+            />
+            Credit-adjacent metrics only
+          </label>
+          <button
+            type="button"
+            className="btn small"
+            data-testid="ledger-pdf-btn"
+            onClick={async () => {
+              try {
+                const blob = await downloadLedgerPdf(detail.id, { creditOnly });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `ledger-${detail.ticker}${creditOnly ? "-credit" : ""}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+                setToast("Ledger PDF downloaded");
+              } catch (e) {
+                setToast(e instanceof Error ? e.message : "PDF failed");
+              }
+            }}
+          >
+            Download PDF
+          </button>
+          <button
+            type="button"
+            className="btn ghost small"
+            data-testid="ledger-mirror-btn"
+            onClick={async () => {
+              try {
+                const m = await fetchLedgerMirror(detail.id);
+                setMirrorNote(
+                  `${m.mirror_note || ""} · peers: ${m.peer_context?.sector_avg_gci ?? "—"} sector avg`,
+                );
+                setLedgerSummary({
+                  closed_count: m.summary.closed_count,
+                  open_promise_count: m.summary.open_promise_count,
+                  by_status: m.summary.by_status,
+                  filter: "ir_mirror",
+                });
+                setToast("IR Mirror loaded");
+              } catch (e) {
+                setToast(
+                  e instanceof Error
+                    ? e.message.includes("403") || e.message.includes("IR_MIRROR")
+                      ? "IR Mirror needs IR_MIRROR=1"
+                      : e.message
+                    : "IR Mirror unavailable",
+                );
+              }
+            }}
+          >
+            IR Mirror
+          </button>
+        </div>
+        {mirrorNote && <p className="muted" style={{ fontSize: 13 }}>{mirrorNote}</p>}
+        {ledgerRows.length > 0 && (
+          <ul className="radar-list" data-testid="ledger-rows">
+            {ledgerRows.map((r, i) => (
+              <li key={`${r.period}-${r.metric}-${i}`}>
+                <strong>{r.status}</strong> · {r.period} · {r.metric}
+                {r.source_url && (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      className="linkish"
+                      onClick={() =>
+                        openSource({
+                          title: `${r.period} ${r.metric}`,
+                          source_url: r.source_url,
+                          highlight_url: withTextHighlight(r.source_url),
+                        })
+                      }
+                    >
+                      source
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {nci && (
+          <div style={{ marginTop: 16 }} data-testid="nci-block">
+            <h3 style={{ marginBottom: 4 }}>Narrative consistency (beta)</h3>
+            <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
+              NCI {nci.nci_score} · {nci.status} — audit/revision flags only, not GCI.
+            </p>
+            {nci.conflicts.length > 0 && (
+              <ul className="radar-list">
+                {nci.conflicts.slice(0, 5).map((c, i) => (
+                  <li key={`${c.kind}-${i}`}>
+                    {c.kind}: {c.detail || "—"}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        <Disclaimer compact />
+      </div>
+
+      <div className="panel" id="radar-diff" data-testid="radar-diff-panel">
+        <div className="panel-head">
+          <h2>Guidance diff brief</h2>
+        </div>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          QoQ guided band / language changes — CiteAlpha Radar. Factual change log, not a forecast.
+        </p>
+        {radarDiffs.length === 0 ? (
+          <p className="muted">No material band revisions in the current seed.</p>
+        ) : (
+          <ul className="radar-list">
+            {radarDiffs.slice(0, 8).map((d, i) => (
+              <li key={`${d.metric}-${d.current_period}-${i}`}>
+                <span className={`sev sev-${d.severity || "medium"}`}>{d.kind}</span>{" "}
+                {d.metric} · {d.prior_period} → {d.current_period}
+                {d.band_delta != null && ` · Δ ${d.band_delta}`}
+                {d.detail && ` — ${d.detail}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="panel" id="revisions" data-testid="revision-panel">
+        <div className="panel-head">
+          <h2>
+            Revision &amp; restatement trail <InfoTip termId="delta" />
+          </h2>
+        </div>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          Guidance stated → raised / lowered → resolved (met / missed / withdrawn). Audit flags
+          feed GCI deductions — not a forensic accruals score.
+        </p>
+        <RevisionTimeline events={detail.revision_timeline} />
       </div>
 
       <div className="panel" id="docs" data-testid="period-docs">
@@ -783,7 +1092,10 @@ export default function CompanyDetailPage() {
       </div>
 
       <div className="panel" id="report" data-testid="report-panel">
-        <h2>Generate analyst report</h2>
+        <h2>IC audit dossier</h2>
+        <p className="muted" style={{ fontSize: 13 }}>
+          One-click cite-only pack for investment committee notes — Markdown, JSON, or PDF.
+        </p>
         <div className="queue-ingest-row">
           <select
             value={templateId}
@@ -801,13 +1113,45 @@ export default function CompanyDetailPage() {
             onClick={async () => {
               const r = await postGenerateReport({
                 company_id: detail.id,
-                template_id: templateId,
+                template_id: templateId || "ic_audit",
+                format: "markdown",
               });
-              setReportMd(r.markdown);
+              setReportMd(r.markdown || "");
               setToast(`Report: ${r.template_name}`);
             }}
           >
-            Generate
+            Markdown
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={async () => {
+              const r = await postGenerateReport({
+                company_id: detail.id,
+                template_id: "ic_audit",
+                format: "json",
+              });
+              setReportMd(JSON.stringify(r.dossier || r, null, 2));
+              setToast(`IC JSON · citeable ${r.citeable_count ?? "—"}`);
+            }}
+          >
+            JSON
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={async () => {
+              const blob = await downloadIcAuditPdf(detail.id);
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `ic-audit-${detail.ticker}.pdf`;
+              a.click();
+              URL.revokeObjectURL(url);
+              setToast("IC PDF downloaded");
+            }}
+          >
+            PDF
           </button>
         </div>
         {reportMd && (
@@ -969,6 +1313,40 @@ export default function CompanyDetailPage() {
           ))}
         </div>
         {vernacular && <blockquote className="desk-blurb">{vernacular.text}</blockquote>}
+
+        <h3 style={{ marginTop: 24 }}>Vernacular digest (Cite)</h3>
+        <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
+          Factual open/closed promise summary with source links — not a forecast.
+        </p>
+        {vernacularDigest && (
+          <div data-testid="vernacular-digest">
+            <blockquote className="desk-blurb">{vernacularDigest.text}</blockquote>
+            {vernacularDigest.sources.length > 0 && (
+              <ul className="radar-list">
+                {vernacularDigest.sources.map((s, i) =>
+                  s.url ? (
+                    <li key={i}>
+                      <button
+                        type="button"
+                        className="linkish"
+                        onClick={() =>
+                          openSource({
+                            title: "Vernacular source",
+                            source_url: s.url,
+                            highlight_url: withTextHighlight(s.url, vernacularDigest.text),
+                            quote: vernacularDigest.text,
+                          })
+                        }
+                      >
+                        {s.url}
+                      </button>
+                    </li>
+                  ) : null,
+                )}
+              </ul>
+            )}
+          </div>
+        )}
         <Disclaimer compact />
       </div>
 

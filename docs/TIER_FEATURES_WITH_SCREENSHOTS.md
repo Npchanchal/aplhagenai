@@ -1,6 +1,6 @@
-# IntelLens Tier 1–3 features — with screenshots
+# CiteAlpha Tier 1–3 features — with screenshots
 
-**In-product page:** `/about/tiers` (linked from About → Product tiers).  
+**In-product page:** https://citealpha.com/about/tiers (linked from About → Product tiers).  
 **Captured:** 2026-08-04 from live AWS (IP may rotate; use `./scripts/aws-app-url.sh`).  
 **Entity shown:** Infosys Ltd. (`INFY`) — Sensex hand_labeled pilot.  
 **Source plan:** [`PLAN_TIERED_FOUNDATION.md`](./PLAN_TIERED_FOUNDATION.md)  
@@ -8,6 +8,8 @@
 **Static assets:** also mirrored under `frontend/public/screenshots/tiers/` for the SPA.
 
 Honest reading: Tier 1–3 are **shipped as product surfaces**. Citability + auto IR crawl are real for Sensex hand_labeled names; Tier 3 runs on a PIT warehouse that may include `demo_pit_extension` scaffolding (UI labels it non-citeable). No Buy/Hold.
+
+**GCI math:** default scorer is **v3** (band δ → exp decay, asymmetric miss γ, recency weights) — see [`docs/kb/03-scoring.md`](./kb/03-scoring.md). Set `INTELLENS_GCI_VERSION=v2` for the legacy heuristic.
 
 ![Tracker overview](./screenshots/tiers/00-tracker-overview.png)
 
@@ -138,7 +140,7 @@ On INFY in this capture: LASSO kept `price`; Granger **not significant** (p ≈ 
 
 ### Methodology options (#8 lead/lag · #9 impact map)
 
-| # | Method | Role for IntelLens | Ship stance |
+| # | Method | Role for CiteAlpha | Ship stance |
 |---|---|---|---|
 | **1** | **Cross-Correlation Function (CCF)** | Correlation of two series at different lags (e.g. GCI at t−1 vs price at t). Cheap, interpretable. Weakness: correlation ≠ causation; autocorrelation can invent fake lag peaks. | **Shipped as aid** — “best lag (corr …)” under Granger rows. Not the causal claim. |
 | **2** | **Granger causality** | Does X’s past improve Y’s forecast beyond Y’s own past? Standard, explainable to institutional analysts. Weakness: predictive precedence ≠ true causation; needs stationarity / often differencing on India earnings series. | **Tier 3 v1 — shipped** (LASSO → F-test, N gate, experimental badge). |

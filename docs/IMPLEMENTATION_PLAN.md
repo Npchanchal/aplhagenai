@@ -1,7 +1,7 @@
 # Implementation Plan — Close B2B Gaps (stepwise)
 
 Plan derived from [GAPS_VS_ALPHASENSE_BLOOMBERG.md](GAPS_VS_ALPHASENSE_BLOOMBERG.md).  
-Goal: deepen **IntelLens GCI + Intellens Research** for India desks — not clone [AlphaSense](https://www.alpha-sense.com/) or Bloomberg Terminal.
+Goal: deepen **CiteAlpha GCI + Intellens Research** for India desks — not clone [AlphaSense](https://www.alpha-sense.com/) or Bloomberg Terminal.
 
 **Status (2026-07-20):** Phases **0–8 implemented in codebase** (API v0.4.0). Production hardening (real LLM providers, OIDC, Cloudflare hostname) remains ops follow-up.
 

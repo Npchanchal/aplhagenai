@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from fastapi import Depends, HTTPException
 
@@ -11,10 +11,14 @@ from app.services import sso as sso_svc
 
 
 ROLE_PERMS: Dict[str, Set[str]] = {
+    "guest": {"read"},
+    "member": {"read"},
     "viewer": {"read"},
     "analyst": {"read", "review", "extract", "ingest"},
-    "reviewer": {"read", "review", "ingest"},
-    "admin": {"read", "review", "extract", "ingest", "admin", "sso"},
+    "labeler": {"read", "label"},
+    "reviewer": {"read", "review", "ingest", "label"},
+    "admin": {"read", "review", "extract", "ingest", "admin", "sso", "label"},
+    "owner": {"read", "review", "extract", "ingest", "admin", "sso", "label"},
 }
 
 
@@ -33,6 +37,6 @@ def sso_status() -> Dict[str, Any]:
     return sso_svc.sso_status()
 
 
-def sso_login_stub() -> Dict[str, Any]:
+def sso_login_stub(org_id: Optional[str] = None) -> Dict[str, Any]:
     """Backward-compatible name — returns authorize payload or config_required."""
-    return sso_svc.sso_authorize()
+    return sso_svc.sso_authorize(org_id=org_id)

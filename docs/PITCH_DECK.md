@@ -1,10 +1,12 @@
-# IntelLens — Seed Pitch Deck (narrative)
+# CiteAlpha — Seed Pitch Deck (narrative)
 
 **Presentable slides:**
 - PowerPoint: [PITCH_DECK.pptx](PITCH_DECK.pptx) (14 slides, widescreen)
 - Browser: [PITCH_DECK.html](PITCH_DECK.html) (←/→ or Space; **F** fullscreen)
 
 **Positioning line:** *A credit score for management guidance — India-first Guidance Credibility Index for institutional desks.*
+
+**Legal entity:** Ocotillo Innovation Private Limited · **Product:** CiteAlpha · **Live:** https://citealpha.com
 
 **Not:** world’s first · sentiment dashboard · Buy/Hold/Sell · retail trading app.
 
@@ -27,7 +29,7 @@
 | 11 | **Cursor AI** | Eng velocity → capital into labeling + GTM, not a large eng army |
 | 12 | Ask | **₹3–5 Cr** illustrative seed · 45% labeling/NLP · 35% GTM · 20% infra/ops |
 | 13 | Risks | Extraction, cold start, SEBI, copycats, brand diligence |
-| 14 | Close | Keep your terminal for prices; use IntelLens for delivery |
+| 14 | Close | Keep your terminal for prices; use CiteAlpha for delivery |
 
 ---
 

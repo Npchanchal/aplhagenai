@@ -1,4 +1,4 @@
-# Tiered foundation plan — IntelLens GCI
+# Tiered foundation plan — CiteAlpha GCI
 
 **Status:** Planning truth (supersedes “Done” claims in `PLAN_TRACKER_DEPTH.md` for quality bar).  
 **Date:** 2026-08-02  
@@ -34,7 +34,7 @@ What we shipped under asks #1–#11 is mostly **Tier 2/3 UI and API scaffolding 
 ### Answers to the explicit questions
 
 **1. Does ingest → structure → search → cite match build order?**  
-**Yes.** That is the correct build order for IntelLens. Treat search and citability as **consumers** of the doc store, not parallel epics. Rebuild Tier 1 first; freeze polish on Tier 3 until the citation graph is real.
+**Yes.** That is the correct build order for CiteAlpha. Treat search and citability as **consumers** of the doc store, not parallel epics. Rebuild Tier 1 first; freeze polish on Tier 3 until the citation graph is real.
 
 **2. Is #7 descriptive pattern or predictive signal?**  
 **Descriptive pattern only** — product decision locked:

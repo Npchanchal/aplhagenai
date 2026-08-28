@@ -2,7 +2,20 @@ import { Fragment, useState } from "react";
 import ChangeChip from "./ChangeChip";
 import InfoTip from "./InfoTip";
 import type { OutcomeView } from "../lib/api";
+import { recordCiteCopy } from "../lib/api";
 import { tipForLabel } from "../lib/glossary";
+import { useSourceViewer } from "../lib/SourceViewerContext";
+import { withTextHighlight } from "../lib/sourceHighlight";
+import { trackEvent } from "../lib/analytics";
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 type Props = {
   outcomes: OutcomeView[];
@@ -11,6 +24,8 @@ type Props = {
   onReview?: (outcomeIndex: number, action: "accept" | "reject") => void;
   /** When set, shows an Edit action with an inline band/actual editor. */
   onEdit?: (outcomeIndex: number, edits: Record<string, unknown>) => void;
+  /** Design-partner flag — does not mutate GCI. */
+  onFlag?: (outcome: OutcomeView) => void;
   maxRows?: number;
   showDeltaActual?: boolean;
   testId?: string;
@@ -28,14 +43,18 @@ type EditDraft = {
 
 export default function EvidenceTable({
   outcomes,
+  companyId,
   onReview,
   onEdit,
+  onFlag,
   maxRows,
   showDeltaActual = true,
   testId = "evidence-table",
 }: Props) {
+  const { openSource } = useSourceViewer();
   const rows = maxRows != null ? outcomes.slice(0, maxRows) : outcomes;
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<EditDraft>({
     period: "",
     guided_low: "",
@@ -84,7 +103,7 @@ export default function EvidenceTable({
     onEdit(idx, edits);
   };
 
-  const showActions = Boolean(onReview || onEdit);
+  const showActions = Boolean(onReview || onEdit || onFlag);
   const colCount = 7 + (showDeltaActual ? 1 : 0) + (showActions ? 1 : 0);
 
   return (
@@ -172,23 +191,94 @@ export default function EvidenceTable({
                       {o.source_url && (
                         <>
                           {" "}
-                          <a href={o.source_url} target="_blank" rel="noreferrer">
+                          <button
+                            type="button"
+                            className="linkish"
+                            data-testid={`open-source-${idx}`}
+                            onClick={() =>
+                              openSource({
+                                citation_id: o.citation_id,
+                                doc_id: o.doc_id,
+                                title: `${o.period} ${o.metric}`,
+                                source_url: o.source_url,
+                                highlight_url: withTextHighlight(o.source_url, o.quote_span),
+                                quote: o.quote_span,
+                                span_start: o.span_start,
+                                span_end: o.span_end,
+                              })
+                            }
+                          >
                             Open source
-                          </a>
+                          </button>
                         </>
                       )}
+                      <button
+                        type="button"
+                        className="btn ghost small"
+                        data-testid={`copy-cite-${idx}`}
+                        onClick={() => {
+                          const quote = o.quote_span ? ` Quote: “${o.quote_span}”` : "";
+                          const loc =
+                            o.span_start != null && o.span_end != null
+                              ? ` chars ${o.span_start}–${o.span_end}`
+                              : "";
+                          const line = `${o.period} ${o.metric} (${o.citation_id})${loc} ${o.source_url || ""}.${quote}`;
+                          void copyText(line.trim()).then((ok) => {
+                            if (ok) {
+                              setCopiedId(o.citation_id || "");
+                              recordCiteCopy(companyId);
+                              window.setTimeout(() => setCopiedId(null), 1600);
+                            }
+                          });
+                        }}
+                      >
+                        {copiedId === o.citation_id ? "Copied" : "Copy cite"}
+                      </button>
                     </div>
                   )}
                   {!o.citeable && o.source_url ? (
-                    <a href={o.source_url} target="_blank" rel="noreferrer">
+                    <button
+                      type="button"
+                      className="linkish"
+                      onClick={() =>
+                        openSource({
+                          citation_id: o.citation_id,
+                          doc_id: o.doc_id,
+                          title: `${o.period} ${o.metric}`,
+                          source_url: o.source_url,
+                          highlight_url: withTextHighlight(o.source_url, o.quote_span),
+                          quote: o.quote_span,
+                          span_start: o.span_start,
+                          span_end: o.span_end,
+                        })
+                      }
+                    >
                       {o.source_ref || "source"}
-                    </a>
+                    </button>
                   ) : !o.citeable ? (
                     o.source_ref || "—"
                   ) : null}
                   {o.citeable && o.quote_span ? (
-                    <blockquote className="quote-span" cite={o.source_url || undefined}>
-                      “{o.quote_span}”
+                    <blockquote className="quote-span quote-span-click" cite={o.source_url || undefined}>
+                      <button
+                        type="button"
+                        className="linkish quote-open"
+                        onClick={() => {
+                          trackEvent("open_citation");
+                          openSource({
+                            citation_id: o.citation_id,
+                            doc_id: o.doc_id,
+                            title: `${o.period} ${o.metric}`,
+                            source_url: o.source_url,
+                            highlight_url: withTextHighlight(o.source_url, o.quote_span),
+                            quote: o.quote_span,
+                            span_start: o.span_start,
+                            span_end: o.span_end,
+                          });
+                        }}
+                      >
+                        “{o.quote_span}”
+                      </button>
                     </blockquote>
                   ) : null}
                   {!o.citeable && o.cite_reason === "provisional" ? (
@@ -222,13 +312,14 @@ export default function EvidenceTable({
                           {editingIdx === idx ? "Cancel" : "Edit"}
                         </button>
                       )}
-                      {onReview && (
+                      {onFlag && (
                         <button
                           type="button"
                           className="btn ghost small"
-                          onClick={() => onReview(idx, "reject")}
+                          data-testid={`flag-outcome-${idx}`}
+                          onClick={() => onFlag(o)}
                         >
-                          Reject
+                          Flag
                         </button>
                       )}
                     </div>

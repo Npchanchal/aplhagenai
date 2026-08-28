@@ -1,15 +1,15 @@
-# AGENTS.md — IntelLens
+# AGENTS.md — CiteAlpha
 
 Instructions for Cursor agents working in this repository.
 
 ## Mission
 
-Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks: factual, evidence-linked management delivery scores — not sentiment, not Buy/Hold.
+Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks under **CiteAlpha** (Ocotillo Innovation Private Limited): factual, evidence-linked management delivery scores — not sentiment, not Buy/Hold.
 
 ## Always
 
 1. Read `docs/kb/00-overview.md` when context is cold.
-2. Follow always-on rule `.cursor/rules/intellens-core.mdc`.
+2. Follow always-on rule `.cursor/rules/citealpha-core.mdc`.
 3. Pick a specialist from `.cursor/agents/` using `docs/kb/AGENT_ROUTING.md`.
 4. Load the matching `.cursor/skills/*/SKILL.md` before multi-step work.
 5. Prefer small, tested changes; never invent financial actuals.
@@ -27,6 +27,9 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks: fa
 | [devops-aws](.cursor/agents/devops-aws.md) | ECS deploy, idle/wake, health checks |
 | [compliance-reviewer](.cursor/agents/compliance-reviewer.md) | SEBI disclaimer, claim hygiene |
 | [architect](.cursor/agents/architect.md) | Layering, refactors, system map |
+| [sights-engineer](.cursor/agents/sights-engineer.md) | Sights SKU (`/sights/*`, `/api/sights/*`) |
+| [platform-engineer](.cursor/agents/platform-engineer.md) | Auth, billing, entitlements, Postgres |
+| [portfolio-engineer](.cursor/agents/portfolio-engineer.md) | Score, Cite, Radar, Ledger, Data SKUs |
 
 ## Knowledge base
 

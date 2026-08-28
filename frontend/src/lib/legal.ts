@@ -1,0 +1,13 @@
+/** Canonical legal entity for copyright / ownership chrome. */
+export const LEGAL_ENTITY = "Ocotillo Innovation Private Limited";
+export const PRODUCT_NAME = "CiteAlpha";
+export const CONTACT_EMAIL = "sales@citealpha.com";
+export const PUBLIC_DOMAIN = "citealpha.com";
+
+export function copyrightLine(year = new Date().getFullYear()): string {
+  return `© ${year} ${LEGAL_ENTITY}. All rights reserved. ${PRODUCT_NAME} is a product of ${LEGAL_ENTITY}.`;
+}
+
+export function counselApproved(status?: string | null): boolean {
+  return status === "counsel_approved";
+}

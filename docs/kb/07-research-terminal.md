@@ -10,18 +10,22 @@ Product: **Intellens Research** at `/research` — primary-source workbench besi
 | `chat` | Cite-only answers; refuse when no evidence |
 | `desk` | Snapshot: tape (demo), GCI+Δ, fundamentals MoM/QoQ/YoY, estimates, transcripts, brief |
 | `news` | Chronological feed |
-| `watch` | Watchlist with GCI Δ → click to snapshot |
+| `watch` | Editable watchlist (prefs ★) with GCI Δ → click to snapshot |
 
 ## Rules
 
 - Citations required for chat answers; no hallucinated filings.
+- Chat returns numbered `[n]` markers bound to citation objects (id, quote, URL, locator, bibliographic line).
+- Clicking `[n]`, a citation card, or Open source opens the indexed document with the quote highlighted (plus original URL with `#:~:text=` / PDF `#search=`).
+- Demo tape labeled as demo.
 - Demo tape labeled as demo.
 - Numbers: absolute secondary; **incremental changes** primary.
 - Backend: `services/research.py` + `/api/research/*`.
 
 ## Depth roadmap
 
-Real document store + LLM extract: Phases 2–3 in `docs/IMPLEMENTATION_PLAN.md`. Do not fake live IR crawl in UI copy.
+Real LLM extract + embeddings: `docs/PENDING_DEPTH_PLAN.md` / report `docs/PENDING_DEPTH_REPORT.md`.  
+Set `OPENAI_API_KEY` for `llm_v1` / API embeddings; local TF-IDF always available. Cite-only chat still refuses without retrieved sources.
 
 ## Docs
 

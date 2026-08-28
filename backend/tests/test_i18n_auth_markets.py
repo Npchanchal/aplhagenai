@@ -78,7 +78,7 @@ def test_meta_gci_deep_markets():
 
 
 def test_register_login_guest_preferences_roundtrip():
-    guest = client.post("/api/auth/guest").json()
+    guest = client.post("/api/auth/guest", json={"accept_terms": True}).json()
     assert guest["user"]["kind"] == "guest"
     gtoken = guest["token"]
 
@@ -97,10 +97,14 @@ def test_register_login_guest_preferences_roundtrip():
             "password": "secret99",
             "name": "Desk User",
             "guest_token": gtoken,
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_name": "CiteAlpha Test Desk",
         },
     ).json()
     assert reg["user"]["email"] == "desk@intellens.test"
     assert reg["user"]["preferences"]["language"] == "hi"
+    assert reg["user"]["org_id"]
     token = reg["token"]
 
     me = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"}).json()

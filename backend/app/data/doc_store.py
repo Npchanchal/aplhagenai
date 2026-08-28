@@ -79,6 +79,17 @@ def upsert_document(
     return doc
 
 
+def get_document(doc_id: str) -> Optional[Dict[str, Any]]:
+    """Return one document by id, or None."""
+    want = (doc_id or "").strip()
+    if not want:
+        return None
+    for d in _load()["documents"]:
+        if d.get("doc_id") == want:
+            return d
+    return None
+
+
 def list_documents(
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,

@@ -1,0 +1,231 @@
+"""Plan × role entitlements — effective access is the intersection, never the union."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, Set
+
+from fastapi import Depends, Header, HTTPException
+
+from app.services import orgs
+from app.services.session_auth import extract_bearer, resolve_token
+
+# Role may use these features (still intersected with the org plan).
+ROLE_FEATURES: Dict[str, Set[str]] = {
+    "guest": {"tracker"},
+    "member": {"tracker", "research", "read_api", "feedback"},
+    "viewer": {"tracker", "research", "read_api", "feedback"},
+    "analyst": {
+        "tracker",
+        "research",
+        "research_chat",
+        "sights_ask",
+        "read_api",
+        "desk",
+        "desk_write",
+        "alerts",
+        "vernacular",
+        "import",
+        "ic_export",
+        "feedback",
+        "wordmap",
+        "badge",
+    },
+    "labeler": {
+        "tracker",
+        "research",
+        "read_api",
+        "feedback",
+        "labeling",
+        "desk",
+    },
+    "reviewer": {
+        "tracker",
+        "research",
+        "research_chat",
+        "sights_ask",
+        "read_api",
+        "desk",
+        "desk_write",
+        "alerts",
+        "vernacular",
+        "import",
+        "ic_export",
+        "feedback",
+        "labeling",
+        "wordmap",
+        "badge",
+    },
+    "admin": set(),  # filled below — all plan features
+    "owner": set(),
+}
+
+GUEST_FEATURES: Set[str] = {"tracker"}
+GUEST_LIMITS: Dict[str, int] = {"companies_viewed": 15, "chat": 0}
+
+# Paths guests may POST (auth/legal/prefs only).
+GUEST_WRITE_ALLOW: tuple[str, ...] = (
+    "/api/auth/",
+    "/api/legal/",
+    "/api/preferences",
+    "/api/activity/",
+)
+
+
+def _role_features(role: str) -> Set[str]:
+    r = (role or "viewer").strip().lower()
+    if r in ("admin", "owner"):
+        return set(orgs.ALL_FEATURES)
+    return set(ROLE_FEATURES.get(r, ROLE_FEATURES["viewer"]))
+
+
+def guest_entitlements() -> Dict[str, Any]:
+    return {
+        "plan": "guest",
+        "role": "guest",
+        "kind": "guest",
+        "org_id": None,
+        "features": sorted(GUEST_FEATURES),
+        "skus": ["score"],
+        "limits": dict(GUEST_LIMITS),
+        "labeling_granted": False,
+        "design_partner": False,
+        "source": "guest",
+    }
+
+
+def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
+    if (user.get("kind") or "") == "guest" or (user.get("role") or "") == "guest":
+        out = guest_entitlements()
+        out["user_id"] = user.get("id")
+        prefs = user.get("preferences") or {}
+        out["limits"] = {
+            **GUEST_LIMITS,
+            "companies_viewed_used": int(prefs.get("dossier_opens") or 0),
+        }
+        return out
+    oid = user.get("org_id")
+    if not oid:
+        return guest_entitlements()
+    try:
+        snap = orgs.org_snapshot(str(oid))
+    except HTTPException:
+        return guest_entitlements()
+    plan_feats = set(snap.get("features") or [])
+    role = str(user.get("role") or "viewer")
+    feats = sorted(plan_feats & _role_features(role))
+    return {
+        "plan": snap.get("plan") or "pilot",
+        "role": role,
+        "kind": user.get("kind") or "registered",
+        "org_id": str(oid),
+        "user_id": user.get("id"),
+        "features": feats,
+        "skus": _skus_for(plan_feats),
+        "limits": {},
+        "labeling_granted": bool(snap.get("labeling_granted") or "labeling" in plan_feats),
+        "design_partner": bool(snap.get("design_partner") or snap.get("plan") == "pilot"),
+        "source": "session",
+        "account_type": snap.get("account_type") or user.get("account_type"),
+        "org": str(oid),
+        "key": None,
+    }
+
+
+def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
+    oid = key_row.get("org") or key_row.get("org_id") or "demo"
+    try:
+        snap = orgs.org_snapshot(str(oid))
+    except HTTPException:
+        snap = {"plan": "pilot", "features": sorted(orgs.PLAN_FEATURES["pilot"])}
+    plan_feats = set(snap.get("features") or [])
+    role = str(key_row.get("role") or "analyst")
+    feats = sorted(plan_feats & _role_features(role))
+    return {
+        "plan": snap.get("plan") or "pilot",
+        "role": role,
+        "kind": "api_key",
+        "org_id": str(oid),
+        "user_id": None,
+        "features": feats,
+        "skus": _skus_for(plan_feats),
+        "limits": {},
+        "labeling_granted": "labeling" in plan_feats,
+        "design_partner": bool(snap.get("design_partner") or snap.get("plan") == "pilot"),
+        "source": "api_key",
+        "key": key_row.get("key"),
+        "org": oid,
+    }
+
+
+def _skus_for(features: Set[str]) -> list[str]:
+    skus = ["score"]
+    if "research" in features or "research_chat" in features:
+        skus.append("cite")
+    if "alerts" in features:
+        skus.append("radar")
+    if "desk" in features:
+        skus.append("ledger")
+    if "em_export" in features:
+        skus.append("data")
+    if "sights_ask" in features or "research" in features:
+        skus.append("sights")
+    return skus
+
+
+def has_feature(ent: Dict[str, Any], feature: str) -> bool:
+    return feature in set(ent.get("features") or [])
+
+
+def resolve_actor(
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    """Prefer session (so guest/retail cannot piggyback the demo API key)."""
+    user = resolve_token(extract_bearer(authorization))
+    if user:
+        return resolve_from_user(user)
+    if x_api_key:
+        from app.data.seed import get_data
+
+        for row in get_data().get("api_keys", []):
+            if row.get("key") == x_api_key:
+                return resolve_from_key(row)
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return guest_entitlements()
+
+
+def require_actor(
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    ent = resolve_actor(authorization=authorization, x_api_key=x_api_key)
+    if ent.get("source") == "guest" and not x_api_key:
+        # unauthenticated — still a guest snapshot; callers that need a key will 401 below
+        pass
+    if ent.get("source") not in ("session", "api_key", "guest"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return ent
+
+
+def require_feature(feature: str, *, allow_guest: bool = False):
+    def _dep(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+        if ent.get("kind") == "guest" and not allow_guest:
+            if ent.get("user_id"):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Guest sessions are read-only — register for Desk, chat, and labeling",
+                )
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if not has_feature(ent, feature):
+            raise HTTPException(
+                status_code=403,
+                detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks {feature}",
+            )
+        return ent
+
+    return _dep
+
+
+def guest_write_blocked(path: str) -> bool:
+    p = path or ""
+    return not any(p.startswith(a) for a in GUEST_WRITE_ALLOW)

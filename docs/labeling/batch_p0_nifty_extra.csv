@@ -1,0 +1,11 @@
+wave,priority,company_id,ticker,name,sector,current_quality,target_quality,min_closed_outcomes,status,assignee,ir_home,notes
+P0,1,adani_ports,ADANIPORTS,Adani Ports & SEZ Ltd.,Infrastructure,demo_structured,hand_labeled,8,queued,,https://www.adaniports.com/Investors,Enqueue M2; prefer results PR + volume/EBITDA guidance
+P0,2,apollohosp,APOLLOHOSP,Apollo Hospitals Enterprise Ltd.,Healthcare,hand_labeled,hand_labeled,8,merged,,https://www.apollohospitals.com/investor-relations/,Promoted 2026-08-24 — ARPOB/occupancy/HC EBITDA from company transcripts
+P0,3,britannia,BRITANNIA,Britannia Industries Ltd.,FMCG,demo_structured,hand_labeled,8,in_progress,,https://www.britannia.co.in/investors,Draft only — soft guidance; need more closed bands
+P0,4,cipla,CIPLA,Cipla Ltd.,Pharma,hand_labeled,hand_labeled,8,merged,,https://www.cipla.com/investors,Promoted 2026-08-24 — EBITDA margin FY23–FY26 + R&D%
+P0,5,coalindia,COALINDIA,Coal India Ltd.,Energy,demo_structured,hand_labeled,8,queued,,https://www.coalindia.in/investors/,Production / offtake guidance
+P0,6,divislab,DIVISLAB,Divi's Laboratories Ltd.,Pharma,demo_structured,hand_labeled,8,queued,,https://www.divislabs.com/investor-relations/,Growth / capacity commentary — quote carefully
+P0,7,eichermot,EICHERMOT,Eicher Motors Ltd.,Auto,demo_structured,hand_labeled,8,queued,,https://www.eicher.in/investors,RE volume / margin guides
+P0,8,grasim,GRASIM,Grasim Industries Ltd.,Conglomerate,demo_structured,hand_labeled,8,queued,,https://www.grasim.com/investors,Segment guides (VSF/chemicals/cement context)
+P0,9,hdfclife,HDFCLIFE,HDFC Life Insurance Co. Ltd.,Insurance,hand_labeled,hand_labeled,8,merged,,https://www.hdfclife.com/investor-relations,Promoted 2026-08-24 — APE/VNB/RoEV from BSE transcripts
+P0,10,hero_motocorp,HEROMOTOCO,Hero MotoCorp Ltd.,Auto,demo_structured,hand_labeled,8,queued,,https://www.heromotocorp.com/en-in/investors.html,Volume / margin guidance

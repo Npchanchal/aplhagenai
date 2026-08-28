@@ -200,9 +200,9 @@ TCS: List[Dict[str, Any]] = [
         "speaker": "CEO",
         "thread_id": "tcs-rev-cc",
         "dropped": False,
-        "source_url": "https://concalliq.in/tcs/guidance/",
-        "source_ref": "TCS-guidance-tracker",
-        "quote_span": "FY26 revenue growth expected to be better than FY25",
+        "source_url": "https://www.tcs.com/investor-relations/quarterly-takeaways/tcs-first-quarter-fy26-debrief",
+        "source_ref": "TCS-FY26-Q1-DEBRIEF",
+        "quote_span": "international revenue in FY26 will outperform FY25",
         "as_of": "2025-04-10",
     },
 ]
@@ -220,9 +220,9 @@ HDFCBANK: List[Dict[str, Any]] = [
         "speaker": "CFO",
         "thread_id": "hdfc-nim",
         "dropped": False,
-        "source_url": "https://concalliq.in/hdfcbank/guidance/",
-        "source_ref": "HDFCBANK-guidance-tracker",
-        "quote_span": "NIM to remain in 3.45%-3.5% range",
+        "source_url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/financial-results/2024-2025/quarter-2/earnings-call-transcript-Q2FY25.pdf",
+        "source_ref": "HDFCBANK-Q2FY25-TRANSCRIPT",
+        "quote_span": "stable in the range that we have been talking about at 3.45% to 3.5%",
         "as_of": "2024-10-19",
     },
 ]
@@ -257,9 +257,9 @@ TITAN: List[Dict[str, Any]] = [
         "speaker": "CFO",
         "thread_id": "titan-jewel-margin",
         "dropped": False,
-        "source_url": "https://concalliq.in/titan/q4-fy25/",
-        "source_ref": "TITAN-Q4FY25-workspace",
-        "quote_span": "11%-11.5% margin guidance for FY26",
+        "source_url": "https://www.titancompany.in/sites/default/files/2025-08/SEtranscriptQ1%20(3).pdf",
+        "source_ref": "TITAN-Q1FY26-TRANSCRIPT",
+        "quote_span": "11 to 11.5 still remains our guidance",
         "as_of": "2025-05-08",
     },
 ]
@@ -422,5 +422,20 @@ from app.data.universe import SENSEX_30  # noqa: E402
 
 _EXTENDED = build_remaining_hand_labeled(SENSEX_30, set(HAND_LABELED.keys()))
 HAND_LABELED.update(_EXTENDED)
+
+# Replace weak IR-homepage stubs with verified official transcript / PR bindings.
+from app.data.hand_labeled_extended import _finalize_row  # noqa: E402
+from app.data.verified_sensex_sources import VERIFIED_SENSEX_SOURCES  # noqa: E402
+
+for _cid, _rows in VERIFIED_SENSEX_SOURCES.items():
+    if _cid in {"infy", "tcs", "hdfcbank", "titan", "reliance"}:
+        continue
+    _ticker = next((t for c, _n, t, _s in SENSEX_30 if c == _cid), _cid.upper())
+    HAND_LABELED[_cid] = [_finalize_row(r, company_id=_cid, ticker=_ticker) for r in _rows]
+
+# P0 Nifty-extra promotions (real IR only — see hand_labeled_nifty.py)
+from app.data.hand_labeled_nifty import NIFTY_HAND_LABELED  # noqa: E402
+
+HAND_LABELED.update(NIFTY_HAND_LABELED)
 
 HAND_LABELED_COMPANY_IDS = set(HAND_LABELED.keys())

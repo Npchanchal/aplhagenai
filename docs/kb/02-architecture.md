@@ -1,5 +1,7 @@
 # 02 — Architecture
 
+**Detailed design (diagrams):** [`docs/ARCHITECTURE_AND_DESIGN.md`](../ARCHITECTURE_AND_DESIGN.md) · **In product:** `/about/architecture`
+
 ## Layout
 
 ```
@@ -10,7 +12,7 @@ backend/app/
   data/                  # seed, hand_labeled, store.json
 frontend/src/
   lib/api.ts             # sole HTTP client
-  pages/                 # route surfaces
+  pages/                 # route surfaces (incl. ArchitecturePage)
   components/            # EvidenceTable, TabBar, ChangeChip, …
   i18n/                  # vernacular UI strings
 e2e/                     # Playwright
@@ -52,3 +54,14 @@ See `services/feature_flags.py` — research LLM, consensus import, SSO stubs.
 - Wired into market/index/stock history APIs; **never** into GCI math.
 - Free FMP tiers often block India NSE (`.NS`) with HTTP 402 → automatic demo fallback.
 - See `.env.example` and `docs/AWS_DEPLOYMENT.md`.
+
+## Related
+
+| Topic | Doc / route |
+|---|---|
+| Full architecture & design | `docs/ARCHITECTURE_AND_DESIGN.md` |
+| UI page | `/about/architecture` |
+| Pipeline | [04-pipeline](04-pipeline.md) |
+| Scoring | [03-scoring](03-scoring.md) |
+| AWS | [11-deploy-aws](11-deploy-aws.md) |
+| UX | [06-frontend-ux](06-frontend-ux.md) |

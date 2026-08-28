@@ -1,10 +1,10 @@
 # 00 — Overview
 
-**IntelLens** scores whether Indian listed-company management **delivered on stated guidance**. The hero metric is the **Guidance Credibility Index (GCI)** 0–100 — not sentiment, not Buy/Hold.
+**CiteAlpha** scores whether Indian listed-company management **delivered on stated guidance**. The hero metric is the **Guidance Credibility Index (GCI)** 0–100 — not sentiment, not Buy/Hold.
 
 ## Pitch
 
-> Keep your market terminal for prices; use IntelLens for **guidance delivery**.
+> Keep your market terminal for prices; use CiteAlpha for **guidance delivery**.
 
 ## Three product surfaces
 
@@ -14,7 +14,11 @@
 | `/desk` | One-Stop Desk | Tracker, evidence, review queue, PIT/API, AlphaHunter, parameters, wordmap, vernacular, CSM |
 | `/research` | Research Terminal | Search, cite-only chat, snapshot, news, watchlist |
 
-Secondary: `/package`, `/help`, `/login`, `/register`.
+Secondary: `/package`, `/products` (Score · Cite · Radar · Ledger · Data · Sights), `/sights`, `/help`, `/trust`, `/login`, `/register`, `/terms`, `/privacy`.
+
+Portfolio catalog: `docs/PRODUCT_PORTFOLIO.md`.
+
+**Legal entity:** Ocotillo Innovation Private Limited.
 
 ## Stack
 

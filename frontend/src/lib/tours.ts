@@ -19,12 +19,16 @@ export type TourId =
   | "dossier"
   | "desk"
   | "research"
+  | "sights"
   | "about_help";
+
+export type TourGroup = "workbench" | "learn";
 
 export type TourDef = {
   id: TourId;
   title: string;
   blurb: string;
+  group: TourGroup;
   /** Prefer this route when launching from Help hub */
   startRoute: string;
   steps: TourStep[];
@@ -35,13 +39,14 @@ export const TOURS: TourDef[] = [
     id: "tracker",
     title: "Guidance Tracker",
     blurb: "Screen the Sensex / India universe, find citeable names, open a dossier.",
-    startRoute: "/",
+    group: "workbench",
+    startRoute: "/tracker",
     steps: [
       {
         selector: ".brand",
-        title: "Welcome to IntelLens",
+        title: "Welcome to CiteAlpha",
         body: "Guidance Credibility Index (GCI) scores whether management delivered on quantified guidance — evidence-linked, not Buy/Hold.",
-        route: "/",
+        route: "/tracker",
       },
       {
         selector: '[data-testid="universe-filters"]',
@@ -69,7 +74,8 @@ export const TOURS: TourDef[] = [
   {
     id: "dossier",
     title: "Company dossier",
-    blurb: "Evidence-first trail, Tier 1 docs gate, descriptive analytics & Granger.",
+    blurb: "Evidence-first trail, period docs, and descriptive analytics.",
+    group: "workbench",
     startRoute: "/companies/infy",
     steps: [
       {
@@ -99,32 +105,30 @@ export const TOURS: TourDef[] = [
         body: "Tier 1 matrix: transcript / results / IR per FY. Gate passes when types are complete and ≥95% outcomes are citeable.",
       },
       {
-        selector: '[data-testid="gci-price-overlay"]',
-        title: "GCI ↔ price (descriptive)",
-        body: "Historical co-movement only — not a forecast or advice. N and window are disclosed from the PIT warehouse.",
-      },
-      {
         selector: '[data-testid="analytics-panel"]',
         title: "Analytics",
-        body: "Granger panel (LASSO → F-test) shows statistical precedence when sample ≥12. Impact map uses FDR edges — not causation.",
-      },
-      {
-        selector: '[data-testid="private-notes"]',
-        title: "Private notes",
-        body: "Session-scoped analyst notes — not mixed into org reports unless you export deliberately.",
+        body: "Granger panel shows statistical precedence when sample ≥12. Impact map uses FDR edges — not causation or advice.",
       },
     ],
   },
   {
     id: "desk",
     title: "One-Stop Desk",
-    blurb: "Review queue, corpus foundation, cite-only reports, PIT/API.",
-    startRoute: "/desk?tab=review",
+    blurb: "Console, review queue, corpus, cite-only reports, PIT/API.",
+    group: "workbench",
+    startRoute: "/desk?tab=console",
     steps: [
+      {
+        selector: '[data-testid="desk-console"]',
+        title: "Desk Console",
+        body: "Multi-pane ops terminal. Primary tabs: Console, Review, Corpus, Reports, PIT. Parameters and CSM live under More.",
+        route: "/desk",
+        search: "?tab=console",
+      },
       {
         selector: '[data-testid="desk-page"] .tab-bar',
         title: "Desk tabs",
-        body: "Sticky picker + URL ?tab= sync. Tracker jump, Evidence, Review, Corpus, Reports, PIT, and more.",
+        body: "Sticky picker + URL ?tab= sync. Review is the HITL queue; Corpus builds the Sensex citation gate.",
         route: "/desk",
         search: "?tab=review",
       },
@@ -145,7 +149,7 @@ export const TOURS: TourDef[] = [
       {
         selector: '[data-testid="corpus-panel"]',
         title: "Tier 1 Corpus",
-        body: "Build Sensex citation bindings + PIT warehouse (≥16 quarters) so analytics and horizons work honestly.",
+        body: "Build Sensex citation bindings + PIT warehouse so analytics and horizons work honestly.",
         route: "/desk",
         search: "?tab=corpus",
         waitMs: 4000,
@@ -159,11 +163,11 @@ export const TOURS: TourDef[] = [
         waitMs: 4000,
       },
       {
-        selector: '[data-testid="gci-parameters-panel"]',
-        title: "Parameters",
-        body: "Catalog metrics that may enter GCI (~16+). Source policy: text/ASR in; technicals and shenanigans out.",
+        selector: '[data-testid="pit-panel"]',
+        title: "API / PIT",
+        body: "Point-in-time GCI for backtests — no look-ahead. Demo key is for evaluation writes only.",
         route: "/desk",
-        search: "?tab=parameters",
+        search: "?tab=pit",
         waitMs: 4000,
       },
     ],
@@ -172,6 +176,7 @@ export const TOURS: TourDef[] = [
     id: "research",
     title: "Research Terminal",
     blurb: "Cite-only search & chat, desk snapshot, watchlist with MoM/QoQ/YoY.",
+    group: "workbench",
     startRoute: "/research?tab=search",
     steps: [
       {
@@ -215,40 +220,72 @@ export const TOURS: TourDef[] = [
     ],
   },
   {
+    id: "sights",
+    title: "CiteAlpha Sights",
+    blurb: "India disclosure research OS — hub, search, cite-only Ask, boards.",
+    group: "workbench",
+    startRoute: "/sights",
+    steps: [
+      {
+        selector: '[data-testid="sights-hub"]',
+        title: "Sights hub",
+        body: "India IR research OS: search, cite-only Ask, boards, grid, and agents. Own brands only — no competitor chrome.",
+        route: "/sights",
+      },
+      {
+        selector: '[data-testid="sights-search"]',
+        title: "Sights Search",
+        body: "Search public IR and filings with Business Lexicon synonym expand. Complements the Research Terminal.",
+        route: "/sights/search",
+        waitMs: 4000,
+      },
+      {
+        selector: '[data-testid="sights-ask"]',
+        title: "Sights Ask",
+        body: "Cite-only answers over the India disclosure corpus. Refuses when evidence is missing — never invents actuals.",
+        route: "/sights/ask",
+        waitMs: 4000,
+      },
+      {
+        selector: '[data-testid="sights-boards"]',
+        title: "Sights Boards",
+        body: "Watchlist and saved queries for the desk session. Other tools (themes, grid, agents) live under Sights ▾ More.",
+        route: "/sights/boards",
+        waitMs: 4000,
+      },
+    ],
+  },
+  {
     id: "about_help",
-    title: "About & Help",
-    blurb: "Product story, tier model, glossary, and commercial map.",
+    title: "About, Help & Trust",
+    blurb: "Product story, glossary search, and procurement Trust Center.",
+    group: "learn",
     startRoute: "/about",
     steps: [
       {
         selector: '[data-testid="about-page"]',
-        title: "About IntelLens",
-        body: "What / why / how / who — and the Tier 1→3 pipeline: ingest → cite → enrich → Granger-gated analytics.",
-        route: "/about",
-      },
-      {
-        selector: "#tiers",
-        title: "Product tiers",
-        body: "Tier 1 foundation is mandatory. Tier 2 workflows. Tier 3 Granger is methodology-gated and never advice.",
+        title: "About CiteAlpha",
+        body: "What GCI is, why desks need it, how ingest → cite works, and who uses which surface. SKUs live on Products.",
         route: "/about",
       },
       {
         selector: '[data-testid="help-page"]',
-        title: "Help glossary",
-        body: "Search GCI, citeable, Granger, PIT, corpus status, and more. Each InfoTip (ⓘ) opens the same vocabulary.",
+        title: "Help hub",
+        body: "Start here, guided tours, source policy, and the glossary used by every InfoTip (ⓘ).",
         route: "/help",
       },
       {
         selector: '[data-testid="help-search"]',
         title: "Find a term",
-        body: "Type citeable, tier1, or Granger to jump definitions used across Tracker, Desk, and Research.",
+        body: "Type citeable, dropped, Sights, or Granger to jump definitions used across Tracker, Desk, Research, and Sights.",
         route: "/help",
       },
       {
-        selector: '[data-testid="package-page"]',
-        title: "Package",
-        body: "Pilot → Desk → Enterprise API → One-Stop. Commercial map for seats and PIT embed — still no retail Buy/Hold.",
-        route: "/package",
+        selector: '[data-testid="trust-page"]',
+        title: "Trust Center",
+        body: "Security, residency, counsel status, and citation posture — honest flags for procurement, not marketing claims.",
+        route: "/trust",
+        waitMs: 4000,
       },
     ],
   },
@@ -258,7 +295,12 @@ export function getTour(id: TourId): TourDef | undefined {
   return TOURS.find((t) => t.id === id);
 }
 
-export const TOUR_STORAGE_KEY = "intellens.tours.seen.v1";
+export const TOUR_GROUPS: { id: TourGroup; label: string }[] = [
+  { id: "workbench", label: "Workbench" },
+  { id: "learn", label: "Learn" },
+];
+
+export const TOUR_STORAGE_KEY = "citealpha.tours.seen.v2";
 
 export type TourSeenMap = Partial<Record<TourId | "welcome_prompt", boolean>>;
 

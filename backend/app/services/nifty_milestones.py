@@ -68,6 +68,10 @@ def _counts() -> Dict[str, Any]:
         for r in queue
         if r.get("company_id") in nifty_ids and r.get("status") in ("queued", "in_progress", "done")
     }
+    # M2 coverage = in queue OR already promoted to hand_labeled
+    nifty_m2_covered = nifty_queued | {
+        cid for cid in nifty_ids if by_id.get(cid, {}).get("data_quality") == "hand_labeled"
+    }
     return {
         "sensex_count": len(sensex_ids),
         "sensex_hand_labeled": sensex_hl,
@@ -75,6 +79,8 @@ def _counts() -> Dict[str, Any]:
         "nifty_hand_labeled": nifty_hl,
         "nifty_queued": len(nifty_queued),
         "nifty_queued_ids": sorted(nifty_queued),
+        "nifty_m2_covered": len(nifty_m2_covered),
+        "nifty_m2_covered_ids": sorted(nifty_m2_covered),
     }
 
 
@@ -84,7 +90,8 @@ def _gate_status(gate: str, counts: Dict[str, Any]) -> str:
     if gate == "sensex_hl_20":
         return "done" if counts["sensex_hand_labeled"] >= 20 else "in_progress"
     if gate == "nifty_queued":
-        return "done" if counts["nifty_queued"] >= counts["nifty_extra_count"] else "open"
+        covered = counts.get("nifty_m2_covered", counts["nifty_queued"])
+        return "done" if covered >= counts["nifty_extra_count"] else "open"
     if gate == "nifty_hl_5":
         return "done" if counts["nifty_hand_labeled"] >= 5 else "open"
     if gate == "nifty_hl_all":
@@ -107,6 +114,7 @@ def milestones_payload() -> Dict[str, Any]:
     return {
         "milestones": rows,
         "counts": counts,
+        "nifty_extra_ids": _nifty_ids(),
         "progress": {"done": done, "total": len(rows)},
         "note": (
             "Nifty deep GCI is milestone-gated. Do not claim day-1 Nifty hand labels. "

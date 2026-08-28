@@ -9,24 +9,27 @@ from app.services.gci_scoring import (
     outcome_score,
 )
 
+# Legacy heuristic fixtures — pin v2 so golden values stay stable under default v3.
+_V2 = "v2"
+
 
 def test_us004_exact_match_scores_high():
     o = GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 10.0, "exact", 1.0)
     assert classify_outcome(o) == OutcomeLabel.MET
-    assert outcome_score(o) == 100.0
+    assert outcome_score(o, version=_V2) == 100.0
 
 
 def test_us004_large_miss_scores_near_zero():
     o = GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 0.0, "miss", 1.0)
     assert classify_outcome(o) == OutcomeLabel.MISSED
-    assert outcome_score(o) == 0.0
+    assert outcome_score(o, version=_V2) == 0.0
 
 
 def test_beat_scores_high_not_like_miss():
     beat = GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 12.0, "beat", 1.0)
     miss = GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 8.0, "miss", 1.0)
-    assert outcome_score(beat) >= 85.0
-    assert outcome_score(miss) < outcome_score(beat)
+    assert outcome_score(beat, version=_V2) >= 85.0
+    assert outcome_score(miss, version=_V2) < outcome_score(beat, version=_V2)
 
 
 def test_range_guidance_in_band_is_met():
@@ -41,7 +44,7 @@ def test_range_guidance_in_band_is_met():
         guided_high=7.0,
     )
     assert classify_outcome(o) == OutcomeLabel.MET
-    assert outcome_score(o) == 100.0
+    assert outcome_score(o, version=_V2) == 100.0
 
 
 def test_dropped_not_full_miss():
@@ -55,11 +58,11 @@ def test_dropped_not_full_miss():
         dropped=True,
     )
     assert classify_outcome(o) == OutcomeLabel.DROPPED
-    assert outcome_score(o) == 35.0
+    assert outcome_score(o, version=_V2) == 35.0
 
 
 def test_us004_empty_outcomes_return_none():
-    assert compute_company_gci([]) is None
+    assert compute_company_gci([], version=_V2) is None
 
 
 def test_us004_mixed_outcomes_deterministic():
@@ -67,7 +70,7 @@ def test_us004_mixed_outcomes_deterministic():
         GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 10.0, "a", 1.0),
         GuidanceOutcome("FY25", "revenue_growth_pct", 10.0, 5.0, "b", 1.0),
     ]
-    score = compute_company_gci(outcomes)
+    score = compute_company_gci(outcomes, version=_V2)
     assert score == 50.0
 
 
@@ -76,7 +79,7 @@ def test_metric_breakdown_splits():
         GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 10.0, "a", 1.0),
         GuidanceOutcome("FY24", "ebitda_margin_pct", 20.0, 10.0, "b", 1.0),
     ]
-    breakdown = metric_breakdown(outcomes)
+    breakdown = metric_breakdown(outcomes, version=_V2)
     assert breakdown["revenue_growth_pct"] == 100.0
     assert breakdown["ebitda_margin_pct"] == 0.0
 
@@ -92,6 +95,6 @@ def test_trend_series():
         GuidanceOutcome("FY24", "revenue_growth_pct", 10.0, 10.0, "a", 1.0, as_of="2024-01-01"),
         GuidanceOutcome("FY25", "revenue_growth_pct", 10.0, 5.0, "b", 1.0, as_of="2025-01-01"),
     ]
-    series = gci_trend_series(outcomes, ["FY24", "FY25"])
+    series = gci_trend_series(outcomes, ["FY24", "FY25"], version=_V2)
     assert series[0]["gci_score"] == 100.0
     assert series[1]["gci_score"] == 50.0

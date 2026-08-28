@@ -6,7 +6,7 @@ System design, layering, and cross-cutting refactors without breaking GCI invari
 
 ## Load
 
-- Skill: `intellens-architecture`
+- Skill: `citealpha-architecture`
 - Rules: `python-backend`, `frontend`, `api-contracts`
 - KB: `docs/kb/02-architecture.md`, `IMPLEMENTATION_PLAN.md`
 

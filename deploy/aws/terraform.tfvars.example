@@ -11,8 +11,12 @@ log_retention_days = 7
 app_cpu            = 512
 app_memory         = 1024
 app_desired_count  = 1
-# Optional — do not commit real keys; pass via TF_VAR_fmp_api_key or .env
+# Optional — do not commit real keys; pass via TF_VAR_* or .env
 # fmp_api_key      = ""
+# openai_api_key   = ""   # OPENAI_API_KEY / INTELLENS_LLM_API_KEY → LLM extract + embeddings
+# force_https      = true # when serving https://citealpha.com
+# enable_hsts      = true
+# intellens_public_url = "https://citealpha.com"
 
 # Optional HTTPS (ACM certificate in the same region as the ALB)
 # acm_certificate_arn = "arn:aws:acm:ap-south-1:ACCOUNT:certificate/UUID"
@@ -20,8 +24,33 @@ app_desired_count  = 1
 
 # Custom domain (creates Route53 zone + ACM DNS validation + ALB aliases)
 # After apply: set the output route53_nameservers at your registrar (Hostinger).
-# domain_name = "ocotilloinnovation.in"
+# domain_name = "citealpha.com"
 # manage_dns  = true
+# hostinger_mail_dns = true  # MX/SPF/DKIM/DMARC + autodiscover (Hostinger mailbox)
+
+# SSO / OIDC (also via .env → TF_VAR_*)
+# sso_enabled = true
+# oidc_client_id = ""
+# oidc_client_secret = ""
+# oidc_issuer = "https://accounts.google.com"
+# oidc_redirect_uri = "https://citealpha.com/api/auth/sso/callback"
+
+# Portfolio SKUs (also via .env → TF_VAR_*)
+# radar_digest      = true   # RADAR_DIGEST=1
+# ir_mirror         = true   # IR_MIRROR=1
+# portfolio_stretch = true   # PORTFOLIO_STRETCH=1 (default on)
+
+# Persistent auth (EFS + SQLite — default on AWS)
+# use_db_auth       = true
+# auth_sqlite_path  = "/data/auth.db"
+# enable_auth_efs   = true
+
+# SMTP (Mailtrap for staging; Hostinger/SES for prod)
+# smtp_host  = "smtp.mailtrap.io"
+# smtp_port  = "2525"
+# smtp_from  = "CiteAlpha <no-reply@citealpha.com>"
+# smtp_user  = ""
+# smtp_pass  = ""
 
 # Local scheduler (also in docker-compose `scheduler`):
 # INTELLENS_REFRESH_HOURS=6

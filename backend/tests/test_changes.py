@@ -57,3 +57,23 @@ def test_change_bundle_has_yoy():
     b = change_bundle(12.0, [("FY23", 10.0), ("FY24", 11.0), ("FY25", 12.0)])
     assert b["value"] == 12.0
     assert b["yoy_pct"] == round(100 * 1 / 11, 2)
+
+
+def test_change_bundle_calendar_wow_mom_qoq_yoy():
+    from app.services.changes import multi_horizon_gci_series
+
+    series = multi_horizon_gci_series("testco", 80.0, weeks=56)
+    b = change_bundle(80.0, series)
+    assert b["value"] == 80.0
+    assert b["wow_pct"] is not None
+    assert b["mom_pct"] is not None
+    assert b["qoq_pct"] is not None
+    assert b["yoy_pct"] is not None
+
+
+def test_multi_horizon_series_ends_at_anchor():
+    from app.services.changes import multi_horizon_gci_series
+
+    s = multi_horizon_gci_series("infy", 72.5, weeks=20)
+    assert s[-1][1] == 72.5
+    assert len(s) == 20

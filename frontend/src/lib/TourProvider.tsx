@@ -60,8 +60,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const skipTour = useCallback(() => {
-    finishTour();
-  }, [finishTour]);
+    setActiveTourId(null);
+    setStepIndex(0);
+  }, []);
 
   const nextStep = useCallback(() => {
     if (!activeTourId) return;

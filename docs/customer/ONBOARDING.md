@@ -1,6 +1,6 @@
 # Customer Onboarding Checklist
 
-## Before kickoff (AlphaGen / IntelLens)
+## Before kickoff (AlphaGen / CiteAlpha)
 
 - [ ] Assign pilot org id and `X-API-Key`
 - [ ] Confirm named users and roles (viewer / reviewer / admin)

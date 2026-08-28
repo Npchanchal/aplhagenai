@@ -1,4 +1,4 @@
-# IntelLens GCI — One Pager
+# CiteAlpha GCI — One Pager
 
 ## What it is
 
@@ -26,7 +26,7 @@
 
 ## Why India
 
-Global guidance trackers (Marvin Labs, FinCatch) are strong on US/SEC workflows. Indian NSE/BSE disclosure formats, mixed-language concalls, and local IR tables need a local spine. IntelLens is built for that whitespace.
+Global guidance trackers (Marvin Labs, FinCatch) are strong on US/SEC workflows. Indian NSE/BSE disclosure formats, mixed-language concalls, and local IR tables need a local spine. CiteAlpha is built for that whitespace.
 
 ## What we do **not** ship
 
@@ -47,5 +47,9 @@ If they ask for a **one-stop solution**, see [ONE_STOP.md](ONE_STOP.md) — one 
 
 ## Contact
 
-`sales@intellens.example` · ask for a pilot org id + API key  
-In-product: open **Package** in the Guidance Tracker nav.
+`sales@citealpha.com` · ask for a pilot org id + API key  
+In-product: open **Package** at https://citealpha.com/package
+
+---
+
+© Ocotillo Innovation Private Limited. All rights reserved. CiteAlpha is a product of Ocotillo Innovation Private Limited. Not investment advice.

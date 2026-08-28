@@ -179,6 +179,25 @@ def find_listing(company_id: str) -> Optional[StockRow]:
     return None
 
 
+@lru_cache(maxsize=1)
+def _listings_by_ticker() -> Dict[str, StockRow]:
+    out: Dict[str, StockRow] = {}
+    for row in india_equity_universe():
+        ticker = (row.get("ticker") or "").strip().upper()
+        if ticker and ticker not in out:
+            out[ticker] = row
+    return out
+
+
+def find_listing_by_ticker(ticker: str) -> Optional[StockRow]:
+    """NSE/BSE listing lookup by exchange symbol (e.g. 20MICRONS)."""
+    key = (ticker or "").strip().upper()
+    if not key:
+        return None
+    row = _listings_by_ticker().get(key)
+    return dict(row) if row else None
+
+
 def listing_counts() -> Dict[str, Any]:
     rows = india_equity_universe()
     nse = sum(1 for r in rows if "NSE_ALL" in r.get("index_ids", []))
@@ -200,3 +219,4 @@ def clear_listing_caches() -> None:
     bse_meta.cache_clear()
     _sensex_by_ticker.cache_clear()
     _nifty_extra_by_ticker.cache_clear()
+    _listings_by_ticker.cache_clear()

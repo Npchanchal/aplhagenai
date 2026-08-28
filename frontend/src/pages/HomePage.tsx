@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import ChangeChip from "../components/ChangeChip";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ChangeTriple } from "../components/ChangeChip";
 import { LineChart } from "../components/Charts";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import QualityBadge from "../components/QualityBadge";
 import SectorLeaderboard from "../components/SectorLeaderboard";
 import Skeleton from "../components/Skeleton";
+import TabBar from "../components/TabBar";
+import WatchlistToggle from "../components/WatchlistToggle";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../i18n";
 import {
@@ -29,11 +31,38 @@ const GCI_DEEP = new Set(["IN"]);
 const PAGE_SIZE = 100;
 
 type SortKey = "name" | "gci" | "delta" | "sector" | "peer";
+type HomeTab = "universe" | "sectors";
+
+const HOME_TABS: { id: HomeTab; label: string; title: string }[] = [
+  {
+    id: "universe",
+    label: "Universe",
+    title: "Screen companies by GCI level and Δ",
+  },
+  {
+    id: "sectors",
+    label: "Sectors",
+    title: "Sector credibility leaderboard — average GCI by sector",
+  },
+];
 
 export default function HomePage() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { preferences, updatePreferences } = useAuth();
+  const homeTab: HomeTab = searchParams.get("tab") === "sectors" ? "sectors" : "universe";
+  const setHomeTab = (id: HomeTab) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id === "universe") next.delete("tab");
+        else next.set("tab", id);
+        return next;
+      },
+      { replace: true },
+    );
+  };
   const [rows, setRows] = useState<CompanySummary[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -46,7 +75,7 @@ export default function HomePage() {
   const [market, setMarket] = useState(preferences?.default_market ?? "IN");
   const [index, setIndex] = useState(preferences?.default_index ?? "SENSEX");
   const [query, setQuery] = useState("");
-  const [entityQuery, setEntityQuery] = useState("");
+  const entityQuery = query;
   const [entityExchange, setEntityExchange] = useState("");
   const [entityQuality, setEntityQuality] = useState("");
   const [entityCorpus, setEntityCorpus] = useState("");
@@ -231,25 +260,14 @@ export default function HomePage() {
             </button>
           ))}
         </div>
-        <label className="universe-search">
-          Screen
+        <label className="universe-search entity-search" data-testid="entity-search">
+          Search <InfoTip termId="corpus_status" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Name, ticker, sector…"
+            placeholder="Name, ticker, sector, or any NSE / BSE listing…"
             data-testid="universe-search"
-            autoComplete="off"
-          />
-        </label>
-        <label className="universe-search entity-search">
-          Find any listed entity <InfoTip termId="corpus_status" />
-          <input
-            type="search"
-            value={entityQuery}
-            onChange={(e) => setEntityQuery(e.target.value)}
-            placeholder="Search NSE / BSE…"
-            data-testid="entity-search"
             autoComplete="off"
           />
           <div className="entity-facets" data-testid="entity-facets">
@@ -329,6 +347,30 @@ export default function HomePage() {
         </p>
       )}
 
+      <TabBar
+        tabs={HOME_TABS}
+        active={homeTab}
+        onChange={(id) => setHomeTab(id as HomeTab)}
+        ariaLabel="GCI views"
+      />
+
+      {homeTab === "sectors" ? (
+        <div className="workbench" data-testid="gci-sectors-tab">
+          <div className="workbench-main">
+            {showLeaderboard ? (
+              <SectorLeaderboard market={market} index={index} limit={40} />
+            ) : (
+              <div className="panel">
+                <p className="muted">
+                  Sector credibility leaderboard is available for India markets. Switch
+                  market to India to compare sector average GCI.
+                </p>
+              </div>
+            )}
+            <Disclaimer />
+          </div>
+        </div>
+      ) : (
       <div className="workbench">
         <div className="workbench-main">
           <div className="panel">
@@ -347,8 +389,8 @@ export default function HomePage() {
             {!loading && !error && filtered.length === 0 && (
               <div className="empty">
                 {query
-                  ? `No names match “${query}”. Clear the screen filter.`
-                  : t("common.loading")}
+                  ? `No names in this index match “${query}”. Try entity results above, or clear search.`
+                  : "No companies in this index."}
               </div>
             )}
             {!loading && filtered.length > 0 && (
@@ -356,6 +398,7 @@ export default function HomePage() {
                 <table className="table" data-testid="company-table">
                   <thead>
                     <tr>
+                      <th aria-label="Watchlist" />
                       <th>
                         <button type="button" className="th-sort" onClick={() => toggleSort("name")}>
                           {t("common.company")}
@@ -422,6 +465,9 @@ export default function HomePage() {
                           }}
                           aria-label={`Open ${c.name} dossier`}
                         >
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <WatchlistToggle companyId={c.id} compact />
+                          </td>
                           <td>
                             <Link
                               to={`/companies/${c.id}`}
@@ -437,9 +483,13 @@ export default function HomePage() {
                             {formatScore(c.gci_score)}
                           </td>
                           <td>
-                            <ChangeChip
-                              value={c.gci_change_pct}
-                              horizon={c.gci_change_horizon}
+                            <ChangeTriple
+                              wow={c.wow_pct}
+                              mom={c.mom_pct}
+                              qoq={c.qoq_pct}
+                              yoy={c.yoy_pct}
+                              pop={c.gci_change_pct}
+                              popHorizon={c.gci_change_horizon}
                             />
                           </td>
                           <td>
@@ -515,10 +565,6 @@ export default function HomePage() {
               />
             </details>
           )}
-
-          {showLeaderboard && (
-            <SectorLeaderboard market={market} index={index} limit={40} />
-          )}
         </div>
 
         <aside className="workbench-rail">
@@ -535,7 +581,10 @@ export default function HomePage() {
             ) : (
               <ul className="alert-list">
                 {alerts.map((a) => (
-                  <li key={`${a.company_id}-${a.message}`}>
+                  <li
+                    key={`${a.company_id}-${a.kind}-${a.message}`}
+                    className={`alert-item severity-${a.severity}`}
+                  >
                     <Link
                       to={
                         a.kind === "docs_pending_review"
@@ -543,6 +592,7 @@ export default function HomePage() {
                           : `/companies/${a.company_id}`
                       }
                     >
+                      <span className="alert-kind">{a.kind.replace(/_/g, " ")}</span>
                       <strong>{a.ticker}</strong> — {a.message}
                     </Link>
                     <span className={`pill ${a.severity}`}>{a.severity}</span>
@@ -553,6 +603,7 @@ export default function HomePage() {
           </div>
         </aside>
       </div>
+      )}
     </section>
   );
 }

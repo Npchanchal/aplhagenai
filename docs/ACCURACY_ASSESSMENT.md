@@ -1,4 +1,4 @@
-# Accuracy Assessment — IntelLens GCI v0.3
+# Accuracy Assessment — CiteAlpha GCI v0.3
 
 ## Verdict
 
@@ -7,9 +7,10 @@
 | **Code / APIs / gap tests** | **High** | 47 tests; one test per gap G01–G23 |
 | **Scoring math** | **High** | Ranges, asymmetric beats, labels, dropped |
 | **Hand-labeled cohort (G01)** | **Medium–High for Infosys** | Official guidance-vs-actuals table used |
-| **Other hand_labeled peers** | **Medium** | Public IR / trackers; some bands estimated |
-| **Remaining Sensex (20)** | **Demo** | `demo_structured` until further labeling |
-| **Extraction** | **Prototype** | Improved heuristics; not production NLP |
+| **Sensex-30 hand_labeled** | **Medium** | Core 10 stronger; extended Sensex reconstructed IR-style (P1 deepen) |
+| **Nifty-extra (10)** | **HL in progress** | **Cipla + HDFC Life + Apollo promoted**; 7 remain `demo_structured` — wave P0 |
+| **NSE/BSE universe** | **Provisional** | `listing_provisional` — not externally citeable |
+| **Extraction** | **Prototype** | LLM/heuristic extract; always `needs_review` |
 
 ## G01 sources (examples)
 
@@ -19,6 +20,8 @@
 
 ## Related
 
+- [Labeling runbook](LABELING_RUNBOOK.md) · [P0 batch CSV](labeling/batch_p0_nifty_extra.csv)
+- P0 labels: `backend/app/data/hand_labeled_nifty.py` (Cipla live; Britannia draft)
 - [Gaps fixed one-by-one](GAPS_AND_ROADMAP.md)
 - `backend/app/data/hand_labeled.py`
 - `backend/tests/test_gaps.py`

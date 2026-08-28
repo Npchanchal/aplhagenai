@@ -1,16 +1,22 @@
 from __future__ import annotations
 
+import json
 import os
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
 
 from app.data.seed import get_data, reset_data
 from app.models.schemas import (
+    AcceptInviteRequest,
     AlertItem,
     ActualsImportRequest,
+    AuthEmailRequest,
+    AuthGuestRequest,
     AuthLoginRequest,
+    AuthPasswordResetConfirm,
     AuthRegisterRequest,
+    AuthVerifyConfirm,
     CommitExtractRequest,
     CompanyGCIDetail,
     CompanySummary,
@@ -18,23 +24,47 @@ from app.models.schemas import (
     CrawlRequest,
     DocReviewRequest,
     ExtractRequest,
+    FeedbackCreate,
     HealthResponse,
     ImportFactsRequest,
     IngestMediaRequest,
     IngestPasteRequest,
     IngestUrlRequest,
+    LabelDraftRequest,
+    LabelImportRequest,
+    LabelRejectRequest,
+    LegalAttestRequest,
     MatchRequest,
+    MemberRoleRequest,
+    MsaInvoiceRequest,
+    MsaSignRequest,
+    OrgInviteRequest,
+    OrgOidcRequest,
+    OrgRevokeRequest,
+    PilotRequestCreate,
+    PilotRequestReview,
     PitPoint,
+    PlatformAdminRoleRequest,
     PreferencesUpdate,
     RefreshRequest,
     ResearchChatRequest,
+    RetailCheckoutRequest,
+    RetailPayConfirm,
     ReviewRequest,
+    SightsAgentRunRequest,
+    SightsAskRequest,
+    SightsDeepDiveRequest,
+    SightsGridRequest,
 )
 from app.services import repository
 from app.services.auth import optional_api_key, resolve_api_key
-from app.services.extraction import extract_guidance
+from app.services import admin_portal as admin_portal_svc
+from app.services.entitlements import has_feature, require_feature, resolve_actor
+from app.services.extraction import extract_auto
 from app.services.matching import alphahunter_facts_to_actuals, match_actuals
 from app.services import research as research_svc
+
+from app.version import APP_VERSION
 
 router = APIRouter()
 
@@ -47,7 +77,7 @@ def health() -> HealthResponse:
         record_health(True)
     except Exception:
         pass
-    return HealthResponse(status="ok")
+    return HealthResponse(status="ok", version=APP_VERSION)
 
 
 @router.get("/api/companies", response_model=List[CompanySummary])
@@ -114,7 +144,7 @@ def sectors_leaderboard(
 @router.post("/api/gci/score-universe")
 def score_universe(
     limit: Optional[int] = None,
-    auth=Depends(resolve_api_key),
+    auth=Depends(require_feature("desk_write")),
 ) -> Dict[str, Any]:
     """Rebuild NSE+BSE GCI cache with gci_scoring v2 (seed + listing_provisional)."""
     from app.data import audit_log
@@ -140,7 +170,18 @@ def score_universe(
 
 
 @router.get("/api/companies/{company_id}/gci", response_model=CompanyGCIDetail)
-def company_gci(company_id: str) -> CompanyGCIDetail:
+def company_gci(
+    company_id: str,
+    authorization: Optional[str] = Header(default=None),
+) -> CompanyGCIDetail:
+    from app.services import session_auth
+
+    try:
+        session_auth.bump_guest_dossier(session_auth.extract_bearer(authorization))
+    except HTTPException:
+        raise
+    except Exception:
+        pass
     return repository.get_company_gci(company_id)
 
 
@@ -154,6 +195,248 @@ def alerts() -> List[AlertItem]:
     return repository.list_alerts()
 
 
+@router.get("/api/products")
+def products_catalog() -> Dict[str, Any]:
+    """Parallel SKU catalog (Score / Cite / Radar / Ledger / Data)."""
+    from app.services import portfolio as portfolio_svc
+
+    return portfolio_svc.list_products()
+
+
+@router.get("/api/radar/feed")
+def radar_feed(
+    company_id: Optional[str] = None,
+    limit: int = 50,
+    include_revisions: bool = True,
+) -> Dict[str, Any]:
+    """CiteAlpha Radar — guidance change / miss / drop / withdrawal feed."""
+    from app.services import portfolio as portfolio_svc
+
+    return portfolio_svc.radar_feed(
+        company_id=company_id,
+        limit=limit,
+        include_revisions=include_revisions,
+    )
+
+
+@router.get("/api/ledger/{company_id}")
+def company_ledger(
+    company_id: str,
+    credit_only: bool = False,
+    mirror: bool = False,
+    auth=Depends(optional_api_key),
+) -> Dict[str, Any]:
+    """CiteAlpha Ledger — promise accountability dossier."""
+    from app.services import portfolio_phases as phases
+    from app.services.feature_flags import ir_mirror_enabled
+
+    if mirror and not ir_mirror_enabled():
+        raise HTTPException(
+            status_code=403,
+            detail="IR Mirror requires IR_MIRROR=1 or enterprise MSA",
+        )
+    if mirror or credit_only:
+        return phases.company_ledger_filtered(
+            company_id, credit_only=credit_only, mirror=mirror
+        )
+    from app.services import portfolio as portfolio_svc
+
+    return portfolio_svc.company_ledger(company_id)
+
+
+@router.get("/api/ledger/{company_id}/pdf")
+def company_ledger_pdf(
+    company_id: str,
+    credit_only: bool = False,
+    auth=Depends(require_feature("ic_export")),
+) -> Any:
+    """CiteAlpha Ledger PDF — board / IC pack."""
+    from fastapi.responses import Response
+
+    from app.services import portfolio_phases as phases
+
+    pdf = phases.ledger_pdf_bytes(company_id, credit_only=credit_only)
+    detail = repository.get_company_gci(company_id)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="ledger-{detail.ticker}.pdf"'
+        },
+    )
+
+
+@router.get("/api/ledger/mirror/{company_id}")
+def company_ledger_mirror(company_id: str, auth=Depends(optional_api_key)) -> Dict[str, Any]:
+    """IR Mirror — corporate accountability view."""
+    from app.services import portfolio_phases as phases
+    from app.services.feature_flags import ir_mirror_enabled
+
+    if not ir_mirror_enabled():
+        raise HTTPException(status_code=403, detail="Set IR_MIRROR=1 for IR Mirror mode")
+    return phases.company_ledger_filtered(company_id, mirror=True)
+
+
+@router.get("/api/data/catalog")
+def data_catalog() -> Dict[str, Any]:
+    """CiteAlpha Data — discoverable PIT / factor export contracts."""
+    from app.services import portfolio as portfolio_svc
+
+    return portfolio_svc.data_catalog()
+
+
+# --- Portfolio P2 Radar ---
+
+
+@router.get("/api/radar/diff/{company_id}")
+def radar_diff_brief(company_id: str) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    return phases.guidance_diff_brief(company_id)
+
+
+@router.get("/api/radar/calendar")
+def radar_calendar(limit: int = 30) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    return phases.radar_calendar(limit=limit)
+
+
+@router.get("/api/radar/digest/preview")
+def radar_digest_preview(limit: int = 15) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    return phases.radar_digest_preview(limit=limit)
+
+
+@router.post("/api/radar/digest/send")
+def radar_digest_send(
+    body: Dict[str, Any],
+    auth=Depends(require_feature("desk_write")),
+) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    to = (body.get("to") or "").strip()
+    if not to:
+        raise HTTPException(status_code=400, detail="to email required")
+    return phases.send_radar_digest(to=to, limit=int(body.get("limit") or 15))
+
+
+@router.post("/api/radar/webhooks")
+def radar_webhook_register(
+    body: Dict[str, Any],
+    auth=Depends(require_feature("desk_write")),
+) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    url = (body.get("url") or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url required")
+    return phases.register_radar_webhook(url, secret=body.get("secret"))
+
+
+# --- Portfolio P4 Cite / Data ---
+
+
+@router.get("/api/cite/tiers")
+def cite_tiers() -> Dict[str, Any]:
+    from app.services.portfolio_phases import CITE_TIERS
+
+    return {"product": "CiteAlpha Cite", "tiers": CITE_TIERS}
+
+
+@router.get("/api/cite/usage")
+def cite_usage(auth=Depends(optional_api_key)) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    key = (auth or {}).get("key") if auth else None
+    return phases.cite_usage_snapshot(key)
+
+
+@router.get("/api/data/export/outcomes")
+def data_export_outcomes(
+    format: str = "json",
+    limit: int = 500,
+    auth=Depends(resolve_actor),
+) -> Any:
+    from fastapi.responses import Response, StreamingResponse
+
+    from app.services import portfolio_phases as phases
+
+    fmt = (format or "json").lower()
+    if fmt != "json":
+        if auth.get("source") == "guest":
+            raise HTTPException(status_code=401, detail="X-API-Key required for CSV/Parquet export")
+        if not has_feature(auth, "em_export"):
+            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise or One-Stop")
+    result = phases.bulk_outcomes_export(format=fmt, limit=limit)
+    if fmt == "json":
+        return result
+    if fmt == "csv":
+        return Response(
+            content=result.get("csv") or "",
+            media_type="text/csv",
+            headers={"Content-Disposition": 'attachment; filename="outcomes_bulk.csv"'},
+        )
+    if fmt in ("parquet", "pq"):
+        raw = result.get("parquet_bytes")
+        if raw is None:
+            return result
+        return Response(
+            content=raw,
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": 'attachment; filename="outcomes_bulk.parquet"'},
+        )
+    return result
+
+
+@router.get("/api/digest/vernacular/{company_id}")
+def digest_vernacular(company_id: str, lang: str = "hi") -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    return phases.vernacular_digest(company_id, lang=lang)
+
+
+@router.get("/api/data/kpi-dictionary")
+def data_kpi_dictionary(sector: Optional[str] = None) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    return phases.kpi_dictionary(sector)
+
+
+# --- Portfolio P5 Stretch ---
+
+
+@router.get("/api/score/narrative-consistency/{company_id}")
+def score_narrative_consistency(company_id: str) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+    from app.services.feature_flags import portfolio_stretch_enabled
+
+    if not portfolio_stretch_enabled():
+        raise HTTPException(status_code=404, detail="Stretch endpoints disabled")
+    return phases.narrative_consistency_index(company_id)
+
+
+@router.get("/api/workbench/extraction")
+def workbench_extraction(auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+    from app.services.feature_flags import portfolio_stretch_enabled
+
+    if not portfolio_stretch_enabled():
+        raise HTTPException(status_code=404, detail="Stretch endpoints disabled")
+    return phases.extraction_workbench_status()
+
+
+@router.get("/api/channel/trust-badge/{ticker}")
+def channel_trust_badge(ticker: str) -> Dict[str, Any]:
+    from app.services import portfolio_phases as phases
+
+    result = phases.trust_badge_channel(ticker)
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="Ticker not found")
+    return result
+
+
 @router.get("/api/peers/{sector}")
 def peers(sector: str) -> Dict[str, Any]:
     rows = [c for c in repository.list_company_summaries() if c.sector.lower() == sector.lower()]
@@ -161,60 +444,57 @@ def peers(sector: str) -> Dict[str, Any]:
 
 
 @router.post("/api/extract")
-def extract(body: ExtractRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def extract(body: ExtractRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.data import audit_log
-    from app.services.extraction import extract_with_llm_prompt
-    from app.services.feature_flags import research_llm_enabled
+    from app.services.extraction import extract_auto
+    from app.services.feature_flags import llm_extract_enabled
+    from app.services.llm_client import llm_configured
 
     text = body.text
     if not text:
         text = get_data().get("sample_transcripts", {}).get(body.company_id)
     if not text:
         return {"statements": [], "error": "No transcript text provided or seeded"}
-    if research_llm_enabled():
-        statements = extract_with_llm_prompt(
-            text,
-            company_id=body.company_id,
-            period=body.period,
-            source_ref=body.source_ref,
-        )
-    else:
-        statements = extract_guidance(
-            text,
-            company_id=body.company_id,
-            period=body.period,
-            source_ref=body.source_ref,
-        )
+    statements = extract_auto(
+        text,
+        company_id=body.company_id,
+        period=body.period,
+        source_ref=body.source_ref,
+    )
     batch = repository.save_pending_extract(body.company_id, statements)
+    engines = sorted({str(s.get("extract_engine") or "") for s in statements})
     audit_log.record(
         "extract",
         org=auth.get("org", "demo"),
         actor=auth.get("key", "unknown"),
         role=auth.get("role", "analyst"),
-        detail={"extract_id": batch["id"], "count": len(statements)},
+        detail={"extract_id": batch["id"], "count": len(statements), "engines": engines},
     )
     return {
         "statements": statements,
         "count": len(statements),
         "extract_id": batch["id"],
         "needs_review": True,
+        "extract_engines": engines,
+        "llm_extract_enabled": llm_extract_enabled(),
+        "llm_configured": llm_configured(),
         "note": "Statements are pending — POST /api/extract/commit to enter GCI",
     }
 
 
 @router.post("/api/match")
-def match(body: MatchRequest, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def match(body: MatchRequest, _auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     matched = match_actuals(body.statements, body.actuals)
     return {"matched": matched, "count": len(matched)}
 
 
 @router.post("/api/import/alphahunter")
-def import_alphahunter(body: ImportFactsRequest, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def import_alphahunter(body: ImportFactsRequest, _auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     return _import_facts(body)
 
 
 @router.post("/api/import/facts")
-def import_facts(body: ImportFactsRequest, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def import_facts(body: ImportFactsRequest, _auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     """P1.4 — Facts JSON import (AlphaHunter-compatible alias)."""
     return _import_facts(body)
 
@@ -230,7 +510,7 @@ def alphahunter_status() -> Dict[str, Any]:
 def alphahunter_live_pull(
     company_id: Optional[str] = None,
     merge: bool = True,
-    _auth=Depends(resolve_api_key),
+    _auth=Depends(require_feature("desk_write")),
 ) -> Dict[str, Any]:
     """Pull facts from ALPHAHUNTER_API_URL and optionally merge into a company."""
     from app.services.alphahunter_live import pull_facts
@@ -316,7 +596,7 @@ def _import_facts(body: ImportFactsRequest) -> Dict[str, Any]:
 
 
 @router.post("/api/review")
-def review(body: ReviewRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def review(body: ReviewRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     return repository.apply_review(
         body.company_id,
         body.outcome_index,
@@ -324,12 +604,17 @@ def review(body: ReviewRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]
         body.comment,
         body.edits,
         reviewer=auth.get("org", "unknown"),
+        org_id=auth.get("org"),
     )
 
 
 @router.get("/api/reviews")
-def reviews(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
-    return {"reviews": get_data().get("reviews", [])}
+def reviews(_auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
+    rows = list(get_data().get("reviews", []))
+    if _auth.get("role") != "admin":
+        org = _auth.get("org")
+        rows = [r for r in rows if r.get("org_id", org) == org]
+    return {"reviews": rows}
 
 
 @router.post("/api/admin/reset-demo")
@@ -344,6 +629,25 @@ def wordmap(company_id: str) -> Dict[str, Any]:
     from app.services.wordmap import build_wordmap
 
     return build_wordmap(company_id)
+
+
+@router.get("/api/orgs/me")
+def org_me(authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    """Session user's tenant snapshot (B2B or retail micro-tenant)."""
+    from app.services import orgs as org_svc
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    oid = user.get("org_id")
+    if not oid:
+        raise HTTPException(status_code=404, detail="No org on this session (guest)")
+    return org_svc.org_snapshot(str(oid))
+
+
+@router.get("/api/entitlements/me")
+def entitlements_me(ent=Depends(resolve_actor)) -> Dict[str, Any]:
+    """Effective plan × role access (intersection, never union)."""
+    return ent
 
 
 @router.get("/api/orgs/{org_id}")
@@ -394,17 +698,18 @@ def vernacular(company_id: str, lang: str = "hi") -> Dict[str, Any]:
 @router.get("/api/badge/{ticker}")
 def trust_badge(ticker: str) -> Dict[str, Any]:
     """G20 — broker-embeddable Trust Score badge payload."""
-    rows = repository.list_company_summaries()
-    row = next((c for c in rows if c.ticker.upper() == ticker.upper()), None)
+    row = repository.resolve_ticker_summary(ticker)
     if row is None:
         raise HTTPException(status_code=404, detail="Ticker not found")
+    score = row["gci_score"]
     return {
-        "ticker": row.ticker,
-        "trust_score": row.gci_score,
+        "ticker": row["ticker"],
+        "trust_score": score,
         "label": "Promoter/Management Trust Score (GCI)",
-        "embed": f"<span data-intellens-badge=\"{row.ticker}\">{row.gci_score}</span>",
-        "svg_url": f"/api/badge/{row.ticker}/svg",
+        "embed": f"<span data-intellens-badge=\"{row['ticker']}\">{score}</span>",
+        "svg_url": f"/api/badge/{row['ticker']}/svg",
         "status": "ok",
+        "data_quality": row.get("data_quality"),
         "disclaimer": "Not investment advice. Factual guidance-delivery metric.",
     }
 
@@ -414,16 +719,14 @@ def trust_badge_svg(ticker: str):
     """G20 — SVG badge for broker embed."""
     from fastapi.responses import Response
 
-    rows = repository.list_company_summaries()
-    # allow INFY.svg style by stripping suffix if present
-    clean = ticker.replace(".svg", "")
-    row = next((c for c in rows if c.ticker.upper() == clean.upper()), None)
+    row = repository.resolve_ticker_summary(ticker)
     if row is None:
         raise HTTPException(status_code=404, detail="Ticker not found")
-    score = "n/a" if row.gci_score is None else f"{row.gci_score:.0f}"
+    gci = row["gci_score"]
+    score = "n/a" if gci is None else f"{gci:.0f}"
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="160" height="36">
   <rect width="160" height="36" fill="#1f6b4a"/>
-  <text x="10" y="22" fill="#fff" font-family="sans-serif" font-size="12">GCI {row.ticker}: {score}</text>
+  <text x="10" y="22" fill="#fff" font-family="sans-serif" font-size="12">GCI {row['ticker']}: {score}</text>
 </svg>"""
     return Response(content=svg, media_type="image/svg+xml")
 
@@ -436,14 +739,17 @@ def meta() -> Dict[str, Any]:
     from app.data.metric_catalog import METRICS
     from app.data.source_policy import POLICY_SUMMARY, policy_payload
     from app.services.feature_flags import flags_dict
+    from app.services.legal import copyright_meta
+    from app.services.pending_depth import pending_depth_report
     from app.services.refresh import refresh_interval_hours
+    from app.db.postgres import postgres_status
 
     data = get_data()
     labeled = sum(1 for c in data["companies"] if c.get("data_quality") == "hand_labeled")
     demo = sum(1 for c in data["companies"] if c.get("data_quality") == "demo_structured")
     mmeta = markets_data.markets_meta()
     hmeta = history_meta()
-    from app.services.gci_scoring import compute_company_gci
+    from app.services.gci_scoring import algorithm_id, compute_company_gci
     from app.data.seed import get_outcomes
 
     scored = sum(
@@ -455,14 +761,16 @@ def meta() -> Dict[str, Any]:
 
     gci_cache = load_cache()
     listing_scored = int(gci_cache.get("scored_count") or 0)
+    depth = pending_depth_report(bootstrap=False)
     return {
-        "version": "0.5.1",
+        "version": APP_VERSION,
         "company_count": len(data["companies"]),
         "hand_labeled_count": labeled,
         "demo_structured_count": demo,
         "gci_scored_count": scored,
         "gci_listing_scored_count": listing_scored,
-        "gci_algorithm": gci_cache.get("algorithm") or "gci_scoring_v2",
+        "gci_algorithm": algorithm_id(),
+        "gci_cache_algorithm": gci_cache.get("algorithm") or "gci_scoring_v2",
         "gci_listing_as_of": gci_cache.get("as_of"),
         "markets_count": mmeta["markets_count"],
         "indexes_count": mmeta["indexes_count"],
@@ -514,12 +822,19 @@ def meta() -> Dict[str, Any]:
             "G25-source-policy",
         ],
         "open_gaps": [],
+        "pending_depth": depth,
         "data_quality_note": (
             f"{labeled}/{len(data['companies'])} Sensex companies are hand_labeled "
             f"({demo} demo_structured). Prefer hand_labeled for external citations. "
             + POLICY_SUMMARY
         ),
-        "pitch": "Keep your market terminal for prices; use Intellens for guidance delivery.",
+        "pitch": "Keep your market terminal for prices; use CiteAlpha for guidance delivery.",
+        "legal": copyright_meta(),
+        "infra": {
+            "postgres": postgres_status(),
+            "https_required_note": "Terminate TLS at ALB/CloudFront; set HSTS in production.",
+            "secrets_note": "Use AWS Secrets Manager/SSM; rotate intellens-demo out of production.",
+        },
         "research_terminal": {
             "search": "/api/research/search",
             "chat": "/api/research/chat",
@@ -528,7 +843,8 @@ def meta() -> Dict[str, Any]:
             "news": "/api/research/news",
             "watchlist": "/api/research/watchlist",
             "transcripts": "/api/research/transcripts",
-            "note": "Intellens Research Terminal; cite-only chat over document store. Fundamentals MoM/QoQ/YoY are context — not GCI.",
+            "citations": "/api/citations/{id}",
+            "note": "CiteAlpha Research Terminal; cite-only chat with numbered sources. Fundamentals MoM/QoQ/YoY are context — not GCI.",
         },
     }
 
@@ -536,10 +852,195 @@ def meta() -> Dict[str, Any]:
 @router.get("/api/compliance/sebi-note")
 def sebi_note() -> Dict[str, Any]:
     """G21 — packaging guidance for SEBI RA scope."""
+    from app.services.legal import COPYRIGHT_LINE, LEGAL_ENTITY, PRODUCT_NAME
+
     return {
         "lead_with": "factual GCI / evidence trail",
         "avoid_without_ra": ["buy", "hold", "sell", "retail recommendations"],
         "status": "counsel-required-before-retail",
+        "product": PRODUCT_NAME,
+        "legal_entity": LEGAL_ENTITY,
+        "copyright": COPYRIGHT_LINE,
+        "note": (
+            f"{PRODUCT_NAME} is a product of {LEGAL_ENTITY}. "
+            "Retail (B2C) access is research tooling only — not SEBI RA advice."
+        ),
+    }
+
+
+@router.get("/api/legal/meta")
+def legal_meta() -> Dict[str, Any]:
+    from app.services.legal import copyright_meta
+
+    return copyright_meta()
+
+
+@router.get("/api/legal/terms")
+def legal_terms() -> Dict[str, Any]:
+    from app.services.legal import terms_document
+
+    return terms_document()
+
+
+@router.get("/api/legal/privacy")
+def legal_privacy() -> Dict[str, Any]:
+    from app.services.legal import privacy_document
+
+    return privacy_document()
+
+
+@router.get("/api/trust")
+def trust_center() -> Dict[str, Any]:
+    """Public Trust Center payload — procurement hygiene, not marketing fluff."""
+    from app.services.feature_flags import flags_dict
+    from app.services.legal import (
+        CONTACT_EMAIL,
+        LEGAL_ENTITY,
+        PRODUCT_NAME,
+        PUBLIC_DOMAIN,
+        copyright_meta,
+        privacy_document,
+        terms_document,
+    )
+    from app.services import labeling as lbl
+    from app.services.rbac import sso_status
+    from app.services.security_headers import csp_policy, force_https, hsts_enabled
+
+    st = sso_status()
+    terms = terms_document()
+    privacy = privacy_document()
+    meta = copyright_meta()
+    llm_on = bool(flags_dict().get("LLM_CONFIGURED") or flags_dict().get("INTELLENS_LLM_EXTRACT"))
+    return {
+        "product": PRODUCT_NAME,
+        "legal_entity": LEGAL_ENTITY,
+        "domain": PUBLIC_DOMAIN,
+        "copyright": meta,
+        "security": {
+            "force_https": force_https(),
+            "hsts": hsts_enabled(),
+            "headers": [
+                "X-Content-Type-Options: nosniff",
+                "X-Frame-Options: DENY",
+                "Referrer-Policy: no-referrer",
+                "Content-Security-Policy (GA/Plausible hosts allowed; scripts load after consent)",
+                "Strict-Transport-Security (when HSTS enabled)",
+            ],
+            "auth_modes": ["register", "login", "guest", "api_key", "sso"],
+            "csp": csp_policy(),
+            "backups": (
+                "Scheduled backups are ops-dependent and are not an SLA on this page."
+            ),
+        },
+        "sso": {
+            "enabled": st.get("enabled"),
+            "configured": st.get("configured"),
+            "production_ready": st.get("production_ready"),
+            "note": st.get("note")
+            or (
+                "OIDC path ships in code; production needs live OIDC_* env and HTTPS redirect."
+                if not st.get("production_ready")
+                else "OIDC SSO ready for desk tenants."
+            ),
+        },
+        "citations": {
+            "model": "cite_* ids with quote, locator, bibliographic / markdown / IC footnote",
+            "endpoints": ["/api/citations", "/api/citations/{id}", "/c/{citationId}"],
+            "research_chat": "cite-only; refuses when evidence is missing",
+        },
+        "compliance": {
+            "posture": "Factual research product — not investment advice; no Buy/Hold/Sell",
+            "sebi": "Not a SEBI-registered Research Analyst product unless separately disclosed",
+            "terms_version": terms.get("version"),
+            "privacy_version": privacy.get("version"),
+            "counsel_status": meta.get("counsel_status"),
+            "counsel_note": meta.get("counsel_note"),
+            "contact_email": CONTACT_EMAIL,
+            "links": {
+                "terms": "/terms",
+                "privacy": "/privacy",
+                "package": "/package",
+                "help": "/help",
+                "about": "/about",
+            },
+        },
+        "data": {
+            "beachhead": "India equity (Sensex → Nifty)",
+            "gci": "Guidance Credibility Index — management promises vs delivery",
+            "invent_actuals": False,
+            "quality_badges": "hand_labeled (citeable) vs demo_structured vs market_scaffold",
+        },
+        "residency": {
+            "region": "ap-south-1",
+            "provider": "AWS",
+            "note": (
+                "Production compute and load balancing in AWS Mumbai (ap-south-1). "
+                "Auth durability depends on configured Postgres or a durable volume."
+            ),
+        },
+        "tenancy": {
+            "model": "org_id isolation for reviews, seats, API keys, and labeling queue",
+            "auth": "session, API key, optional OIDC SSO",
+        },
+        "subprocessors": [
+            {
+                "name": "Amazon Web Services",
+                "role": "Hosting (ap-south-1)",
+                "optional": False,
+            },
+            {
+                "name": "Transactional email (SMTP)",
+                "role": "Verify / reset mail when SMTP_HOST is set",
+                "optional": True,
+            },
+            {
+                "name": "OIDC identity provider",
+                "role": "Enterprise SSO when configured",
+                "optional": True,
+            },
+            {
+                "name": "LLM extract processor",
+                "role": "Optional guidance extract when a model is keyed",
+                "optional": True,
+            },
+            {
+                "name": "Google Analytics / Tag Manager",
+                "role": "Optional funnel analytics after DPDP consent",
+                "optional": True,
+            },
+            {
+                "name": "Plausible",
+                "role": "Privacy-friendly analytics when enabled for the site",
+                "optional": True,
+            },
+        ],
+        "incident": {
+            "contact": CONTACT_EMAIL,
+            "note": (
+                "Security questionnaires and DPA requests via sales until a dedicated "
+                "security mailbox is published."
+            ),
+        },
+        "labeling_governance": lbl.audit_summary(),
+        "llm": {
+            "configured": llm_on,
+            "note": (
+                "Optional extract model with heuristic fallback. When enabled, submitted "
+                "extract text may be sent to a contracted processor. Not used to invent actuals."
+            ),
+        },
+        "feature_flags_public": {
+            k: flags_dict().get(k)
+            for k in (
+                "INTELLENS_GCI_VERSION",
+                "SSO",
+                "RESEARCH_LLM",
+                "LLM_CONFIGURED",
+                "INTELLENS_LLM_EXTRACT",
+                "INTELLENS_EMBEDDINGS",
+            )
+            if k in flags_dict()
+        },
     }
 
 
@@ -547,23 +1048,33 @@ def sebi_note() -> Dict[str, Any]:
 def em_factor(
     company_id: str,
     format: str = "json",
-    auth=Depends(optional_api_key),
+    auth=Depends(resolve_actor),
 ) -> Any:
     """G22 / P1.3 — EM factor feed (JSON default; CSV / Parquet download)."""
     fmt = (format or "json").lower()
-    if fmt != "json" and auth is None:
-        raise HTTPException(status_code=401, detail="X-API-Key required for file export")
+    if fmt != "json":
+        if auth.get("source") == "guest":
+            raise HTTPException(status_code=401, detail="X-API-Key required for file export")
+        if not has_feature(auth, "em_export"):
+            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise or One-Stop")
+    from app.services.pit_contract import series_meta_for
+
     hist = repository.pit_history(company_id)
     detail = repository.get_company_gci(company_id)
+    meta = series_meta_for(company_id)
     payload = {
         "factor": "india_gci",
+        "contract_version": meta["contract_version"],
         "company_id": company_id,
         "ticker": detail.ticker,
         "point_in_time": hist,
         "asof_gci": detail.gci_score,
         "status": "ok",
-        "series_kind": "citeable_pit",
-        "citeable": True,
+        "series_kind": meta["series_kind"],
+        "citeable": meta["citeable"],
+        "citeable_outcomes": meta["citeable_outcomes"],
+        "pit_points": meta["pit_points"],
+        "note": meta["note"],
     }
     if fmt == "json":
         return payload
@@ -578,6 +1089,7 @@ def em_factor(
         rows.append(
             {
                 "factor": "india_gci",
+                "contract_version": meta["contract_version"],
                 "company_id": company_id,
                 "ticker": detail.ticker,
                 "as_of": p.as_of,
@@ -585,12 +1097,15 @@ def em_factor(
                 "prior_gci": p.prior_gci,
                 "change_pct": p.change_pct,
                 "change_horizon": p.change_horizon,
+                "series_kind": meta["series_kind"],
+                "citeable": meta["citeable"],
             }
         )
     if not rows:
         rows.append(
             {
                 "factor": "india_gci",
+                "contract_version": meta["contract_version"],
                 "company_id": company_id,
                 "ticker": detail.ticker,
                 "as_of": "",
@@ -598,6 +1113,8 @@ def em_factor(
                 "prior_gci": "",
                 "change_pct": "",
                 "change_horizon": "",
+                "series_kind": meta["series_kind"],
+                "citeable": meta["citeable"],
             }
         )
 
@@ -660,8 +1177,29 @@ def research_search(
 
 
 @router.post("/api/research/chat")
-def research_chat(body: ResearchChatRequest) -> Dict[str, Any]:
+def research_chat(body: ResearchChatRequest, _auth=Depends(require_feature("research_chat"))) -> Dict[str, Any]:
     return research_svc.research_chat(body.question, company_id=body.company_id)
+
+
+@router.get("/api/citations")
+def list_citations(
+    company_id: str,
+    citeable_only: bool = True,
+) -> Dict[str, Any]:
+    from app.services.citations import list_company_citations
+
+    rows = list_company_citations(company_id, citeable_only=citeable_only)
+    return {"company_id": company_id, "count": len(rows), "citations": rows}
+
+
+@router.get("/api/citations/{citation_id}")
+def get_citation(citation_id: str) -> Dict[str, Any]:
+    from app.services.citations import lookup_citation
+
+    rec = lookup_citation(citation_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Citation not found")
+    return rec
 
 
 @router.get("/api/research/snapshot/{company_id}")
@@ -686,8 +1224,23 @@ def research_news(company_id: Optional[str] = None, limit: int = 20) -> Dict[str
 
 
 @router.get("/api/research/watchlist")
-def research_watchlist() -> Dict[str, Any]:
-    return research_svc.watchlist()
+def research_watchlist(
+    ids: Optional[str] = None,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    """Watchlist tape. Prefer `ids=` query, else session preferences.watchlist, else default."""
+    from app.services import session_auth
+
+    company_ids: Optional[List[str]] = None
+    if ids:
+        company_ids = [x.strip() for x in ids.split(",") if x.strip()]
+    else:
+        user = session_auth.resolve_token(session_auth.extract_bearer(authorization))
+        if user:
+            wl = (user.get("preferences") or {}).get("watchlist") or []
+            if isinstance(wl, list) and wl:
+                company_ids = [str(x) for x in wl]
+    return research_svc.watchlist(company_ids=company_ids)
 
 
 @router.get("/api/research/transcripts")
@@ -695,11 +1248,140 @@ def research_transcripts(company_id: Optional[str] = None) -> Dict[str, Any]:
     return research_svc.list_transcripts(company_id=company_id)
 
 
+# --- CiteAlpha Sights (parallel SKU) ---
+
+
+@router.get("/api/sights/meta")
+def sights_meta() -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.sights_meta()
+
+
+@router.get("/api/sights/search")
+def sights_search(
+    q: str = "",
+    company_id: Optional[str] = None,
+    doc_type: Optional[str] = None,
+    limit: int = 25,
+) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.sights_search(q, company_id=company_id, doc_type=doc_type, limit=limit)
+
+
+@router.post("/api/sights/ask")
+def sights_ask(body: SightsAskRequest, _auth=Depends(require_feature("sights_ask"))) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.sights_ask(
+        body.question, company_id=body.company_id, web_assist=body.web_assist
+    )
+
+
+@router.get("/api/sights/themes")
+def sights_themes(
+    company_id: Optional[str] = None,
+    sector: Optional[str] = None,
+    limit: int = 40,
+) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.delivery_themes(company_id=company_id, sector=sector, limit=limit)
+
+
+@router.get("/api/sights/street/{company_id}")
+def sights_street(company_id: str) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    try:
+        return sights_svc.street_context(company_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Company not found") from None
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/api/sights/field/{company_id}")
+def sights_field(company_id: str) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    try:
+        return sights_svc.field_evidence(company_id)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/api/sights/grid")
+def sights_grid(body: SightsGridRequest) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.compare_grid(body.prompts, company_ids=body.company_ids)
+
+
+@router.post("/api/sights/deep-dive")
+def sights_deep_dive(body: SightsDeepDiveRequest) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.deep_dive(body.topic, company_id=body.company_id)
+
+
+@router.get("/api/sights/fundamentals/{company_id}")
+def sights_fundamentals(company_id: str) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    try:
+        return sights_svc.fundamentals_strip(company_id)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/api/sights/agents")
+def sights_agents() -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.list_agents()
+
+
+@router.post("/api/sights/agents/run")
+def sights_agents_run(body: SightsAgentRunRequest) -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    try:
+        return sights_svc.run_agent(body.template_id, company_id=body.company_id)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/api/sights/hooks")
+def sights_hooks() -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.notify_hooks_meta()
+
+
+@router.get("/api/sights/export/{company_id}")
+def sights_export(company_id: str, format: str = "markdown") -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    try:
+        return sights_svc.cite_export(company_id, fmt=format)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/api/sights/enterprise")
+def sights_enterprise() -> Dict[str, Any]:
+    from app.services import sights as sights_svc
+
+    return sights_svc.enterprise_links()
+
+
 # --- Phase 2–8 APIs ---
 
 
 @router.post("/api/extract/commit")
-def extract_commit(body: CommitExtractRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def extract_commit(body: CommitExtractRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.data import audit_log
 
     result = repository.commit_pending_extract(
@@ -719,20 +1401,20 @@ def extract_commit(body: CommitExtractRequest, auth=Depends(resolve_api_key)) ->
 
 
 @router.get("/api/extract/pending")
-def extract_pending(company_id: Optional[str] = None, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def extract_pending(company_id: Optional[str] = None, _auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     rows = repository.list_pending_extracts(company_id)
     return {"count": len(rows), "batches": rows}
 
 
 @router.post("/api/ingest/paste")
-def ingest_paste(body: IngestPasteRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_paste(body: IngestPasteRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.data import audit_log
     from app.services import ingest
 
     doc = ingest.ingest_paste(body.company_id, body.text, title=body.title, doc_type=body.doc_type)
     extract_batch = None
     if (body.text or "").strip():
-        statements = extract_guidance(body.text, company_id=body.company_id, period="FY26")
+        statements = extract_auto(body.text, company_id=body.company_id, period="FY26")
         if statements:
             extract_batch = repository.save_pending_extract(body.company_id, statements)
     audit_log.record(
@@ -751,20 +1433,20 @@ def ingest_paste(body: IngestPasteRequest, auth=Depends(resolve_api_key)) -> Dic
 
 
 @router.post("/api/ingest/text")
-def ingest_text(body: IngestPasteRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_text(body: IngestPasteRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.services import ingest
 
     doc = ingest.ingest_plain_text(body.company_id, body.text, title=body.title, doc_type=body.doc_type)
     extract_batch = None
     if (body.text or "").strip():
-        statements = extract_guidance(body.text, company_id=body.company_id, period="FY26")
+        statements = extract_auto(body.text, company_id=body.company_id, period="FY26")
         if statements:
             extract_batch = repository.save_pending_extract(body.company_id, statements)
     return {"ok": True, "document": doc, "extract": extract_batch}
 
 
 @router.post("/api/ingest/url")
-def ingest_url(body: IngestUrlRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_url(body: IngestUrlRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.services import ingest
 
     try:
@@ -776,14 +1458,14 @@ def ingest_url(body: IngestUrlRequest, auth=Depends(resolve_api_key)) -> Dict[st
     extract_batch = None
     text = (doc.get("text") or doc.get("content") or "").strip()
     if text:
-        statements = extract_guidance(text, company_id=body.company_id, period="FY26")
+        statements = extract_auto(text, company_id=body.company_id, period="FY26")
         if statements:
             extract_batch = repository.save_pending_extract(body.company_id, statements)
     return {"ok": True, "document": doc, "extract": extract_batch}
 
 
 @router.post("/api/ingest/bootstrap")
-def ingest_bootstrap(_auth=Depends(resolve_api_key), limit: int = 10) -> Dict[str, Any]:
+def ingest_bootstrap(_auth=Depends(require_feature("desk_write")), limit: int = 10) -> Dict[str, Any]:
     from app.services import ingest
 
     n = ingest.bootstrap_top_companies(limit=limit)
@@ -794,7 +1476,7 @@ def ingest_bootstrap(_auth=Depends(resolve_api_key), limit: int = 10) -> Dict[st
 def ingest_ensure_citations(
     limit: Optional[int] = None,
     company_id: Optional[str] = None,
-    auth=Depends(resolve_api_key),
+    auth=Depends(require_feature("desk_write")),
 ) -> Dict[str, Any]:
     """Tier 1 gate helper: bind hand_labeled outcomes → accepted period docs + spans.
 
@@ -825,10 +1507,48 @@ def ingest_ensure_citations(
     return report
 
 
+@router.post("/api/ingest/universe-gci-depth")
+def ingest_universe_gci_depth(
+    limit: Optional[int] = None,
+    skip_cache: bool = False,
+    skip_citations: bool = False,
+    auth=Depends(require_feature("desk_write")),
+) -> Dict[str, Any]:
+    """Rebuild Sensex citations + India listing GCI with WoW/MoM/QoQ/YoY horizons."""
+    from app.data import audit_log
+    from app.jobs.build_universe_gci_depth import main as depth_main
+    import io
+    from contextlib import redirect_stdout
+
+    argv: List[str] = []
+    if limit is not None:
+        argv.extend(["--limit", str(limit)])
+    if skip_cache:
+        argv.append("--skip-cache")
+    if skip_citations:
+        argv.append("--skip-citations")
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        code = depth_main(argv)
+    raw = buf.getvalue()
+    try:
+        report = json.loads(raw) if raw.strip() else {"ok": code == 0}
+    except json.JSONDecodeError:
+        report = {"ok": code == 0, "raw": raw}
+    audit_log.record(
+        "universe_gci_depth",
+        org=auth.get("org", "demo"),
+        actor=auth.get("key", "unknown"),
+        role=auth.get("role", "analyst"),
+        detail={"limit": limit, "ok": report.get("ok")},
+    )
+    return report
+
+
 @router.post("/api/ingest/tier-foundation")
 def ingest_tier_foundation(
     limit: Optional[int] = None,
-    auth=Depends(resolve_api_key),
+    auth=Depends(require_feature("desk_write")),
 ) -> Dict[str, Any]:
     """One-shot: Sensex citation corpus + PIT warehouse for Tier 1–3 demos."""
     from app.data import audit_log
@@ -848,7 +1568,7 @@ def ingest_tier_foundation(
 
 
 @router.post("/api/ingest/crawl")
-def ingest_crawl(body: CrawlRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_crawl(body: CrawlRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     """On-demand / scheduled Sensex IR crawl → pending docs for review."""
     from app.data import audit_log
     from app.services.crawl import run_sensex_ir_crawl
@@ -876,7 +1596,7 @@ def ingest_crawl(body: CrawlRequest, auth=Depends(resolve_api_key)) -> Dict[str,
 
 
 @router.get("/api/ingest/crawl/status")
-def ingest_crawl_status(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_crawl_status(_auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     from app.services.crawl import load_state, pending_document_counts
     from app.services.refresh import refresh_interval_hours
 
@@ -897,7 +1617,7 @@ def ingest_crawl_status(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 
 
 @router.post("/api/ingest/refresh")
-def ingest_refresh(body: RefreshRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_refresh(body: RefreshRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     """Scheduled/on-demand live refresh: IR crawl + extract queue (+ optional FMP warm)."""
     from app.data import audit_log
     from app.services.refresh import run_gci_refresh
@@ -923,7 +1643,7 @@ def ingest_refresh(body: RefreshRequest, auth=Depends(resolve_api_key)) -> Dict[
 
 
 @router.post("/api/ingest/media")
-def ingest_media(body: IngestMediaRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def ingest_media(body: IngestMediaRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     """Audio/video stub — GCI scores from ASR transcript text only, never raw AV."""
     from app.data import audit_log
 
@@ -986,7 +1706,7 @@ def metrics_detail(metric_id: str) -> Dict[str, Any]:
 
 
 @router.post("/api/actuals/import")
-def actuals_import(body: ActualsImportRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def actuals_import(body: ActualsImportRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     """Import reported actuals to match guidance — not a fundamentals score."""
     from app.data import audit_log
     from app.data.metric_catalog import require_metric
@@ -1039,7 +1759,7 @@ def actuals_import(body: ActualsImportRequest, auth=Depends(resolve_api_key)) ->
 
 
 @router.post("/api/documents/review")
-def documents_review(body: DocReviewRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def documents_review(body: DocReviewRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
     from app.data import audit_log, doc_store
 
     status = "accepted" if body.action == "accept" else "rejected"
@@ -1071,22 +1791,85 @@ def documents_list(
     return {"count": len(rows), "documents": rows}
 
 
+@router.get("/api/documents/{doc_id}")
+def document_get(doc_id: str) -> Dict[str, Any]:
+    """Indexed filing/transcript text for in-app highlight."""
+    from app.data import doc_store
+
+    if not doc_store.list_documents():
+        doc_store.seed_from_outcomes_and_transcripts()
+    doc = doc_store.get_document(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    text = doc.get("text") or ""
+    return {
+        "doc_id": doc.get("doc_id"),
+        "company_id": doc.get("company_id"),
+        "doc_type": doc.get("doc_type"),
+        "title": doc.get("title"),
+        "text": text,
+        "url": doc.get("url"),
+        "date": doc.get("date"),
+        "source": doc.get("source"),
+        "period": doc.get("period"),
+        "review_status": doc.get("review_status"),
+    }
+
+
 @router.post("/api/consensus/import")
-def consensus_import(body: ConsensusImportRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def consensus_import(
+    body: ConsensusImportRequest,
+    demo: bool = False,
+    auth=Depends(require_feature("desk_write")),
+) -> Dict[str, Any]:
     from app.data import audit_log, consensus_store
-    from app.services.feature_flags import consensus_import_enabled
+    from app.services.feature_flags import allow_demo_street, consensus_import_enabled
 
     if not consensus_import_enabled():
         raise HTTPException(status_code=404, detail="CONSENSUS_IMPORT disabled")
-    n = consensus_store.import_rows(body.rows)
+    rows = list(body.rows or [])
+    has_sample = any(
+        str(r.get("source") or "").startswith("sample")
+        or str(r.get("source") or "") == "sample_import"
+        for r in rows
+    )
+    if has_sample and not (demo or allow_demo_street()):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "sample_import rows require ?demo=true or ALLOW_DEMO_STREET=true "
+                "(synthetic street — not licensed consensus)"
+            ),
+        )
+    n = consensus_store.import_rows(rows)
     audit_log.record(
         "consensus_import",
         org=auth.get("org", "demo"),
         actor=auth.get("key", "unknown"),
         role=auth.get("role", "admin"),
-        detail={"count": n},
+        detail={"count": n, "demo": bool(demo or has_sample)},
     )
-    return {"ok": True, "imported": n}
+    return {"ok": True, "imported": n, "demo": bool(demo or has_sample)}
+
+
+@router.get("/api/consensus/stats")
+def consensus_stats(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.data import consensus_store
+
+    return consensus_store.stats()
+
+
+@router.get("/api/consensus/sample")
+def consensus_sample(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    """Synthetic street fixture for pilot demos — not licensed consensus."""
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parent.parent / "data" / "consensus_import_sample.json"
+    rows = json.loads(path.read_text()) if path.exists() else []
+    return {
+        "rows": rows,
+        "note": "sample_import — require ?demo=true on POST /api/consensus/import",
+    }
 
 
 @router.get("/api/audit")
@@ -1111,7 +1894,7 @@ def auth_sso_status() -> Dict[str, Any]:
     from app.services.rbac import sso_status
 
     st = sso_status()
-    ready = bool(st.get("enabled") and st.get("configured"))
+    ready = bool(st.get("production_ready") or (st.get("enabled") and st.get("configured")))
     return {
         **st,
         "coming_soon": not st.get("enabled"),
@@ -1121,10 +1904,10 @@ def auth_sso_status() -> Dict[str, Any]:
 
 
 @router.get("/api/auth/sso/login")
-def auth_sso_login() -> Dict[str, Any]:
+def auth_sso_login(org_id: Optional[str] = None) -> Dict[str, Any]:
     from app.services.rbac import sso_login_stub
 
-    return sso_login_stub()
+    return sso_login_stub(org_id=org_id)
 
 
 @router.get("/api/auth/sso/callback")
@@ -1164,7 +1947,7 @@ window.location.replace('{safe_front}');
 
 @router.get("/api/labeling/queue")
 def labeling_queue_list(
-    org_id: Optional[str] = None, _auth=Depends(resolve_api_key)
+    org_id: Optional[str] = None, _auth=Depends(require_feature("desk"))
 ) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
@@ -1173,7 +1956,7 @@ def labeling_queue_list(
 
 
 @router.post("/api/labeling/queue")
-def labeling_queue_enqueue(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def labeling_queue_enqueue(body: Dict[str, Any], auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
     company_id = body.get("company_id")
@@ -1191,7 +1974,7 @@ def labeling_queue_enqueue(body: Dict[str, Any], auth=Depends(resolve_api_key)) 
 
 @router.patch("/api/labeling/queue/{item_id}")
 def labeling_queue_patch(
-    item_id: str, body: Dict[str, Any], _auth=Depends(resolve_api_key)
+    item_id: str, body: Dict[str, Any], _auth=Depends(require_feature("desk"))
 ) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
@@ -1201,16 +1984,160 @@ def labeling_queue_patch(
     return {"ok": True, "item": lq.update_status(item_id, str(status))}
 
 
-@router.post("/api/auth/register")
-def auth_register(body: AuthRegisterRequest) -> Dict[str, Any]:
+@router.get("/api/labeling/companies")
+def labeling_queue_companies(
+    limit: int = 40, _auth=Depends(require_feature("labeling"))
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    rows = lbl.queue_companies(limit=limit)
+    return {"count": len(rows), "companies": rows}
+
+
+@router.get("/api/labeling/drafts")
+def labeling_list_drafts(
+    company_id: Optional[str] = None,
+    status: Optional[str] = None,
+    auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    rows = lbl.list_drafts(
+        org_id=auth.get("org_id") or auth.get("org"),
+        company_id=company_id,
+        status=status,
+    )
+    return {"count": len(rows), "drafts": rows}
+
+
+@router.post("/api/labeling/drafts")
+def labeling_create_draft(
+    body: LabelDraftRequest, auth=Depends(require_feature("labeling"))
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    row = lbl.create_draft(body=body.model_dump(), actor=auth)
+    return {"ok": True, "draft": row}
+
+
+@router.post("/api/labeling/drafts/{draft_id}/submit")
+def labeling_submit_draft(
+    draft_id: str, auth=Depends(require_feature("labeling"))
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    return {"ok": True, "draft": lbl.submit_draft(draft_id, actor=auth)}
+
+
+@router.post("/api/labeling/drafts/{draft_id}/accept")
+def labeling_accept_draft(
+    draft_id: str, auth=Depends(require_feature("labeling"))
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    return {"ok": True, "draft": lbl.accept_draft(draft_id, actor=auth)}
+
+
+@router.post("/api/labeling/drafts/{draft_id}/reject")
+def labeling_reject_draft(
+    draft_id: str,
+    body: LabelRejectRequest,
+    auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    return {"ok": True, "draft": lbl.reject_draft(draft_id, actor=auth, comment=body.comment)}
+
+
+@router.post("/api/labeling/import")
+def labeling_import_csv(
+    body: LabelImportRequest, auth=Depends(require_feature("labeling"))
+) -> Dict[str, Any]:
+    from app.services import labeling as lbl
+
+    return lbl.import_csv(body.csv, actor=auth)
+
+
+@router.get("/api/feedback")
+def feedback_list(
+    status: Optional[str] = None, auth=Depends(require_feature("feedback"))
+) -> Dict[str, Any]:
+    from app.services import feedback as fb
+
+    rows = fb.list_feedback(org_id=auth.get("org_id") or auth.get("org"), status=status)
+    return {"count": len(rows), "items": rows}
+
+
+@router.post("/api/feedback")
+def feedback_create(
+    body: FeedbackCreate, auth=Depends(require_feature("feedback"))
+) -> Dict[str, Any]:
+    from app.services import feedback as fb
+
+    row = fb.create(
+        company_id=body.company_id or "",
+        kind=body.kind,
+        comment=body.comment,
+        period=body.period,
+        metric=body.metric,
+        nps=body.nps,
+        actor=auth,
+    )
+    return {"ok": True, "item": row}
+
+
+@router.patch("/api/feedback/{item_id}")
+def feedback_patch(
+    item_id: str, body: Dict[str, Any], _auth=Depends(require_feature("feedback"))
+) -> Dict[str, Any]:
+    from app.services import feedback as fb
+
+    status = body.get("status")
+    if not status:
+        raise HTTPException(status_code=400, detail="status required")
+    return {"ok": True, "item": fb.set_status(item_id, str(status))}
+
+
+@router.post("/api/activity/cite-copy")
+def activity_cite_copy(
+    body: Dict[str, Any] = Body(default={}),
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+) -> Dict[str, Any]:
+    """Habit ping when an analyst copies a citation. Does not store quote text."""
+    from app.services import activity as activity_svc
     from app.services import session_auth
 
+    token = session_auth.extract_bearer(authorization)
+    if token:
+        return session_auth.record_cite_copy(token, company_id=(body or {}).get("company_id"))
+    if x_api_key:
+        from app.data.seed import get_data as _gd
+
+        for row in _gd().get("api_keys") or []:
+            if row.get("key") == x_api_key:
+                counts = activity_svc.bump(str(row.get("org") or row.get("org_id") or ""), "cite_copies")
+                return {"ok": True, "citations_copied": counts.get("cite_copies") or 0}
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    raise HTTPException(status_code=401, detail="Not authenticated")
+
+
+@router.post("/api/auth/register")
+def auth_register(body: AuthRegisterRequest) -> Dict[str, Any]:
+    from app.services import abuse
+    from app.services import session_auth
+
+    abuse.verify_challenge(body.challenge_id or "", body.challenge_answer or "")
     return session_auth.register(
         body.email,
         body.password,
         body.name,
         merge_preferences=body.preferences,
         guest_token=body.guest_token,
+        accept_terms=body.accept_terms,
+        account_type=body.account_type,
+        org_name=body.org_name,
+        org_id=body.org_id,
     )
 
 
@@ -1222,10 +2149,309 @@ def auth_login(body: AuthLoginRequest) -> Dict[str, Any]:
 
 
 @router.post("/api/auth/guest")
-def auth_guest() -> Dict[str, Any]:
+def auth_guest(body: AuthGuestRequest) -> Dict[str, Any]:
+    from app.services import abuse
     from app.services import session_auth
 
-    return session_auth.create_guest()
+    abuse.verify_challenge(body.challenge_id or "", body.challenge_answer or "")
+    return session_auth.create_guest(accept_terms=body.accept_terms)
+
+
+@router.get("/api/auth/abuse-challenge")
+def auth_abuse_challenge() -> Dict[str, Any]:
+    from app.services import abuse
+
+    return abuse.issue_challenge()
+
+
+@router.post("/api/pilot-request")
+def pilot_request(body: PilotRequestCreate) -> Dict[str, Any]:
+    from app.services import abuse
+    from app.services import pilot_request as pilot_svc
+
+    abuse.verify_challenge(body.challenge_id or "", body.challenge_answer or "")
+    row = pilot_svc.create_request(
+        name=body.name,
+        email=body.email,
+        firm=body.firm,
+        role=body.role,
+        team_size=body.team_size,
+        message=body.message,
+    )
+    return {
+        "ok": True,
+        "request_id": row["id"],
+        "status": row["status"],
+        "submitted_at": row["created_at"],
+    }
+
+
+@router.post("/api/auth/verify-email/request")
+def auth_verify_request(body: AuthEmailRequest) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.request_email_verification(body.email)
+
+
+@router.post("/api/auth/verify-email/confirm")
+def auth_verify_confirm(body: AuthVerifyConfirm) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.confirm_email_verification(body.token)
+
+
+@router.post("/api/auth/password-reset/request")
+def auth_reset_request(body: AuthEmailRequest) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.request_password_reset(body.email)
+
+
+@router.post("/api/auth/password-reset/confirm")
+def auth_reset_confirm(body: AuthPasswordResetConfirm) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.confirm_password_reset(body.token, body.password)
+
+
+@router.post("/api/auth/accept-invite")
+def auth_accept_invite(body: AcceptInviteRequest) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.accept_org_invite(
+        invite_token=body.token,
+        password=body.password,
+        name=body.name,
+        accept_terms=body.accept_terms,
+    )
+
+
+@router.get("/api/orgs/{org_id}/members")
+def org_members(
+    org_id: str, authorization: Optional[str] = Header(default=None)
+) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("org_id") != org_id:
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    return {"org_id": org_id, "members": session_auth.list_org_members(org_id)}
+
+
+@router.post("/api/orgs/{org_id}/invites")
+def org_invite(
+    org_id: str,
+    body: OrgInviteRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("org_id") != org_id or user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    return org_svc.create_invite(
+        org_id=org_id, email=body.email, invited_by=user["id"], role=body.role
+    )
+
+
+@router.post("/api/orgs/{org_id}/partner-invite")
+def org_partner_invite(
+    org_id: str,
+    body: OrgInviteRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("org_id") != org_id or user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    return org_svc.create_partner_invite(
+        org_id=org_id, email=body.email, invited_by=user["id"]
+    )
+
+
+@router.post("/api/orgs/{org_id}/members/{user_id}/role")
+def org_member_role(
+    org_id: str,
+    user_id: str,
+    body: MemberRoleRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    return session_auth.set_member_role(
+        org_id=org_id, user_id=user_id, role=body.role, actor=user
+    )
+
+
+@router.post("/api/orgs/{org_id}/revoke")
+def org_revoke(
+    org_id: str,
+    body: OrgRevokeRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    return session_auth.revoke_org_member(
+        org_id=org_id, user_id=body.user_id, actor=user
+    )
+
+
+@router.post("/api/orgs/{org_id}/api-keys")
+def org_mint_key(
+    org_id: str, authorization: Optional[str] = Header(default=None)
+) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("org_id") != org_id or user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    return org_svc.mint_api_key(org_id=org_id)
+
+
+@router.put("/api/orgs/{org_id}/oidc")
+def org_oidc(
+    org_id: str,
+    body: OrgOidcRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("org_id") != org_id or user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    return org_svc.set_org_oidc(
+        org_id,
+        oidc_issuer=body.oidc_issuer,
+        oidc_client_id=body.oidc_client_id,
+        email_domain=body.email_domain,
+    )
+
+
+@router.get("/api/infra/postgres")
+def infra_postgres() -> Dict[str, Any]:
+    from app.db.auth_db import backend_name, use_db_auth
+    from app.db.postgres import postgres_status
+
+    st = postgres_status()
+    st["db_auth"] = use_db_auth()
+    st["auth_backend"] = backend_name()
+    return st
+
+
+@router.post("/api/infra/db/migrate")
+def infra_db_migrate(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    """Apply SQL auth schema (SQLite or Postgres). Admin/demo key."""
+    from app.db.auth_db import apply_schema, backend_name
+
+    if _auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin role required")
+    return {**apply_schema(), "backend": backend_name()}
+
+
+@router.post("/api/legal/attest")
+def legal_attest(body: LegalAttestRequest, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services import legal_attest as la
+
+    return la.attest(
+        kind=body.kind,
+        attested_by=body.attested_by,
+        note=body.note,
+        admin_key_ok=auth.get("role") == "admin",
+    )
+
+
+@router.get("/api/legal/attestations")
+def legal_attestations() -> Dict[str, Any]:
+    from app.services import legal_attest as la
+
+    return la.snapshot()
+
+
+@router.post("/api/billing/msa")
+def billing_msa(
+    body: MsaInvoiceRequest, authorization: Optional[str] = Header(default=None)
+) -> Dict[str, Any]:
+    from app.services import billing
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    oid = user.get("org_id")
+    if not oid:
+        raise HTTPException(status_code=400, detail="No org on session")
+    if body.from_pilot or (body.conversion_path or "") == "pilot_to_desk":
+        return billing.create_msa_from_pilot(
+            org_id=str(oid),
+            seats=body.seats,
+            signer_hint=str(user.get("email") or ""),
+        )
+    return billing.create_msa_invoice(
+        org_id=str(oid),
+        plan=body.plan,
+        seats=body.seats,
+        amount_inr=body.amount_inr,
+        po_number=body.po_number,
+    )
+
+
+@router.post("/api/billing/msa/{invoice_id}/sign")
+def billing_msa_sign(
+    invoice_id: str,
+    body: MsaSignRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import billing
+    from app.services import session_auth
+
+    session_auth.require_session(session_auth.extract_bearer(authorization))
+    return billing.sign_msa(invoice_id, signer_email=body.signer_email)
+
+
+@router.post("/api/billing/retail/checkout")
+def billing_retail_checkout(
+    body: RetailCheckoutRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import billing
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    oid = user.get("org_id")
+    if not oid:
+        raise HTTPException(status_code=400, detail="Register a retail account first")
+    return billing.create_retail_checkout(org_id=str(oid), user_email=str(user.get("email") or ""))
+
+
+@router.post("/api/billing/retail/confirm")
+def billing_retail_confirm(
+    body: RetailPayConfirm, authorization: Optional[str] = Header(default=None)
+) -> Dict[str, Any]:
+    from app.services import billing
+    from app.services import session_auth
+
+    session_auth.require_session(session_auth.extract_bearer(authorization))
+    return billing.confirm_retail_payment(body.order_id, payment_ref=body.payment_ref)
+
+
+@router.get("/api/billing/invoices")
+def billing_invoices(authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    from app.services import billing
+    from app.services import session_auth
+
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    oid = user.get("org_id")
+    return {
+        "invoices": billing.list_invoices(str(oid) if oid else None),
+        "subscription": billing.subscription_for(str(oid)) if oid else None,
+    }
 
 
 @router.post("/api/auth/logout")
@@ -1238,10 +2464,17 @@ def auth_logout(authorization: Optional[str] = Header(default=None)) -> Dict[str
 
 @router.get("/api/auth/me")
 def auth_me(authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
     from app.services import session_auth
 
     user = session_auth.require_session(session_auth.extract_bearer(authorization))
-    return {"user": user}
+    payload: Dict[str, Any] = {"user": user}
+    if user.get("org_id"):
+        try:
+            payload["org"] = org_svc.org_snapshot(str(user["org_id"]))
+        except HTTPException:
+            payload["org"] = None
+    return payload
 
 
 @router.get("/api/auth/preferences")
@@ -1579,7 +2812,7 @@ def notes_list(
 
 
 @router.post("/api/notes")
-def notes_upsert(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def notes_upsert(body: Dict[str, Any], auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     from app.services import analyst_notes
 
     actor = auth.get("key") or auth.get("email") or "anonymous"
@@ -1597,7 +2830,7 @@ def notes_upsert(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[st
 
 
 @router.delete("/api/notes/{note_id}")
-def notes_delete(note_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def notes_delete(note_id: str, auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     from app.services import analyst_notes
 
     actor = auth.get("key") or auth.get("email") or "anonymous"
@@ -1616,14 +2849,17 @@ def report_templates(role: Optional[str] = None, industry: Optional[str] = None)
 
 
 @router.post("/api/reports/generate")
-def report_generate(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def report_generate(body: Dict[str, Any], auth=Depends(require_feature("ic_export"))) -> Any:
     from app.services import analyst_notes
+    from app.services.audit_dossier import render_ic_audit
     from app.services.reports import render_report
     from app.data.market_history import get_stock_history
     from app.services.factor_analytics import build_company_analytics
+    from fastapi.responses import Response
 
     company_id = (body.get("company_id") or "").strip()
     template_id = (body.get("template_id") or "ra_delivery").strip()
+    fmt = (body.get("format") or "markdown").strip().lower()
     if not company_id:
         raise HTTPException(status_code=400, detail="company_id required")
     detail = repository.get_company_gci(company_id)
@@ -1639,12 +2875,285 @@ def report_generate(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict
     )
     gci_payload = detail.model_dump() if hasattr(detail, "model_dump") else detail.dict()
     gci_payload["change_bundle"] = repository.gci_change_bundle_for(company_id)
+    company = {"id": detail.id, "name": detail.name, "ticker": detail.ticker}
+
+    if template_id == "ic_audit" or fmt in ("json", "pdf"):
+        # IC pack path — structured JSON / PDF / markdown
+        pack = render_ic_audit(
+            company=company,
+            gci=gci_payload,
+            notes=notes,
+            docs=docs,
+            analytics=analytics,
+            fmt="pdf" if fmt == "pdf" else ("json" if fmt == "json" else "markdown"),
+            generated_by=actor,
+        )
+        if fmt == "pdf":
+            pdf_bytes = pack.pop("pdf_bytes", None)
+            if pdf_bytes is None:
+                raise HTTPException(status_code=500, detail="PDF generation failed")
+            ticker = detail.ticker or company_id
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'attachment; filename="ic-audit-{ticker}.pdf"'
+                },
+            )
+        pack.pop("pdf_bytes", None)
+        return pack
+
     report = render_report(
         template_id=template_id,
-        company={"id": detail.id, "name": detail.name, "ticker": detail.ticker},
+        company=company,
         gci=gci_payload,
         notes=notes,
         analytics=analytics,
         docs=docs,
     )
     return report
+
+
+@router.get("/api/ops/pending-depth")
+def ops_pending_depth(bootstrap: bool = False, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    """Depth backlog status; ``bootstrap=true`` enqueues Nifty M2 + ensures PIT warehouse."""
+    from app.services.pending_depth import pending_depth_report
+
+    return pending_depth_report(bootstrap=bootstrap)
+
+
+@router.post("/api/ops/pending-depth/bootstrap")
+def ops_pending_depth_bootstrap(auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.pending_depth import ensure_bootstrap
+
+    return ensure_bootstrap(org_id=auth.get("org") or "demo")
+
+
+@router.get("/api/ops/corpus-coverage")
+def ops_corpus_coverage(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.pending_depth import sensex_corpus_coverage
+
+    return sensex_corpus_coverage()
+
+
+@router.get("/api/ops/throughput")
+def ops_throughput(auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.throughput import desk_throughput
+
+    return desk_throughput()
+
+
+@router.post("/api/orgs/pilot")
+def orgs_provision_pilot(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.pilot_checklist import provision_pilot_org
+
+    if auth.get("role") not in ("admin", "member", None) and auth.get("role") not in (
+        "admin",
+        "owner",
+        "member",
+    ):
+        pass  # demo key allowed
+    name = (body.get("name") or "").strip() or "Pilot Desk"
+    return provision_pilot_org(
+        name=name,
+        owner_email=body.get("owner_email"),
+        seats=int(body.get("seats") or 5),
+    )
+
+
+@router.get("/api/orgs/{org_id}/pilot-checklist")
+def org_pilot_checklist(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services.pilot_checklist import get_pilot_checklist
+
+    # Demo / admin keys may inspect any pilot checklist during evaluation
+    if auth.get("role") != "admin" and auth.get("key") != "intellens-demo":
+        org_svc.assert_org_access(auth, org_id)
+    return get_pilot_checklist(org_id)
+
+
+@router.patch("/api/orgs/{org_id}/pilot-checklist")
+def org_pilot_checklist_patch(
+    org_id: str, body: Dict[str, Any], auth=Depends(resolve_api_key)
+) -> Dict[str, Any]:
+    from app.services import orgs as org_svc
+    from app.services.pilot_checklist import patch_pilot_checklist
+
+    if auth.get("role") != "admin" and auth.get("key") != "intellens-demo":
+        org_svc.assert_org_access(auth, org_id)
+    return patch_pilot_checklist(
+        org_id,
+        item_id=body.get("item_id"),
+        done=body.get("done"),
+        notes=body.get("notes"),
+        convert_intent=body.get("convert_intent"),
+        target_sku=body.get("target_sku"),
+    )
+
+
+@router.get("/api/public/gci-rankings")
+def public_gci_rankings(
+    market: str = "IN",
+    index: str = "SENSEX",
+    limit: int = 10,
+    format: str = "json",
+) -> Any:
+    """Public citeable-only GCI rankings (Guidance Credibility Quarterly)."""
+    from app.services.gci_rankings import gci_rankings, rankings_markdown
+
+    payload = gci_rankings(market=market, index=index, limit=limit, citeable_only=True)
+    if (format or "json").lower() in ("md", "markdown"):
+        return {"format": "markdown", "markdown": rankings_markdown(payload), **payload}
+    return payload
+
+
+@router.get("/api/v1/pit/contract")
+def pit_contract() -> Dict[str, Any]:
+    from app.services.pit_contract import contract_schema
+
+    return contract_schema()
+
+
+@router.get("/api/v1/pit/companies/{company_id}/history")
+def pit_history_v1(company_id: str) -> Dict[str, Any]:
+    from app.services.pit_contract import history_v1
+
+    return history_v1(company_id)
+
+
+@router.get("/api/v1/pit/bulk")
+def pit_bulk(ids: str = "", auth=Depends(optional_api_key)) -> Dict[str, Any]:
+    from app.services.pit_contract import bulk_history
+
+    id_list = [x.strip() for x in (ids or "").split(",") if x.strip()]
+    if len(id_list) > 10 and auth is None:
+        raise HTTPException(status_code=401, detail="X-API-Key required for bulk >10")
+    return bulk_history(id_list)
+
+
+# --- Platform admin portal (role-based; separate from org admin) ---
+
+
+@router.get("/api/admin/portal/me")
+def admin_portal_me(actor=Depends(admin_portal_svc.resolve_platform_admin)) -> Dict[str, Any]:
+    return admin_portal_svc.portal_me(actor)
+
+
+@router.get("/api/admin/portal/orgs")
+def admin_portal_orgs(actor=Depends(admin_portal_svc.require_platform_perm("orgs.read"))) -> Dict[str, Any]:
+    return {"orgs": admin_portal_svc.list_orgs()}
+
+
+@router.get("/api/admin/portal/users")
+def admin_portal_users(actor=Depends(admin_portal_svc.require_platform_perm("users.read"))) -> Dict[str, Any]:
+    return {"users": admin_portal_svc.list_users()}
+
+
+@router.patch("/api/admin/portal/users/{user_id}/platform-role")
+def admin_portal_user_platform_role(
+    user_id: str,
+    body: PlatformAdminRoleRequest,
+    actor=Depends(admin_portal_svc.require_platform_perm("users.write")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.assign_platform_admin_role(
+        user_id, body.platform_admin_role, actor=actor
+    )
+
+
+@router.get("/api/admin/portal/feedback")
+def admin_portal_feedback(
+    status: Optional[str] = None,
+    actor=Depends(admin_portal_svc.require_platform_perm("feedback.read")),
+) -> Dict[str, Any]:
+    from app.services import feedback as fb
+
+    return {"items": fb.list_feedback(status=status)}
+
+
+@router.patch("/api/admin/portal/feedback/{item_id}")
+def admin_portal_feedback_patch(
+    item_id: str,
+    body: Dict[str, Any],
+    actor=Depends(admin_portal_svc.require_platform_perm("feedback.write")),
+) -> Dict[str, Any]:
+    from app.services import feedback as fb
+
+    status = str(body.get("status") or "ack")
+    return fb.set_status(item_id, status)
+
+
+@router.get("/api/admin/portal/legal")
+def admin_portal_legal(
+    actor=Depends(admin_portal_svc.require_platform_perm("legal.read")),
+) -> Dict[str, Any]:
+    from app.services import legal_attest
+
+    return legal_attest.snapshot()
+
+
+@router.post("/api/admin/portal/legal/attest")
+def admin_portal_legal_attest(
+    body: LegalAttestRequest,
+    actor=Depends(admin_portal_svc.require_platform_perm("legal.write")),
+) -> Dict[str, Any]:
+    from app.services import legal_attest
+
+    return legal_attest.attest(
+        kind=body.kind,
+        attested_by=body.attested_by,
+        note=body.note,
+        admin_key_ok=True,
+    )
+
+
+@router.get("/api/admin/portal/billing")
+def admin_portal_billing(
+    actor=Depends(admin_portal_svc.require_platform_perm("billing.read")),
+) -> Dict[str, Any]:
+    from app.services import billing
+
+    return {"invoices": billing.list_invoices(None)}
+
+
+@router.get("/api/admin/portal/audit")
+def admin_portal_audit(
+    actor=Depends(admin_portal_svc.require_platform_perm("audit.read")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.audit_summary()
+
+
+@router.post("/api/admin/portal/pilot")
+def admin_portal_provision_pilot(
+    body: Dict[str, Any],
+    actor=Depends(admin_portal_svc.require_platform_perm("pilot.manage")),
+) -> Dict[str, Any]:
+    from app.services.pilot_checklist import provision_pilot_org
+
+    name = str(body.get("name") or "New Pilot Desk")
+    return provision_pilot_org(name=name)
+
+
+@router.get("/api/admin/portal/pilot-requests")
+def admin_portal_pilot_requests(
+    status: Optional[str] = None,
+    actor=Depends(admin_portal_svc.require_platform_perm("pilot.manage")),
+) -> Dict[str, Any]:
+    from app.services import pilot_request as pr
+
+    return {"items": pr.list_requests(status=status)}
+
+
+@router.patch("/api/admin/portal/pilot-requests/{request_id}")
+def admin_portal_pilot_request_review(
+    request_id: str,
+    body: PilotRequestReview,
+    actor=Depends(admin_portal_svc.require_platform_perm("pilot.manage")),
+) -> Dict[str, Any]:
+    from app.services import pilot_request as pr
+
+    return pr.review_request(
+        request_id,
+        action=body.action,
+        actor=actor,
+        note=body.note,
+    )

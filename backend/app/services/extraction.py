@@ -1,4 +1,7 @@
-"""Heuristic guidance extraction from transcript text (Phase-1 prototype)."""
+"""Heuristic + real LLM guidance extraction (Phase 3).
+
+LLM path uses OpenAI-compatible chat when keyed; always ``needs_review=True``.
+"""
 
 from __future__ import annotations
 
@@ -119,7 +122,7 @@ def extract_guidance(
                     "quote_span": m.group(0).strip()[:120],
                     "as_of": None,
                     "review_status": "pending",
-                    "needs_review": True,  # Phase 3 — never auto-score until accepted
+                    "needs_review": True,
                     "extract_engine": "heuristic_v1",
                 }
             )
@@ -135,10 +138,47 @@ def extract_with_llm_prompt(
     period: str = "FY26",
     source_ref: str = "upload",
 ) -> List[Dict[str, Any]]:
-    """Phase 3.1 — same patterns tagged as llm_prompt_v1 (swap to real LLM later)."""
+    """Prefer real LLM when configured; else heuristic tagged ``llm_fallback_heuristic``."""
+    from app.services import llm_client
+    from app.services.feature_flags import llm_extract_enabled
+
+    if llm_extract_enabled() and llm_client.llm_configured():
+        try:
+            rows = llm_client.extract_guidance_via_llm(
+                text,
+                company_id=company_id,
+                period=period,
+                source_ref=source_ref,
+            )
+            if rows:
+                return rows
+        except Exception:
+            pass  # fall through to heuristic; never block ingest
+
     rows = extract_guidance(text, company_id=company_id, period=period, source_ref=source_ref)
     for r in rows:
-        r["extract_engine"] = "llm_prompt_v1"
+        r["extract_engine"] = (
+            "llm_fallback_heuristic"
+            if llm_extract_enabled()
+            else "heuristic_v1"
+        )
         r["needs_review"] = True
         r["confidence"] = min(float(r.get("confidence", 0.7)), 0.75)
     return rows
+
+
+def extract_auto(
+    text: str,
+    *,
+    company_id: str,
+    period: str = "FY26",
+    source_ref: str = "upload",
+) -> List[Dict[str, Any]]:
+    """Route used by /api/extract and ingest — LLM when enabled, else heuristic."""
+    from app.services.feature_flags import llm_extract_enabled
+
+    if llm_extract_enabled():
+        return extract_with_llm_prompt(
+            text, company_id=company_id, period=period, source_ref=source_ref
+        )
+    return extract_guidance(text, company_id=company_id, period=period, source_ref=source_ref)

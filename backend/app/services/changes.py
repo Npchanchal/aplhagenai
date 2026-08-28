@@ -178,10 +178,13 @@ def change_bundle(
     current: Optional[float],
     series: Sequence[Tuple[str, Optional[float]]],
 ) -> Dict[str, Any]:
-    """Build MoM/QoQ/YoY bundle from a dated series ending at current.
+    """Build WoW/MoM/QoQ/YoY bundle from a dated series ending at current.
 
-    series: oldest→newest (period, value). Missing horizons stay null.
-    Also resolves YoY by matching same quarter/month one year earlier when present.
+    series: oldest→newest (period, value). Missing horizons stay null — never fake 0.
+
+    Calendar-aligned resolution (preferred when periods parse):
+      WoW ≈ 5–9 days · MoM ≈ 25–40 days · QoQ ≈ 80–110 days · YoY ≈ 350–380 days
+    Also matches FY / quarter / month labels via ``infer_horizon`` and same-period prior year.
     """
     ordered = list(series)
     if not ordered and current is not None:
@@ -192,6 +195,7 @@ def change_bundle(
             "qoq_pct": None,
             "yoy_pct": None,
             "pop_pct": None,
+            "pop_horizon": None,
             "history": [],
         }
     hist = enrich_value_series(
@@ -201,26 +205,64 @@ def change_bundle(
     )
     latest = hist[-1] if hist else {"value": current, "change_pct": None, "change_horizon": None}
     mom = qoq = yoy = wow = None
-    # WoW from dated as-of series (≈7 calendar days)
-    dated = []
+
+    from datetime import date
+
+    def _as_date(p: str) -> Optional[date]:
+        m = _ASOF.match(p)
+        if m:
+            return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        m = _YM.match(p)
+        if m:
+            return date(int(m.group(1)), int(m.group(2)), 1)
+        m = _YQ.match(p)
+        if m:
+            y, q = int(m.group(1)), int(m.group(2))
+            return date(y, (q - 1) * 3 + 1, 1)
+        m = _QFY.match(p)
+        if m:
+            q, y = int(m.group(1)), _norm_year(m.group(2))
+            return date(y, (q - 1) * 3 + 1, 1)
+        m = _FYQ.match(p)
+        if m:
+            y, q = _norm_year(m.group(1)), int(m.group(2))
+            return date(y, (q - 1) * 3 + 1, 1)
+        m = _FY.match(p)
+        if m:
+            return date(_norm_year(m.group(1)), 3, 31)
+        return None
+
+    dated: List[Tuple[date, str, float]] = []
     for row in hist:
         p = str(row.get("period") or "")
-        m = _ASOF.match(p)
-        if m and row.get("value") is not None:
-            dated.append((p, float(row["value"])))
+        if row.get("value") is None:
+            continue
+        d = _as_date(p)
+        if d is not None:
+            dated.append((d, p, float(row["value"])))
+
     if len(dated) >= 2:
-        from datetime import date
+        cur_d, _cur_p, cur_v = dated[-1]
 
-        def _d(s: str) -> date:
-            y, mo, d = s[:10].split("-")
-            return date(int(y), int(mo), int(d))
+        def _pick(lo: int, hi: int) -> Optional[float]:
+            best = None
+            best_dist = None
+            target = (lo + hi) // 2
+            for d, _p, v in reversed(dated[:-1]):
+                days = (cur_d - d).days
+                if lo <= days <= hi:
+                    dist = abs(days - target)
+                    if best_dist is None or dist < best_dist:
+                        best = pct_change(cur_v, v)
+                        best_dist = dist
+            return best
 
-        cur_p, cur_v = dated[-1]
-        for prior_p, prior_v in reversed(dated[:-1]):
-            days = (_d(cur_p) - _d(prior_p)).days
-            if 5 <= days <= 9:
-                wow = pct_change(cur_v, prior_v)
-                break
+        wow = _pick(5, 9)
+        mom = _pick(25, 40)
+        qoq = _pick(80, 110)
+        yoy = _pick(350, 380)
+
+    # Label-based fill when calendar windows miss (FY / QoQ chains)
     for row in reversed(hist):
         h = row.get("change_horizon")
         ch = row.get("change_pct")
@@ -230,7 +272,7 @@ def change_bundle(
             qoq = ch
         elif h == "YoY" and yoy is None:
             yoy = ch
-    # Same-period prior year (e.g. Q4FY24 vs Q4FY25)
+
     if yoy is None and hist:
         last_p = str(hist[-1].get("period", ""))
         last_v = hist[-1].get("value")
@@ -245,14 +287,15 @@ def change_bundle(
                 )
                 break
     if yoy is None and hist and hist[-1].get("change_horizon") in ("YoY", "PoP"):
-        yoy = hist[-1].get("change_pct")
+        # Only accept PoP as YoY for annual series
+        last_p = str(hist[-1].get("period", ""))
+        if _FY.match(last_p) or hist[-1].get("change_horizon") == "YoY":
+            yoy = hist[-1].get("change_pct")
     if qoq is None and hist and hist[-1].get("change_horizon") == "QoQ":
         qoq = hist[-1].get("change_pct")
     if mom is None and hist and hist[-1].get("change_horizon") == "MoM":
         mom = hist[-1].get("change_pct")
-    if wow is None and mom is not None and not dated:
-        # fallback: treat MoM proxy as unavailable for WoW
-        pass
+
     return {
         "value": latest.get("value", current),
         "wow_pct": wow,
@@ -263,6 +306,39 @@ def change_bundle(
         "pop_horizon": latest.get("change_horizon"),
         "history": hist,
     }
+
+
+def multi_horizon_gci_series(
+    company_id: str,
+    anchor: float,
+    *,
+    weeks: int = 56,
+) -> List[Tuple[str, float]]:
+    """Deterministic weekly GCI path so WoW/MoM/QoQ/YoY all resolve.
+
+    Newest point = ``anchor``. Demo / provisional analytics only — not citeable IR.
+    """
+    import hashlib
+    from datetime import date, timedelta
+
+    digest = hashlib.sha256(f"{company_id}|mh|{anchor}".encode("utf-8")).hexdigest()
+    end = date(2025, 8, 15)
+    points: List[Tuple[str, float]] = []
+    # Build oldest→newest; walk backward from anchor
+    trail = [float(anchor)]
+    for i in range(1, weeks):
+        u = (int(digest[(i * 2) % 60 : (i * 2) % 60 + 4], 16) % 10000) / 10000.0
+        delta = (u - 0.5) * 5.0
+        prev = max(35.0, min(98.0, trail[-1] - delta * 0.4))
+        trail.append(prev)
+    trail.reverse()
+    trail[-1] = float(anchor)
+    for i, score in enumerate(trail):
+        d = end - timedelta(weeks=(weeks - 1 - i))
+        # Snap to Friday-ish labels for stable WoW gaps of 7 days
+        points.append((d.isoformat(), round(score, 1)))
+    return points
+
 
 
 def demo_fundamental_series(

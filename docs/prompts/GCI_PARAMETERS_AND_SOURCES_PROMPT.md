@@ -7,7 +7,7 @@ Copy everything below the line into Cursor Agent to implement.
 
 ## Role
 
-You are implementing product depth for **IntelLens GCI** in `/Users/navin/AlphaGenAI`. Do **not** turn GCI into a full stock-analysis suite. Implement a **formal guided-metric catalog** and **source-scope rules** so every GCI parameter is quantified guidance vs actuals — with MoM/QoQ/YoY on series — and ingest stays text-first.
+You are implementing product depth for **CiteAlpha GCI** in `/Users/navin/AlphaGenAI`. Do **not** turn GCI into a full stock-analysis suite. Implement a **formal guided-metric catalog** and **source-scope rules** so every GCI parameter is quantified guidance vs actuals — with MoM/QoQ/YoY on series — and ingest stays text-first.
 
 ## Product decisions (locked)
 
@@ -140,7 +140,7 @@ Catalog + validation + source policy docs + media stub + metrics API + minimal U
 
 ## Short form
 
-> Implement IntelLens **GCI parameter catalog (~12–15 core + sector metrics)** with normalize/validate on extract/import, `GET /api/metrics`, and a **source policy**: transcripts/PDF/IR/filings in; audio/video only as ASR→transcript stub; fundamentals as actuals only; Wordmap out of score; technicals & shenanigans out. Document in `docs/GCI_PARAMETERS_AND_SOURCES.md`. Do not change GCI into full-stock analysis.
+> Implement CiteAlpha **GCI parameter catalog (~12–15 core + sector metrics)** with normalize/validate on extract/import, `GET /api/metrics`, and a **source policy**: transcripts/PDF/IR/filings in; audio/video only as ASR→transcript stub; fundamentals as actuals only; Wordmap out of score; technicals & shenanigans out. Document in `docs/GCI_PARAMETERS_AND_SOURCES.md`. Do not change GCI into full-stock analysis.
 
 ---
 

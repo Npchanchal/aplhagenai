@@ -1,0 +1,2 @@
+company_id,ticker,period,metric,guided_low,guided_high,guided_value,actual_value,dropped,guided_text,quote_span,source_url,source_ref,source_type,as_of,speaker,thread_id,confidence,analyst,review_status,notes
+britannia,BRITANNIA,FY25,revenue_growth_pct,8,10,9,,false,"Volume-led growth guided mid-single to high-single digit","volume growth of mid to high single digit",https://REPLACE_WITH_IR_URL,BRITANNIA-FY25-PR,press_release,2025-05-12,CFO,britannia-rev-growth,0.85,,draft,Example row — replace URL/quote from real IR before merge

@@ -1,6 +1,8 @@
-# IntelLens GCI
+# CiteAlpha
 
-Guidance Credibility Index — score whether Indian listed-company management delivered on stated guidance.
+**Guidance Credibility Index (GCI)** — score whether Indian listed-company management delivered on stated guidance.
+
+**Product:** CiteAlpha · **Legal entity:** Ocotillo Innovation Private Limited · **Live:** https://citealpha.com
 
 ## Docs
 
@@ -9,11 +11,13 @@ Guidance Credibility Index — score whether Indian listed-company management de
 - [Business plan](docs/BUSINESS_PLAN.md)
 - [Product definition](docs/PRODUCT_DEFINITION.md)
 - [User stories](docs/USER_STORIES.md)
+- [Pitch deck (HTML)](docs/PITCH_DECK.html) · [narrative](docs/PITCH_DECK.md)
 - [Competitive landscape](docs/COMPETITIVE_LANDSCAPE.md) — Marvin, FinCatch, Tijori, AlphaSense, path to GCI
 - [Regional markets](docs/REGIONAL_MARKETS.md) — Global / US / EU / India / Japan
 - [Accuracy assessment](docs/ACCURACY_ASSESSMENT.md) — what is/isn’t accurate in the MVP
 - [Gaps & way forward](docs/GAPS_AND_ROADMAP.md) — G01–G23 fixed one-by-one (v0.3)
 - [AWS deployment](docs/AWS_DEPLOYMENT.md) — separate ECS/ALB stack (not local Docker)
+- [Domain / HTTPS](docs/DOMAIN_HTTPS.md) — citealpha.com cutover
 
 ## Quick start
 
@@ -31,44 +35,21 @@ npm install
 npm run dev
 ```
 
-- UI: http://127.0.0.1:5173  
-- API docs: http://127.0.0.1:8000/docs  
+Open http://127.0.0.1:5173 (dev) or http://127.0.0.1:8080 (Docker).
 
-## Test & deploy
-
-```bash
-chmod +x scripts/verify-all.sh
-./scripts/verify-all.sh
-```
-
-Or stepwise:
+## Docker Compose
 
 ```bash
-# Unit + functional
-cd backend && source .venv/bin/activate && pytest -q
-
-# Docker
 docker compose up --build -d
-
-# E2E
-cd e2e && npm install && npx playwright install chromium
-E2E_BASE_URL=http://127.0.0.1:8080 npx playwright test
+curl -sf http://127.0.0.1:8000/health
 ```
 
-## Cursor
+## Demo API key
 
-| Asset | Path |
-|---|---|
-| Rules | `.cursor/rules/*.mdc` |
-| Skills | `.cursor/skills/*/SKILL.md` |
-| Agents | `.cursor/agents/*.md` + [`AGENTS.md`](AGENTS.md) |
-| Index | [`.cursor/README.md`](.cursor/README.md) |
-| Knowledge base | [`docs/kb/`](docs/kb/README.md) |
+```
+X-API-Key: intellens-demo
+```
 
-Skills include: `intellens-gci-dev`, `intellens-api`, `intellens-frontend-ux`, `intellens-research`, `intellens-test-deploy`, `intellens-aws`, `intellens-product`, `intellens-close-gaps`, `intellens-labeling`, `intellens-phase0-labeling`, `intellens-compliance`, `intellens-architecture`, `intellens-kb`.
+## Copyright
 
-## MVP scope
-
-Sensex-30 Guidance Tracker: GCI score, labels, ranges, threads, sources, trend, peers, alerts, review loop, extract/match/import APIs. Demo data quality until Phase 0 labeling (G01).
-
-Default API key for write endpoints: `intellens-demo`
+© Ocotillo Innovation Private Limited. All rights reserved. CiteAlpha is a product of Ocotillo Innovation Private Limited. Not investment advice.

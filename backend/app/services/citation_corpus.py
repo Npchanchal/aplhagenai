@@ -167,3 +167,48 @@ def ensure_sensex_citation_corpus(*, limit: Optional[int] = None) -> Dict[str, A
         "docs_touched": sum(int(r.get("docs_touched") or 0) for r in results),
         "results": results,
     }
+
+
+def build_citation_index(*, citeable_only: bool = False) -> Dict[str, Any]:
+    """Comprehensive citation index for all seed companies (hand_labeled + demo).
+
+    Writes ``backend/app/data/citation_index.json``. Hand_labeled rows are citeable
+    when URL+quote present; demo/provisional stay ``citeable: false``.
+    """
+    import json
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    from app.services.citations import list_company_citations
+
+    cos = list(list_companies())
+    rows: List[Dict[str, Any]] = []
+    by_company: Dict[str, int] = {}
+    for c in cos:
+        cid = c["id"]
+        cites = list_company_citations(cid, citeable_only=citeable_only)
+        by_company[cid] = len(cites)
+        for rec in cites:
+            rows.append(rec)
+    path = Path(__file__).resolve().parent.parent / "data" / "citation_index.json"
+    payload = {
+        "version": 1,
+        "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "company_count": len(cos),
+        "citation_count": len(rows),
+        "citeable_count": sum(1 for r in rows if r.get("citeable")),
+        "by_company": by_company,
+        "citations": rows,
+        "note": (
+            "Comprehensive outcome citations. Externally citeable only when "
+            "data_quality=hand_labeled with source_url + quote_span."
+        ),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return {
+        "ok": True,
+        "path": str(path),
+        "company_count": payload["company_count"],
+        "citation_count": payload["citation_count"],
+        "citeable_count": payload["citeable_count"],
+    }

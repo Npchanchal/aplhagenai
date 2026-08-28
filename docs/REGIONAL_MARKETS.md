@@ -1,6 +1,6 @@
 # Regional Markets — Alt-Data / GCI Opportunity
 
-Directional market sizing for IntelLens. Vendor reports disagree by 2–4× — use for sequencing, not a financial model.
+Directional market sizing for CiteAlpha. Vendor reports disagree by 2–4× — use for sequencing, not a financial model.
 
 ## Market size by geography
 
@@ -16,7 +16,7 @@ Directional market sizing for IntelLens. Vendor reports disagree by 2–4× — 
 
 Sources blended: IMARC, Fortune Business Insights, FMI, Grand View (US & India country outlooks).
 
-## Capture & funding for IntelLens
+## Capture & funding for CiteAlpha
 
 | Market | Capture | What to do |
 |---|---|---|

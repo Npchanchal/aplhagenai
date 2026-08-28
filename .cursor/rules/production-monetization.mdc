@@ -1,0 +1,16 @@
+---
+description: Production auth, billing, entitlements, and legal attest gates
+globs: "{backend/app/services/{session_auth,entitlements,billing,legal,legal_attest,guest_lock,rbac,sso,orgs,rate_limit,abuse}.py,backend/app/db/**,frontend/src/lib/{auth,entitlements,legal}.tsx,frontend/src/pages/*{Login,Register,Billing,AcceptInvite}*,docs/PRODUCTION*,docs/INFRA_PRODUCTION*,.env.production.example}"
+alwaysApply: false
+---
+
+# Production / Monetization
+
+- **Effective access = plan ∩ role** (never union). Source: `backend/app/services/entitlements.py`.
+- Auth: session Bearer or `X-API-Key`; Postgres when `USE_DB_AUTH` / `USE_POSTGRES_AUTH`.
+- Guest: tracker read; dossier cap (15) then paywall modal. No desk writes, chat, or labeling.
+- B2C paywall/billing only when counsel-approved (`INTELLENS_RETAIL_MARKETING` or `sebi_retail` attest).
+- Legal: `POST /api/legal/attest` · `GET /api/legal/meta` · Terms/Privacy acceptance on register.
+- Do not fake production SSO — OIDC is per-org ops follow-up; keep stubs honest.
+- Secrets via env (`INTELLENS_*`); run `scripts/check-production-secrets.sh` before prod deploy.
+- KB: `docs/kb/09-i18n-auth-markets.md`, `docs/kb/13-commercial.md`, `docs/PRODUCTION_B2B_B2C.md`.

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ChangeChip from "../components/ChangeChip";
 import {
   BarChart,
@@ -9,15 +9,15 @@ import {
   LineChart,
 } from "../components/Charts";
 import CompanyPicker from "../components/CompanyPicker";
+import DeskConsole from "../components/DeskConsole";
 import Disclaimer from "../components/Disclaimer";
-import EvidenceTable from "../components/EvidenceTable";
 import InfoTip from "../components/InfoTip";
-import QualityBadge from "../components/QualityBadge";
-import ScoreReveal from "../components/ScoreReveal";
-import SectorLeaderboard from "../components/SectorLeaderboard";
+import PilotChecklistPanel from "../components/PilotChecklistPanel";
+import LabelWorkbench from "../components/LabelWorkbench";
+import FeedbackInbox from "../components/FeedbackInbox";
 import TabBar from "../components/TabBar";
 import Toast from "../components/Toast";
-import Skeleton from "../components/Skeleton";
+import PlanAccessGate from "../components/PlanAccessGate";
 import {
   apiDocsUrl,
   demoApiKey,
@@ -45,8 +45,20 @@ import {
   postIngestRefresh,
   fetchCrawlStatus,
   fetchDocuments,
+  postDocumentReview,
+  fetchCorpusCoverage,
+  fetchPendingDepth,
+  postPendingDepthBootstrap,
+  postIngestCrawl,
+  postConsensusImport,
+  fetchConsensusStats,
+  fetchSsoStatus,
   fetchReportTemplates,
   postGenerateReport,
+  downloadIcAuditPdf,
+  fetchOpsThroughput,
+  fetchPitContract,
+  fetchPitHistoryV1,
   postEnsureCitations,
   postTierFoundation,
   fetchLabelingQueue,
@@ -66,11 +78,11 @@ import {
 import { formatScore } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
+import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 
 const TABS = [
-  { id: "tracker", label: "Tracker", title: tipText("tracker") },
-  { id: "evidence", label: "Evidence", title: tipText("evidence") },
+  { id: "console", label: "Console", title: "Multi-pane GCI ops console" },
   { id: "review", label: "Review queue", title: tipText("extract") },
   { id: "corpus", label: "Corpus", title: tipText("tier1") },
   { id: "reports", label: "Reports", title: tipText("citability") },
@@ -79,11 +91,17 @@ const TABS = [
   { id: "parameters", label: "Parameters", title: tipText("gci_parameter") },
   { id: "wordmap", label: "Wordmap", title: tipText("sentiment") },
   { id: "vernacular", label: "Vernacular", title: tipText("gci") },
-  { id: "labeling", label: "Labeling queue", title: tipText("labeling_queue") },
+  { id: "labeling", label: "Labeling", title: tipText("labeling_queue") },
+  { id: "feedback", label: "Feedback", title: "Design-partner quality flags" },
   { id: "csm", label: "CSM", title: tipText("csm") },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+const PRIMARY_TABS = TABS.filter((t) =>
+  ["console", "review", "corpus", "reports", "pit"].includes(t.id),
+);
+const MORE_TAB_IDS = new Set(["import", "parameters", "wordmap", "vernacular", "labeling", "feedback", "csm"]);
 
 const DEFAULT_FACTS = `[
   {
@@ -107,12 +125,14 @@ type StatementDecision = {
 
 export default function DeskPage() {
   const { preferences } = useAuth();
+  const { has } = useEntitlements();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: TabId = TABS.some((x) => x.id === tabParam)
     ? (tabParam as TabId)
-    : "tracker";
+    : "console";
   const setTab = useCallback(
     (id: TabId) => {
       setSearchParams(
@@ -153,6 +173,7 @@ export default function DeskPage() {
   const [niftyMs, setNiftyMs] = useState<{
     milestones: Array<{ id: string; title: string; target: string; status: string }>;
     counts: Record<string, number>;
+    nifty_extra_ids?: string[];
     note: string;
     progress: { done: number; total: number };
   } | null>(null);
@@ -182,9 +203,28 @@ export default function DeskPage() {
   const [reportTemplates, setReportTemplates] = useState<
     Array<{ id: string; name: string; role: string; industry: string }>
   >([]);
-  const [reportTpl, setReportTpl] = useState("ra_delivery");
+  const [reportTpl, setReportTpl] = useState("ic_audit");
   const [reportMd, setReportMd] = useState<string | null>(null);
+  const [reportJson, setReportJson] = useState<string | null>(null);
+  const [throughput, setThroughput] = useState<Record<string, unknown> | null>(null);
   const [reportBusy, setReportBusy] = useState(false);
+  const [corpusCov, setCorpusCov] = useState<Record<string, unknown> | null>(null);
+  const [pendingDepth, setPendingDepth] = useState<Record<string, unknown> | null>(null);
+  const [pendingDocRows, setPendingDocRows] = useState<Record<string, unknown>[]>([]);
+  const [consensusJson, setConsensusJson] = useState("");
+  const [consensusStats, setConsensusStats] = useState<{
+    row_count: number;
+    company_count: number;
+  } | null>(null);
+  const [ssoStatus, setSsoStatus] = useState<{
+    enabled?: boolean;
+    configured?: boolean;
+    production_ready?: boolean;
+    ready?: boolean;
+    note?: string;
+    checklist?: Record<string, boolean>;
+  } | null>(null);
+  const [labelNiftyOnly, setLabelNiftyOnly] = useState(false);
 
   const market = preferences?.default_market ?? "IN";
   const index = preferences?.default_index ?? "SENSEX";
@@ -217,6 +257,7 @@ export default function DeskPage() {
         setNiftyMs({
           milestones: r.milestones,
           counts: r.counts as Record<string, number>,
+          nifty_extra_ids: r.nifty_extra_ids,
           note: r.note,
           progress: r.progress,
         }),
@@ -257,7 +298,7 @@ export default function DeskPage() {
         setHistory(h);
         setWordmap(w);
         setVernacular(v);
-        return fetchBadge(d.ticker);
+        return fetchBadge(d.ticker).catch(() => null);
       })
       .then(setBadge)
       .catch((e: Error) => setError(e.message));
@@ -287,8 +328,29 @@ export default function DeskPage() {
           setLastCrawl(null);
         });
       fetchDocuments({ review_status: "pending" })
-        .then((r) => setPendingDocs(r.count))
+        .then((r) => {
+          setPendingDocs(r.count);
+          setPendingDocRows(r.documents || []);
+        })
         .catch(() => undefined);
+    }
+    if (tab === "corpus") {
+      fetchCorpusCoverage()
+        .then((c) => setCorpusCov(c as Record<string, unknown>))
+        .catch(() => setCorpusCov(null));
+      fetchPendingDepth()
+        .then((d) => setPendingDepth(d))
+        .catch(() => setPendingDepth(null));
+    }
+    if (tab === "import") {
+      fetchConsensusStats()
+        .then(setConsensusStats)
+        .catch(() => setConsensusStats(null));
+    }
+    if (tab === "csm" || tab === "console") {
+      fetchSsoStatus()
+        .then((s) => setSsoStatus(s))
+        .catch(() => setSsoStatus(null));
     }
     if (tab === "reports") {
       fetchReportTemplates()
@@ -361,14 +423,47 @@ export default function DeskPage() {
   };
 
   const picker = (
-    <CompanyPicker
-      companies={companies}
-      value={companyId}
-      onChange={setCompanyId}
-    />
+    <div className="desk-picker-row">
+      <CompanyPicker
+        companies={companies}
+        value={companyId}
+        onChange={setCompanyId}
+      />
+      {detail && (
+        <span className="muted" style={{ fontSize: 13 }}>
+          GCI {formatScore(detail.gci_score)} ·{" "}
+          <Link to={`/companies/${companyId}`}>Dossier</Link>
+          {" · "}
+          <Link to="/tracker">Universe</Link>
+        </span>
+      )}
+    </div>
   );
 
+  const moreTabs = TABS.filter((t) => {
+    if (!MORE_TAB_IDS.has(t.id)) return false;
+    if (t.id === "labeling") return has("labeling") || has("desk");
+    if (t.id === "feedback") return has("feedback");
+    if (t.id === "import") return has("desk_write");
+    if (t.id === "wordmap") return has("wordmap") || has("desk");
+    return true;
+  });
+
+  const primaryTabs = PRIMARY_TABS.filter((t) => {
+    if (t.id === "review" || t.id === "corpus") return has("desk_write") || has("desk");
+    if (t.id === "reports" || t.id === "pit") return has("ic_export") || has("desk");
+    return true;
+  });
+
   return (
+    <PlanAccessGate
+      feature="desk"
+      title={t("desk.title")}
+      kicker={t("desk.kicker")}
+      description="Desk review, ingest, and labeling require a Pilot or Desk plan. Sign in if your org already has access."
+      returnTo="/desk"
+      testId="desk-access-gate"
+    >
     <section className="desk-page" data-testid="desk-page">
       <Toast message={msg} onDismiss={dismissToast} />
       <p className="page-kicker">{t("desk.kicker")}</p>
@@ -380,88 +475,45 @@ export default function DeskPage() {
       <div className="desk-sticky">
         {picker}
         <TabBar
-          tabs={[...TABS]}
-          active={tab}
-          onChange={(id) => setTab(id as TabId)}
+          tabs={[
+            ...primaryTabs,
+            { id: "more", label: "More", title: "Import, parameters, vernacular, labeling, CSM" },
+          ]}
+          active={MORE_TAB_IDS.has(tab) ? "more" : tab}
+          onChange={(id) => {
+            if (id === "more") setTab("import");
+            else if (TABS.some((x) => x.id === id)) setTab(id as TabId);
+          }}
           ariaLabel="Desk sections"
         />
+        {MORE_TAB_IDS.has(tab) && (
+          <div className="desk-more-tabs" role="tablist" aria-label="More desk tools">
+            {moreTabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`tab-bar-btn ${tab === t.id ? "active" : ""}`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-
-      <SectorLeaderboard market="IN" index="SENSEX" limit={20} compact />
 
       {error && <p className="error">{error}</p>}
 
-      {tab === "tracker" && (
-        <div className="panel desk-panel">
-          <h2 style={{ marginTop: 0 }}>
-            Guidance Tracker <InfoTip termId="gci" />
-          </h2>
-          <p className="muted">
-            Jump into GCI coverage for a selected name. Prefer{" "}
-            <strong>Hand-labeled</strong> rows for external citations.
-          </p>
-          <div className="metrics" style={{ marginTop: 16 }}>
-            <div className="metric">
-              <div className="label">Selected GCI</div>
-              <div className="value">
-                <ScoreReveal score={selected?.gci_score} size="md" />
-              </div>
-              <ChangeChip
-                value={selected?.gci_change_pct}
-                horizon={selected?.gci_change_horizon}
-              />
-            </div>
-            <div className="metric">
-              <div className="label">Quality</div>
-              <div className="value" style={{ fontSize: 18, marginTop: 10 }}>
-                <QualityBadge quality={selected?.data_quality} />
-              </div>
-            </div>
-            <div className="metric">
-              <div className="label">Sector</div>
-              <div className="value" style={{ fontSize: 20 }}>
-                {selected?.sector ?? "—"}
-              </div>
-            </div>
-            <div className="metric">
-              <div className="label">Peer / sector avg</div>
-              <div className="value" style={{ fontSize: 20 }}>
-                {selected?.peer_rank_in_sector ?? "—"} / {selected?.sector_avg_gci ?? "—"}
-              </div>
-            </div>
-          </div>
-          <p style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Link className="btn" to={`/companies/${companyId}`}>
-              Open full dossier →
-            </Link>
-            <Link className="btn ghost" to="/">
-              Universe table
-            </Link>
-          </p>
-          <Disclaimer compact />
-        </div>
-      )}
-
-      {tab === "evidence" && (
-        <div className="panel desk-panel">
-          <h2 style={{ marginTop: 0 }}>
-            Evidence trail <InfoTip termId="evidence" />
-          </h2>
-          {!detail ? (
-            <Skeleton rows={6} />
-          ) : (
-            <div style={{ marginTop: 16 }}>
-              <EvidenceTable outcomes={detail.outcomes} maxRows={12} />
-            </div>
-          )}
-          <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>
-            Accept / Reject lives on the{" "}
-            <Link to={`/companies/${companyId}`} style={{ color: "var(--accent)", fontWeight: 600 }}>
-              full company dossier
-            </Link>
-            .
-          </p>
-        </div>
+      {tab === "console" && (
+        <DeskConsole
+          companyId={companyId}
+          onSelectCompany={setCompanyId}
+          onJumpTab={(id) => {
+            if (id === "tracker" || id === "sectors") navigate("/tracker");
+            else if (id === "evidence") navigate(`/companies/${companyId}`);
+            else if (TABS.some((x) => x.id === id)) setTab(id as TabId);
+          }}
+        />
       )}
 
       {tab === "review" && (
@@ -784,9 +836,49 @@ export default function DeskPage() {
             Tier 1 corpus <InfoTip termId="tier1" />
           </h2>
           <p className="muted">
-            Foundation pipeline: automatic ingest → period doc types → citeable bindings →
-            PIT warehouse for analytics. Paste on Review remains the exception path.
+            Coverage, IR crawl, pending doc Accept/Reject, and pending-depth bootstrap. Digests stay
+            curated until analysts accept — never invent actuals.
           </p>
+          {corpusCov && (
+            <div className="metrics" data-testid="corpus-coverage">
+              <div className="metric">
+                <div className="label">Tier-1 pass</div>
+                <div className="value" style={{ fontSize: 20 }}>
+                  {String(corpusCov.tier1_gate_pass ?? corpusCov.tier1_pass ?? "—")} /{" "}
+                  {String(
+                    corpusCov.hand_labeled_sensex ??
+                      (Array.isArray(corpusCov.companies)
+                        ? (corpusCov.companies as unknown[]).length
+                        : corpusCov.companies) ??
+                      "—",
+                  )}
+                </div>
+              </div>
+              <div className="metric">
+                <div className="label">Tier-1 rate</div>
+                <div className="value" style={{ fontSize: 20 }}>
+                  {corpusCov.tier1_gate_rate != null || corpusCov.tier1_rate_pct != null
+                    ? `${Number(corpusCov.tier1_gate_rate ?? corpusCov.tier1_rate_pct).toFixed(1)}%`
+                    : "—"}
+                </div>
+              </div>
+            </div>
+          )}
+          {pendingDepth && (
+            <p className="muted" style={{ fontSize: 13 }} data-testid="pending-depth-summary">
+              Depth: LLM{" "}
+              {String(
+                (pendingDepth.flags as Record<string, unknown> | undefined)?.LLM_CONFIGURED ??
+                  pendingDepth.llm_configured ??
+                  "—",
+              )}{" "}
+              · SSO{" "}
+              {String(
+                ((pendingDepth.sso as Record<string, unknown> | undefined)?.production_ready ??
+                  "—") as string,
+              )}
+            </p>
+          )}
           <div className="crawl-bar">
             <div>
               <strong>Ingest lag</strong>
@@ -815,6 +907,8 @@ export default function DeskPage() {
                   setMsg(
                     `Foundation: ${cites.companies ?? 0} companies · PIT min N=${pit.min_n ?? "—"}`
                   );
+                  const c = await fetchCorpusCoverage();
+                  setCorpusCov(c as Record<string, unknown>);
                 } catch (e) {
                   setMsg((e as Error).message);
                 } finally {
@@ -823,6 +917,73 @@ export default function DeskPage() {
               }}
             >
               {foundationBusy ? "Building…" : "Build Sensex foundation"}
+            </button>
+          </div>
+          <div className="queue-ingest-row" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={crawlBusy}
+              data-testid="corpus-crawl-dry"
+              onClick={async () => {
+                setCrawlBusy(true);
+                try {
+                  const r = await postIngestCrawl({ limit: 30, dry_run: true, live: false });
+                  setMsg(
+                    `Crawl dry-run: pending_new=${r.pending_new} pending_total=${r.pending_total}`,
+                  );
+                } catch (e) {
+                  setMsg((e as Error).message);
+                } finally {
+                  setCrawlBusy(false);
+                }
+              }}
+            >
+              Crawl dry-run
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={crawlBusy}
+              data-testid="corpus-crawl-live"
+              onClick={async () => {
+                setCrawlBusy(true);
+                try {
+                  const r = await postIngestCrawl({ limit: 30, dry_run: false, live: true });
+                  setMsg(
+                    `Crawl live: pending_new=${r.pending_new} pending_total=${r.pending_total}`,
+                  );
+                  const docs = await fetchDocuments({ review_status: "pending" });
+                  setPendingDocs(docs.count);
+                  setPendingDocRows(docs.documents || []);
+                } catch (e) {
+                  setMsg((e as Error).message);
+                } finally {
+                  setCrawlBusy(false);
+                }
+              }}
+            >
+              Crawl live (IR allowlist)
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={foundationBusy}
+              data-testid="pending-depth-bootstrap"
+              onClick={async () => {
+                setFoundationBusy(true);
+                try {
+                  const r = await postPendingDepthBootstrap();
+                  setMsg(`Bootstrap ok · ${JSON.stringify(r).slice(0, 120)}…`);
+                  setPendingDepth(await fetchPendingDepth());
+                } catch (e) {
+                  setMsg((e as Error).message);
+                } finally {
+                  setFoundationBusy(false);
+                }
+              }}
+            >
+              Pending-depth bootstrap
             </button>
           </div>
           <div className="queue-ingest-row" style={{ marginTop: 12 }}>
@@ -849,6 +1010,103 @@ export default function DeskPage() {
             >
               Bind citations · {selected?.ticker || companyId}
             </button>
+            <button
+              type="button"
+              className="btn ghost"
+              data-testid="ops-throughput"
+              onClick={async () => {
+                try {
+                  const tput = await fetchOpsThroughput();
+                  setThroughput(tput as unknown as Record<string, unknown>);
+                  const u = tput.universe || {};
+                  setMsg(
+                    `Throughput: citeable ${u.citeable_outcomes}/${u.outcomes_total_hand_labeled} · pending docs ${tput.backlog?.pending_docs_review ?? 0}`,
+                  );
+                } catch (e) {
+                  setMsg((e as Error).message);
+                }
+              }}
+            >
+              Citeable coverage / throughput
+            </button>
+          </div>
+          {throughput && (
+            <pre
+              className="api-out"
+              data-testid="ops-throughput-out"
+              style={{ whiteSpace: "pre-wrap", maxHeight: 180, overflow: "auto" }}
+            >
+              {JSON.stringify(throughput, null, 2)}
+            </pre>
+          )}
+          <h3 style={{ marginTop: 20 }}>Pending documents</h3>
+          <div className="table-scroll">
+            <table className="table" data-testid="pending-docs-table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingDocRows.slice(0, 40).map((d) => {
+                  const id = String(d.id || "");
+                  return (
+                    <tr key={id}>
+                      <td>{String(d.ticker || d.company_id || "—")}</td>
+                      <td>{String(d.doc_type || "—")}</td>
+                      <td>{String(d.title || d.url || id).slice(0, 60)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn ghost"
+                          style={{ marginRight: 6 }}
+                          onClick={async () => {
+                            try {
+                              await postDocumentReview({ doc_id: id, action: "accept" });
+                              const docs = await fetchDocuments({ review_status: "pending" });
+                              setPendingDocs(docs.count);
+                              setPendingDocRows(docs.documents || []);
+                              setMsg(`Accepted ${id}`);
+                            } catch (e) {
+                              setMsg((e as Error).message);
+                            }
+                          }}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          type="button"
+                          className="btn ghost"
+                          onClick={async () => {
+                            try {
+                              await postDocumentReview({ doc_id: id, action: "reject" });
+                              const docs = await fetchDocuments({ review_status: "pending" });
+                              setPendingDocs(docs.count);
+                              setPendingDocRows(docs.documents || []);
+                              setMsg(`Rejected ${id}`);
+                            } catch (e) {
+                              setMsg((e as Error).message);
+                            }
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {pendingDocRows.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="muted">
+                      No pending documents
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 16 }}>
             Gate: expected types (transcript / results / IR) accepted per recent FY + ≥95%
@@ -862,11 +1120,12 @@ export default function DeskPage() {
       {tab === "reports" && (
         <div className="panel desk-panel" data-testid="reports-panel">
           <h2 style={{ marginTop: 0 }}>
-            Role report templates <InfoTip termId="citability" />
+            IC audit dossier & role reports <InfoTip termId="citability" />
           </h2>
           <p className="muted">
-            Markdown packs embed <strong>citeable outcomes only</strong> plus a citation
-            appendix. Provisional rows are excluded.
+            Default template is the <strong>IC audit dossier</strong> (citeable matrix +
+            citation appendix). Export Markdown, JSON, or PDF for investment committee
+            notes. Provisional rows are excluded.
           </p>
           <div className="queue-ingest-row">
             <select
@@ -876,7 +1135,7 @@ export default function DeskPage() {
             >
               {(reportTemplates.length
                 ? reportTemplates
-                : [{ id: "ra_delivery", name: "RA delivery", role: "", industry: "" }]
+                : [{ id: "ic_audit", name: "IC audit", role: "", industry: "" }]
               ).map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
@@ -895,8 +1154,10 @@ export default function DeskPage() {
                   const r = await postGenerateReport({
                     company_id: companyId,
                     template_id: reportTpl,
+                    format: "markdown",
                   });
-                  setReportMd(r.markdown);
+                  setReportMd(r.markdown || "");
+                  setReportJson(null);
                   setMsg(`Generated: ${r.template_name}`);
                 } catch (e) {
                   setMsg((e as Error).message);
@@ -905,9 +1166,70 @@ export default function DeskPage() {
                 }
               }}
             >
-              {reportBusy ? "Generating…" : `Generate · ${selected?.ticker || "—"}`}
+              {reportBusy ? "Generating…" : `Markdown · ${selected?.ticker || "—"}`}
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={!companyId || reportBusy}
+              data-testid="generate-report-json"
+              onClick={async () => {
+                if (!companyId) return;
+                setReportBusy(true);
+                try {
+                  const r = await postGenerateReport({
+                    company_id: companyId,
+                    template_id: "ic_audit",
+                    format: "json",
+                  });
+                  setReportJson(JSON.stringify(r.dossier || r, null, 2));
+                  setReportMd(r.markdown || null);
+                  setMsg(`IC JSON · citeable ${r.citeable_count ?? "—"}`);
+                } catch (e) {
+                  setMsg((e as Error).message);
+                } finally {
+                  setReportBusy(false);
+                }
+              }}
+            >
+              IC JSON
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={!companyId || reportBusy}
+              data-testid="generate-report-pdf"
+              onClick={async () => {
+                if (!companyId) return;
+                setReportBusy(true);
+                try {
+                  const blob = await downloadIcAuditPdf(companyId);
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `ic-audit-${selected?.ticker || companyId}.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  setMsg("IC PDF downloaded");
+                } catch (e) {
+                  setMsg((e as Error).message);
+                } finally {
+                  setReportBusy(false);
+                }
+              }}
+            >
+              IC PDF
             </button>
           </div>
+          {reportJson && (
+            <pre
+              className="api-out"
+              data-testid="report-json"
+              style={{ whiteSpace: "pre-wrap", maxHeight: 320, overflow: "auto" }}
+            >
+              {reportJson}
+            </pre>
+          )}
           {reportMd && (
             <pre
               className="api-out"
@@ -922,7 +1244,7 @@ export default function DeskPage() {
       )}
 
       {tab === "pit" && (
-        <div className="panel desk-panel">
+        <div className="panel desk-panel" data-testid="pit-panel">
           <h2 style={{ marginTop: 0 }}>
             API + point-in-time history <InfoTip termId="pit" />
           </h2>
@@ -984,6 +1306,24 @@ export default function DeskPage() {
               }}
             >
               Try PIT API
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={async () => {
+                const [contract, hist] = await Promise.all([
+                  fetchPitContract(),
+                  fetchPitHistoryV1(companyId),
+                ]);
+                setApiOut(
+                  JSON.stringify({ contract, history_v1: hist }, null, 2),
+                );
+                setMsg(
+                  `pit.v1 · ${hist.series_kind} · citeable=${String(hist.citeable)}`,
+                );
+              }}
+            >
+              PIT v1 contract
             </button>
             <a className="btn ghost" href={apiDocsUrl()} target="_blank" rel="noreferrer">
               OpenAPI /docs
@@ -1063,6 +1403,84 @@ export default function DeskPage() {
             Import & merge
           </button>
           {apiOut && <pre className="desk-pre">{apiOut}</pre>}
+
+          <h3 style={{ marginTop: 28 }}>Street consensus import</h3>
+          <p className="muted" style={{ fontSize: 13 }}>
+            Upsert rows via <code>POST /api/consensus/import</code>. Sample rows use{" "}
+            <code>source: sample_import</code> and require <code>?demo=true</code>. Licensed street
+            data replaces this for production.
+          </p>
+          {consensusStats && (
+            <p className="muted" data-testid="consensus-stats">
+              Store: {consensusStats.row_count} row(s) · {consensusStats.company_count} compan(ies)
+            </p>
+          )}
+          <label className="desk-field">
+            <span className="field-label">Consensus JSON array</span>
+            <textarea
+              rows={8}
+              value={consensusJson}
+              onChange={(e) => setConsensusJson(e.target.value)}
+              spellCheck={false}
+              placeholder='[{"company_id":"infy","period":"FY26","metric":"revenue_growth_pct","street_consensus":6.5,"source":"vendor"}]'
+            />
+          </label>
+          <div className="queue-ingest-row" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="btn"
+              data-testid="consensus-import"
+              onClick={async () => {
+                try {
+                  const rows = JSON.parse(consensusJson || "[]") as Record<string, unknown>[];
+                  const demo = rows.some((r) => String(r.source || "").includes("sample"));
+                  const res = await postConsensusImport(rows, { demo });
+                  setMsg(`Consensus imported ${res.imported} row(s)${res.demo ? " (demo)" : ""}`);
+                  setConsensusStats(await fetchConsensusStats());
+                } catch (e) {
+                  setMsg((e as Error).message);
+                }
+              }}
+            >
+              Import consensus
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              data-testid="consensus-load-sample"
+              onClick={async () => {
+                try {
+                  const r = await fetch("/api/consensus/sample", {
+                    headers: { "X-API-Key": demoApiKey() },
+                  });
+                  if (!r.ok) throw new Error("Sample unavailable");
+                  const body = await r.json();
+                  setConsensusJson(JSON.stringify(body.rows || body, null, 2));
+                  setMsg("Loaded sample_import fixture — import with demo gate");
+                } catch {
+                  setConsensusJson(
+                    JSON.stringify(
+                      [
+                        {
+                          company_id: "infy",
+                          period: "FY26",
+                          metric: "revenue_growth_pct",
+                          street_consensus: 6.5,
+                          as_of: "sample",
+                          source: "sample_import",
+                        },
+                      ],
+                      null,
+                      2,
+                    ),
+                  );
+                  setMsg("Loaded inline sample (demo)");
+                }
+              }}
+            >
+              Load sample fixture
+            </button>
+          </div>
         </div>
       )}
 
@@ -1272,14 +1690,26 @@ export default function DeskPage() {
       )}
 
       {tab === "labeling" && (
+        <>
+          {has("labeling") && <LabelWorkbench companyId={companyId} />}
         <div className="panel desk-panel" data-testid="labeling-queue-panel">
           <h2 style={{ marginTop: 0 }}>
             Labeling priority queue <InfoTip termId="labeling_queue" />
           </h2>
           <p className="muted">
             One-Stop dedicated labeling path — request hand-label priority for a name.
-            Process SLA; does not invent actuals.
+            Process SLA; does not invent actuals. Hand-label M3/M4 per{" "}
+            <code>docs/LABELING_PLAYBOOK.md</code> in the repo (no day-1 Nifty claim).
           </p>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+            <input
+              type="checkbox"
+              checked={labelNiftyOnly}
+              onChange={(e) => setLabelNiftyOnly(e.target.checked)}
+              data-testid="label-nifty-filter"
+            />
+            <span className="muted">Show Nifty-extra queue only</span>
+          </label>
           {niftyMs && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ marginTop: 0 }}>Nifty deep GCI milestones</h3>
@@ -1311,6 +1741,7 @@ export default function DeskPage() {
                     setNiftyMs({
                       milestones: ms.milestones,
                       counts: ms.counts as Record<string, number>,
+                      nifty_extra_ids: ms.nifty_extra_ids,
                       note: ms.note,
                       progress: ms.progress,
                     });
@@ -1344,7 +1775,16 @@ export default function DeskPage() {
             Queue {companyId} (high priority)
           </button>
           <ul className="package-steps" style={{ marginTop: 16 }}>
-            {(labelQueue || []).slice(0, 12).map((item) => (
+            {(labelQueue || [])
+              .filter((item) => {
+                if (!labelNiftyOnly) return true;
+                const ids = new Set(niftyMs?.nifty_extra_ids || []);
+                if (ids.size && item.company_id && ids.has(String(item.company_id))) return true;
+                const note = `${item.note || ""}`.toLowerCase();
+                return note.includes("nifty");
+              })
+              .slice(0, 20)
+              .map((item) => (
               <li key={item.id}>
                 <strong>{item.company_name || item.company_id}</strong> · {item.priority} ·{" "}
                 {item.status} · {item.data_quality}
@@ -1352,8 +1792,14 @@ export default function DeskPage() {
             ))}
             {!labelQueue?.length && <li className="muted">No queue items yet</li>}
           </ul>
+          <p className="muted" style={{ fontSize: 12 }}>
+            M3/M4 stay open until real hand_labels exist — enqueue only prepares the queue.
+          </p>
         </div>
+        </>
       )}
+
+      {tab === "feedback" && <FeedbackInbox />}
 
       {tab === "csm" && (
         <div className="panel desk-panel">
@@ -1362,6 +1808,31 @@ export default function DeskPage() {
             {csmDash?.note ||
               "Named CSM, SLA meter, and VPC posture for Enterprise / One-Stop — commercial terms in MSA."}
           </p>
+          {ssoStatus && (
+            <div className="panel" style={{ marginBottom: 16 }} data-testid="sso-readiness">
+              <h3 style={{ marginTop: 0 }}>Enterprise SSO readiness</h3>
+              <p className="muted" style={{ fontSize: 13 }}>
+                Enabled: {ssoStatus.enabled ? "yes" : "no"} · Configured:{" "}
+                {ssoStatus.configured ? "yes" : "no"} · Production-ready:{" "}
+                {ssoStatus.production_ready || ssoStatus.ready ? "yes" : "not yet"}
+              </p>
+              {ssoStatus.note && <p className="muted">{ssoStatus.note}</p>}
+              {ssoStatus.checklist && (
+                <ul className="package-steps">
+                  {Object.entries(ssoStatus.checklist).map(([k, v]) => (
+                    <li key={k}>
+                      {k}: {v ? "ok" : "missing"}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="muted" style={{ fontSize: 12 }}>
+                Register IdP → set <code>SSO=true</code> + <code>OIDC_*</code> → redirect{" "}
+                <code>https://citealpha.com/api/auth/sso/callback</code>. See{" "}
+                <Link to="/trust">Trust Center</Link>.
+              </p>
+            </div>
+          )}
           <div className="metrics">
             <div className="metric">
               <div className="label">Org</div>
@@ -1418,6 +1889,22 @@ export default function DeskPage() {
               {csmDash?.tickets_open ?? 0}
             </li>
           </ul>
+          {csmDash?.labeling_audit && csmDash.labeling_audit.length > 0 ? (
+            <div data-testid="csm-labeling-audit" style={{ marginTop: 12 }}>
+              <p className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
+                Recent label submitter / reviewer (ids only)
+              </p>
+              <ul className="package-steps">
+                {csmDash.labeling_audit.slice(0, 8).map((row) => (
+                  <li key={row.id || `${row.company_id}-${row.updated_at}`}>
+                    {row.company_id} · {row.status}
+                    {row.submitter_id ? ` · labeled by ${row.submitter_id}` : ""}
+                    {row.reviewer_id ? ` · reviewed by ${row.reviewer_id}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <label className="desk-field" style={{ marginTop: 12 }}>
             <span className="field-label">CSM ticket subject</span>
             <input
@@ -1444,14 +1931,25 @@ export default function DeskPage() {
             File CSM ticket
           </button>
           <p className="cta-line">
-            Contact: <strong>{csmDash?.csm?.email ?? "csm@intellens.example"}</strong> · sales:{" "}
-            <strong>sales@intellens.example</strong>
+            Contact: <strong>{csmDash?.csm?.email ?? "csm@citealpha.com"}</strong> · sales:{" "}
+            <strong>sales@citealpha.com</strong>
           </p>
           <Link className="btn" to="/package" style={{ marginTop: 12 }}>
             View Package / One-Stop →
           </Link>
+          <div className="panel" style={{ marginTop: 24 }} data-testid="org-settings-cta">
+            <h3 style={{ marginTop: 0 }}>Team &amp; seats</h3>
+            <p className="muted">
+              Invite analysts, revoke seats, and mint org API keys on the org settings page.
+            </p>
+            <Link to="/org/settings" className="btn-primary">
+              Open org settings →
+            </Link>
+          </div>
+          <PilotChecklistPanel orgId={String(org?.id || "demo")} />
         </div>
       )}
     </section>
+    </PlanAccessGate>
   );
 }

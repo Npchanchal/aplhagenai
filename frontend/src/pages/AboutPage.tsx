@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import { useI18n } from "../i18n";
+import { CONTACT_EMAIL, copyrightLine } from "../lib/legal";
+import { showArchitecturePage } from "../lib/siteFlags";
 
 const PIPELINE = [
   {
@@ -34,40 +36,73 @@ const PERSONAS = [
   {
     who: "Buy-side / PMS / AIF",
     need: "Screen chronic guidance misses and size conviction with a delivery track record — not another sentiment heat map.",
-    path: "Tracker → dossier evidence → sector peers",
+    path: "Tracker → dossier evidence → Rankings / Radar",
   },
   {
     who: "Sell-side / desk associate",
     need: "Put auditable guidance-vs-actuals into notes fast, with HITL review when extracts need correction.",
-    path: "Desk review queue → Evidence edit → Report templates",
+    path: "Desk review queue → Evidence edit → Research / Sights Ask",
   },
   {
     who: "Quant / data / platform",
     need: "Point-in-time GCI series and evidence-adjacent exports without inventing retail recommendations.",
-    path: "API / PIT → Enterprise package",
+    path: "API / PIT → Data catalog → Enterprise package",
+  },
+  {
+    who: "IR / compliance / credit",
+    need: "What was promised, by whom, when, and whether it was delivered — a ledger, not a score-only dashboard.",
+    path: "Ledger / Radar → Trust Center → Package",
+  },
+] as const;
+
+const ALSO = [
+  {
+    title: "Products",
+    to: "/products",
+    text: "Score, Cite, Radar, Ledger, Data, and Sights — jobs on the same India disclosure spine.",
+  },
+  {
+    title: "Sights",
+    to: "/sights",
+    text: "India IR research OS: search, cite-only Ask, boards, grid, and desk agents.",
+  },
+  {
+    title: "GCI Rankings",
+    to: "/rankings",
+    text: "Public ranking of citeable names — evidence-linked, not recommendations.",
+  },
+  {
+    title: "Trust Center",
+    to: "/trust",
+    text: "Security, residency, counsel status, and citation posture for procurement.",
   },
 ] as const;
 
 const HOW_TO = [
   {
     title: "Screen the universe",
-    to: "/",
+    to: "/tracker",
     text: "Open Guidance Credibility Index. Prefer Hand-labeled names for external citation. Sort by GCI or Δ.",
   },
   {
     title: "Open a dossier",
-    to: "/",
+    to: "/companies/infy",
     text: "Evidence + Docs (Tier 1 gate) + Trend + Granger analytics (descriptive / precedence only).",
   },
   {
     title: "Run the desk loop",
     to: "/desk",
-    text: "Review queue, Corpus foundation, cite-only Reports, PIT API, private notes.",
+    text: "Console, review queue, Corpus foundation, cite-only Reports, PIT API.",
   },
   {
-    title: "Research & package",
+    title: "Research Terminal",
     to: "/research",
-    text: "Cite-only document search/chat; then Package for commercial plans when you are ready to expand seats.",
+    text: "Cite-only document search and chat over filings and transcripts.",
+  },
+  {
+    title: "Sights",
+    to: "/sights",
+    text: "India disclosure research OS — Ask refuses without evidence.",
   },
 ] as const;
 
@@ -81,14 +116,21 @@ export default function AboutPage() {
         {t("about.title")} <InfoTip termId="gci" />
       </h1>
       <p className="muted lede">{t("about.lede")}</p>
+      <p className="muted" data-testid="about-owner">
+        {copyrightLine()} Contact{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. See{" "}
+        <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy</Link>.
+      </p>
 
       <nav className="about-toc" aria-label="On this page">
         <a href="#what">What it is</a>
         <a href="#why">Why it is needed</a>
         <a href="#how">How it works</a>
-        <a href="#tiers">Tiers</a>
+        <a href="#layers">Capability layers</a>
         <Link to="/about/tiers">Tier screenshots</Link>
-        <a href="#who">Who & how to use</a>
+        {showArchitecturePage ? <Link to="/about/architecture">Architecture</Link> : null}
+        <a href="#who">Who uses it</a>
+        <a href="#also">Also in CiteAlpha</a>
       </nav>
 
       <div className="panel" id="what">
@@ -96,7 +138,8 @@ export default function AboutPage() {
           What it is <InfoTip termId="gci" />
         </h2>
         <p>
-          <strong>IntelLens</strong> delivers the{" "}
+          <strong>CiteAlpha</strong> is a product of{" "}
+          <strong>Ocotillo Innovation Private Limited</strong>. It delivers the{" "}
           <strong>Guidance Credibility Index (GCI)</strong> — a 0–100 score of whether
           Indian listed-company management <em>delivered</em> on quantified guidance.
           It is a credit score for promises vs actuals, not a sentiment dashboard and
@@ -137,7 +180,7 @@ export default function AboutPage() {
             <h3>India-shaped disclosure</h3>
             <p className="muted">
               NSE/BSE IR tables, mixed-language concalls, and local formats need a local
-              spine — not a US-first clone with India as an afterthought.
+              spine — not a US-first product with India as an afterthought.
             </p>
           </div>
           <div>
@@ -184,27 +227,32 @@ export default function AboutPage() {
         </p>
       </div>
 
-      <div className="panel" id="tiers">
+      <div className="panel" id="layers">
         <h2 style={{ marginTop: 0 }}>
-          Product tiers <InfoTip termId="tier1" />
+          Capability layers <InfoTip termId="tier1" />
         </h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          These are product capability layers, not commercial plans. Seats and API
+          access live on <Link to="/package">Package</Link>. Annotated screenshots:{" "}
+          <Link to="/about/tiers">tier gallery</Link>.
+        </p>
         <div className="about-why-grid">
           <div>
-            <h3>Tier 1 — Foundation</h3>
+            <h3>Foundation</h3>
             <p className="muted">
               Auto ingest → period docs (transcript / results / IR) → entity search with
               corpus honesty → citeable citation ids. Desk → Corpus builds the Sensex gate.
             </p>
           </div>
           <div>
-            <h3>Tier 2 — Workflow</h3>
+            <h3>Workflow</h3>
             <p className="muted">
               Multi-horizon Δ (QoQ/YoY from PIT), GCI↔price descriptive overlays, private
               notes, role report templates with citation appendix.
             </p>
           </div>
           <div>
-            <h3>Tier 3 — Frontier</h3>
+            <h3>Analytics (gated)</h3>
             <p className="muted">
               LASSO → Granger F-test and FDR impact map on ≥12-quarter PIT series. Not
               causation, not a forecast — methodology card on the dossier Analytics panel.
@@ -213,15 +261,10 @@ export default function AboutPage() {
           <div>
             <h3>Out of scope</h3>
             <p className="muted">
-              Buy/Hold/Sell, transfer entropy / causal DAGs in v1, treating provisional
-              listing scores as citeable IR evidence.
+              Buy/Hold/Sell, treating provisional listing scores as citeable IR evidence,
+              or cloning a global market-intel OS in product chrome.
             </p>
           </div>
-        </div>
-        <div className="about-cta-row">
-          <Link to="/about/tiers" className="btn" data-testid="open-tier-screenshots">
-            Open tier screenshots gallery
-          </Link>
         </div>
       </div>
 
@@ -239,6 +282,18 @@ export default function AboutPage() {
           ))}
         </div>
 
+        <h3 style={{ marginTop: 28 }} id="also">
+          Also in CiteAlpha
+        </h3>
+        <div className="help-quick">
+          {ALSO.map((item) => (
+            <Link key={item.to} to={item.to} className="help-quick-card">
+              <strong>{item.title}</strong>
+              <span className="muted">{item.text}</span>
+            </Link>
+          ))}
+        </div>
+
         <h3 style={{ marginTop: 28 }}>Quick start</h3>
         <div className="help-quick">
           {HOW_TO.map((item) => (
@@ -250,14 +305,14 @@ export default function AboutPage() {
         </div>
 
         <div className="about-cta-row">
-          <Link to="/" className="btn">
+          <Link to="/tracker" className="btn">
             Open Guidance Tracker
           </Link>
-          <Link to="/package" className="btn ghost">
-            View package
+          <Link to="/products" className="btn ghost">
+            Product catalog
           </Link>
           <Link to="/help" className="btn ghost">
-            Glossary
+            Help &amp; glossary
           </Link>
         </div>
       </div>

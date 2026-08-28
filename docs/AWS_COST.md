@@ -1,4 +1,4 @@
-# AWS cost profile — IntelLens GCI (`deploy/aws`)
+# AWS cost profile — CiteAlpha GCI (`deploy/aws`)
 
 ## Architecture (minimized)
 
@@ -9,6 +9,7 @@
 | ECS Fargate ×1 | **0.5 vCPU / 1 GB** Spot | Combined API + nginx |
 | ECR ×2 | lifecycle keep 3 | |
 | CloudWatch Logs | 7 days | |
+| EFS (auth.db) | minimal | ~$0.30/GB-mo when `enable_auth_efs` on |
 | NAT | none | Public subnet |
 
 ## Ballpark monthly (ap-south-1)

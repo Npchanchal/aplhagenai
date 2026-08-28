@@ -1,31 +1,111 @@
-import { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
-import AboutPage from "./pages/AboutPage";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
+import BrandLogo from "./components/BrandLogo";
 import SessionMenu from "./components/SessionMenu";
+import SiteFooter from "./components/SiteFooter";
 import SiteTour from "./components/SiteTour";
-import TourMenu from "./components/TourMenu";
 import TourWelcome from "./components/TourWelcome";
-import CompanyDetailPage from "./pages/CompanyDetailPage";
-import DeskPage from "./pages/DeskPage";
-import HelpPage from "./pages/HelpPage";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import PackagePage from "./pages/PackagePage";
-import RegisterPage from "./pages/RegisterPage";
-import ResearchPage from "./pages/ResearchPage";
-import TierFeaturesPage from "./pages/TierFeaturesPage";
+import LandingPage from "./pages/LandingPage";
+import RouteFallback from "./components/RouteFallback";
+import PageAnalytics from "./components/PageAnalytics";
+import ConsentBanner from "./components/ConsentBanner";
+import SeoHead from "./components/SeoHead";
 import { useAuth } from "./lib/auth";
 import { useI18n } from "./i18n";
-import { tipText } from "./lib/glossary";
+import { showArchitecturePage } from "./lib/siteFlags";
+import NavMenu from "./components/NavMenu";
+import SightsLayout from "./pages/sights/SightsLayout";
+import SightsHubPage from "./pages/sights/SightsHubPage";
 
-const NAV = [
-  { to: "/", end: true, labelKey: "nav.tracker" as const, tipId: "tracker" },
-  { to: "/desk", end: false, labelKey: "nav.desk" as const, tipId: "desk_sku" },
-  { to: "/research", end: false, labelKey: "nav.research" as const, tipId: "research_terminal" },
-  { to: "/package", end: false, labelKey: "nav.package" as const, tipId: "one_stop" },
-  { to: "/about", end: false, labelKey: "nav.about" as const, tipId: "gci" },
-  { to: "/help", end: false, labelKey: "nav.help" as const, tipId: "gci" },
-] as const;
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
+const DeskPage = lazy(() => import("./pages/DeskPage"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const CitationPage = lazy(() => import("./pages/CitationPage"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const PackagePage = lazy(() => import("./pages/PackagePage"));
+const PilotRequestPage = lazy(() => import("./pages/PilotRequestPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ResearchPage = lazy(() => import("./pages/ResearchPage"));
+const TierFeaturesPage = lazy(() => import("./pages/TierFeaturesPage"));
+const RankingsPage = lazy(() => import("./pages/RankingsPage"));
+const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
+const BillingPage = lazy(() => import("./pages/BillingPage"));
+import AdminPortalPage from "./pages/AdminPortalPage";
+const TrustPage = lazy(() => import("./pages/TrustPage"));
+const ArchitecturePage = lazy(() => import("./pages/ArchitecturePage"));
+const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
+const SightsBoardsPage = lazy(() => import("./pages/sights/SightsBoardsPage"));
+const SightsSearchAsk = lazy(() =>
+  import("./pages/sights/SightsSearchAsk").then((m) => ({
+    default: m.SightsSearchPage,
+  })),
+);
+const SightsAskPage = lazy(() =>
+  import("./pages/sights/SightsSearchAsk").then((m) => ({
+    default: m.SightsAskPage,
+  })),
+);
+const SightsThemesPage = lazy(() =>
+  import("./pages/sights/SightsEvidencePages").then((m) => ({
+    default: m.SightsThemesPage,
+  })),
+);
+const SightsStreetPage = lazy(() =>
+  import("./pages/sights/SightsEvidencePages").then((m) => ({
+    default: m.SightsStreetPage,
+  })),
+);
+const SightsFieldPage = lazy(() =>
+  import("./pages/sights/SightsEvidencePages").then((m) => ({
+    default: m.SightsFieldPage,
+  })),
+);
+const SightsGridPage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsGridPage,
+  })),
+);
+const SightsDeepDivePage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsDeepDivePage,
+  })),
+);
+const SightsFundamentalsPage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsFundamentalsPage,
+  })),
+);
+const SightsAgentsPage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsAgentsPage,
+  })),
+);
+const SightsExportPage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsExportPage,
+  })),
+);
+const SightsSettingsPage = lazy(() =>
+  import("./pages/sights/SightsAdvancedPages").then((m) => ({
+    default: m.SightsSettingsPage,
+  })),
+);
+const ForgotPasswordPage = lazy(() =>
+  import("./pages/AuthRecoveryPages").then((m) => ({ default: m.ForgotPasswordPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("./pages/AuthRecoveryPages").then((m) => ({ default: m.ResetPasswordPage })),
+);
+const VerifyEmailPage = lazy(() =>
+  import("./pages/AuthRecoveryPages").then((m) => ({ default: m.VerifyEmailPage })),
+);
+const AccountSettingsPage = lazy(() => import("./pages/AccountSettingsPage"));
+const OrgSettingsPage = lazy(() => import("./pages/OrgSettingsPage"));
 
 export default function App() {
   const { t } = useI18n();
@@ -47,15 +127,14 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <SeoHead />
+      <PageAnalytics />
       <a href="#main" className="skip-link">
         Skip to content
       </a>
       <header className="topbar">
         <div className="brand-block">
-          <Link to="/" className="brand" aria-label="IntelLens home">
-            Intel<span>Lens</span>
-          </Link>
-          <span className="brand-pitch">{t("brand.pitch")}</span>
+          <BrandLogo />
         </div>
         <button
           type="button"
@@ -73,18 +152,7 @@ export default function App() {
           className={`topnav ${navOpen ? "open" : ""}`}
           aria-label="Primary"
         >
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              title={tipText(item.tipId)}
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-            >
-              {t(item.labelKey)}
-            </NavLink>
-          ))}
-          <TourMenu />
+          <NavMenu />
           <SessionMenu />
           <span className="compliance-micro">{t("compliance.micro")}</span>
         </nav>
@@ -95,20 +163,77 @@ export default function App() {
           <Link to="/register">{t("common.register")}</Link>
         </div>
       )}
+      <ConsentBanner />
       <main id="main" className="app-main">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/companies/:id" element={<CompanyDetailPage />} />
-          <Route path="/desk" element={<DeskPage />} />
-          <Route path="/research" element={<ResearchPage />} />
-          <Route path="/package" element={<PackagePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/about/tiers" element={<TierFeaturesPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/tracker" element={<HomePage />} />
+            <Route path="/c/:citationId" element={<CitationPage />} />
+            <Route path="/companies/:id" element={<CompanyDetailPage />} />
+            <Route path="/desk" element={<DeskPage />} />
+            <Route path="/research" element={<ResearchPage />} />
+            <Route path="/sights" element={<SightsLayout />}>
+              <Route index element={<SightsHubPage />} />
+              <Route path="search" element={<SightsSearchAsk />} />
+              <Route path="ask" element={<SightsAskPage />} />
+              <Route path="boards" element={<SightsBoardsPage />} />
+              <Route path="themes" element={<SightsThemesPage />} />
+              <Route path="street" element={<SightsStreetPage />} />
+              <Route path="field" element={<SightsFieldPage />} />
+              <Route path="grid" element={<SightsGridPage />} />
+              <Route path="deep-dive" element={<SightsDeepDivePage />} />
+              <Route path="fundamentals" element={<SightsFundamentalsPage />} />
+              <Route path="agents" element={<SightsAgentsPage />} />
+              <Route path="export" element={<SightsExportPage />} />
+              <Route path="settings" element={<SightsSettingsPage />} />
+            </Route>
+            <Route path="/package" element={<PackagePage />} />
+            <Route path="/pilot" element={<PilotRequestPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/rankings" element={<RankingsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route
+              path="/about/architecture"
+              element={
+                showArchitecturePage ? <ArchitecturePage /> : <Navigate to="/about" replace />
+              }
+            />
+            <Route path="/about/tiers" element={<TierFeaturesPage />} />
+            <Route path="/blog" element={<BlogIndexPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/accept-invite" element={<AcceptInvitePage />} />
+            <Route path="/billing" element={<BillingPage />} />
+            <Route path="/account" element={<AccountSettingsPage />} />
+            <Route path="/org/settings" element={<OrgSettingsPage />} />
+            <Route path="/admin" element={<AdminPortalPage />} />
+            <Route path="/terms" element={<LegalPage />} />
+            <Route path="/privacy" element={<LegalPage />} />
+            <Route path="/trust" element={<TrustPage />} />
+            <Route
+              path="*"
+              element={
+                <section className="page">
+                  <h1>Page not found</h1>
+                  <p className="muted">
+                    No route for <code>{location.pathname}</code>.
+                  </p>
+                  <Link to="/tracker" className="btn">
+                    Tracker
+                  </Link>
+                </section>
+              }
+            />
+          </Routes>
+        </Suspense>
       </main>
+      <SiteFooter />
       <TourWelcome />
       <SiteTour />
     </div>

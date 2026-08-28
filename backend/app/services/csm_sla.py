@@ -84,16 +84,19 @@ def csm_dashboard(org_id: str = "demo") -> Dict[str, Any]:
     open_q = [r for r in queue if r.get("status") in ("queued", "in_progress")]
     tickets = [t for t in (get_data().get("csm_tickets") or []) if t.get("org_id") == org_id]
     open_t = [t for t in tickets if t.get("status") != "closed"]
+    from app.services import labeling as lbl
+
     return {
         "org": snap,
         "csm": {
             "named": snap.get("csm") or "Assigned at convert",
-            "email": os.environ.get("CSM_EMAIL", "csm@intellens.example"),
+            "email": os.environ.get("CSM_EMAIL", "csm@citealpha.com"),
             "qbr_cadence": "quarterly",
             "next_qbr_hint": "Schedule via named CSM after Pilot→paid convert",
         },
         "sla": sla_status(org_id),
         "labeling_open": len(open_q),
+        "labeling_audit": lbl.audit_recent(org_id=org_id, limit=12),
         "tickets_open": len(open_t),
         "tickets": tickets[-20:],
         "vpc": vpc_posture(),

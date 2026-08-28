@@ -1,8 +1,8 @@
-# IntelLens — Business Plan (MVP)
+# CiteAlpha — Business Plan (MVP)
 
 ## 1. Executive summary
 
-IntelLens turns primary-source Indian equity research (filings + concalls) into a **Guidance Credibility Index (GCI)** — a 0–100 score of whether management delivered on quantified guidance. The MVP is an analyst workbench + API for buy-side / sell-side desks covering Sensex names, with a path to Nifty 500 and data licensing.
+CiteAlpha turns primary-source Indian equity research (filings + concalls) into a **Guidance Credibility Index (GCI)** — a 0–100 score of whether management delivered on quantified guidance. The MVP is an analyst workbench + API for buy-side / sell-side desks covering Sensex names, with a path to Nifty 500 and data licensing.
 
 ## 2. Problem
 
@@ -29,10 +29,15 @@ Analysts remember guidance anecdotally. Existing Indian tools score sentiment/to
 
 | Stream | Timing | Notes |
 |---|---|---|
-| Per-seat SaaS (Guidance Tracker) | Months 8–12 | Primary near-term ARR |
-| API / data license | Months 8–12 | Highest ACV |
+| Per-seat SaaS (Guidance Tracker / Score) | Months 8–12 | Primary near-term ARR |
+| API / data license (CiteAlpha Data) | Months 8–12 | Highest ACV |
+| Cite API / Research Terminal | Parallel | Workflow SKU; embed for copilots |
+| Radar digests | Parallel | Habit / retention add-on |
+| Ledger / board packs | Parallel | Audit / compliance / IR Mirror |
 | Vernacular notes | Parallel | Distribution / retail funnel |
-| Broker Trust Score badge | Year 2 | White-label, not standalone app |
+| Broker Trust Score badge | Year 2 | White-label channel, not standalone app |
+
+**Portfolio catalog:** five bundles — Score · Cite · Radar · Ledger · Data — see [`PRODUCT_PORTFOLIO.md`](PRODUCT_PORTFOLIO.md) and [`PORTFOLIO_ROADMAP.md`](PORTFOLIO_ROADMAP.md). Commercial access still maps to Pilot / Desk / Enterprise API / One-Stop.
 
 ## 6. Competition
 
@@ -69,12 +74,16 @@ India-first guidance accountability with compounding labeled data, proven catego
 
 ## Related docs
 
+- [Product portfolio](PRODUCT_PORTFOLIO.md) — parallel SKUs (Score / Cite / Radar / Ledger / Data)
+- [Portfolio roadmap](PORTFOLIO_ROADMAP.md) — phased productization P0–P5
 - [Pitch deck](PITCH_DECK.html) ([narrative](PITCH_DECK.md)) — seed fundraising slides
+- [Marketing plan](MARKETING_PLAN.md) — SEO, content, outbound, LinkedIn, KPIs
 - [Competitive landscape](COMPETITIVE_LANDSCAPE.md)
 - [Regional markets](REGIONAL_MARKETS.md)
 - [Accuracy assessment](ACCURACY_ASSESSMENT.md)
 - [Product definition](PRODUCT_DEFINITION.md)
 - [Customer package](customer/README.md) — one-pager, pricing, onboarding, API, SLA, order form
+- [SKU one-pagers](customer/skus/README.md)
 - [Research Terminal](RESEARCH_TERMINAL.md) — Intellens Search + Intellens Desk (demo)
 - [Gaps vs AlphaSense & Bloomberg](GAPS_VS_ALPHASENSE_BLOOMBERG.md) — B2B / B2C gap map
 - [Implementation plan](IMPLEMENTATION_PLAN.md) — stepwise Phases 0–8

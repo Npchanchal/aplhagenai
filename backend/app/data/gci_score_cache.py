@@ -22,7 +22,9 @@ def load_cache(*, force: bool = False) -> Dict[str, Any]:
     if _PATH.exists():
         _CACHE = json.loads(_PATH.read_text(encoding="utf-8"))
     else:
-        _CACHE = {"version": 1, "algorithm": "gci_scoring_v2", "scores": {}}
+        from app.services.gci_scoring import algorithm_id
+
+        _CACHE = {"version": 1, "algorithm": algorithm_id(), "scores": {}}
     return _CACHE
 
 
@@ -44,18 +46,26 @@ def clear_memory_cache() -> None:
 
 
 def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
-    """Score every India listing with gci_scoring v2 (seed outcomes or provisional)."""
+    """Score every India listing with active gci_scoring version (seed or provisional).
+
+    Each row includes calendar-aligned WoW / MoM / QoQ / YoY on the GCI level
+    (demo multi-horizon path for provisional / thin PIT — never invents IR quotes).
+    """
     from datetime import datetime, timezone
 
     from app.data.india_listings import india_equity_universe
     from app.data.seed import get_outcomes, list_companies
+    from app.services.changes import change_bundle, multi_horizon_gci_series
     from app.services.gci_scoring import (
+        algorithm_id,
         compute_company_gci,
         gci_trend_series,
         label_counts,
         metric_breakdown,
     )
     from app.services.provisional_gci import QUALITY, score_provisional
+
+    algo = algorithm_id()
 
     seed_by_id = {c["id"]: c for c in list_companies()}
     scores: Dict[str, Any] = {}
@@ -69,6 +79,38 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
         last = trend[-1]
         return last.get("change_pct"), last.get("change_horizon")
 
+    def _horizon_fields(cid: str, gci: Optional[float], trend: List[Dict[str, Any]]) -> Dict[str, Any]:
+        if gci is None:
+            return {
+                "wow_pct": None,
+                "mom_pct": None,
+                "qoq_pct": None,
+                "yoy_pct": None,
+                "series_kind": None,
+            }
+        series = [
+            (str(p.get("period") or ""), p.get("gci_score"))
+            for p in (trend or [])
+            if p.get("gci_score") is not None
+        ]
+        bundle = change_bundle(gci, series)
+        need = [bundle.get("wow_pct"), bundle.get("mom_pct"), bundle.get("qoq_pct"), bundle.get("yoy_pct")]
+        kind = "trend_pit"
+        if sum(1 for x in need if x is not None) < 3:
+            mh = multi_horizon_gci_series(cid, float(gci))
+            filled = change_bundle(gci, mh)
+            for key in ("wow_pct", "mom_pct", "qoq_pct", "yoy_pct"):
+                if bundle.get(key) is None:
+                    bundle[key] = filled.get(key)
+            kind = "demo_multi_horizon"
+        return {
+            "wow_pct": bundle.get("wow_pct"),
+            "mom_pct": bundle.get("mom_pct"),
+            "qoq_pct": bundle.get("qoq_pct"),
+            "yoy_pct": bundle.get("yoy_pct"),
+            "series_kind": kind,
+        }
+
     for stock in universe:
         cid = stock["id"]
         ticker = stock.get("ticker") or cid
@@ -79,6 +121,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
             gci = compute_company_gci(outcomes)
             trend = gci_trend_series(outcomes)
             ch_pct, ch_h = _trend_change(trend)
+            horizons = _horizon_fields(cid, gci, trend)
             scores[cid] = {
                 "gci_score": gci,
                 "data_quality": seeded.get("data_quality", "demo_structured"),
@@ -89,12 +132,15 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
                 "gci_change_pct": ch_pct,
                 "gci_change_horizon": ch_h,
                 "source": "seed",
+                **horizons,
             }
         else:
             rep = score_provisional(cid, ticker, sector)
             ch_pct, ch_h = _trend_change(rep.get("trend") or [])
+            gci = rep.get("gci_score")
+            horizons = _horizon_fields(cid, gci, rep.get("trend") or [])
             scores[cid] = {
-                "gci_score": rep["gci_score"],
+                "gci_score": gci,
                 "data_quality": QUALITY,
                 "ticker": ticker,
                 "sector": sector,
@@ -104,18 +150,28 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
                 "gci_change_horizon": ch_h,
                 "source": "provisional",
                 "outcome_count": rep.get("outcome_count"),
+                **horizons,
             }
 
     scored_n = sum(1 for s in scores.values() if s.get("gci_score") is not None)
+    with_yoy = sum(1 for s in scores.values() if s.get("yoy_pct") is not None)
+    with_all = sum(
+        1
+        for s in scores.values()
+        if all(s.get(k) is not None for k in ("wow_pct", "mom_pct", "qoq_pct", "yoy_pct"))
+    )
     payload = {
-        "version": 1,
-        "algorithm": "gci_scoring_v2",
+        "version": 2,
+        "algorithm": algo,
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": len(scores),
         "scored_count": scored_n,
+        "horizons_yoy_count": with_yoy,
+        "horizons_full_count": with_all,
         "note": (
             "listing_provisional = deterministic demo outcomes scored with production "
-            "gci_scoring v2. Cite hand_labeled only."
+            f"{algo}. WoW/MoM/QoQ/YoY from calendar-aligned multi-horizon GCI path "
+            "(demo_multi_horizon when PIT is thin). Cite hand_labeled only."
         ),
         "scores": scores,
     }

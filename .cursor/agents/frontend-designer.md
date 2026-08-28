@@ -6,7 +6,7 @@ Institutional UI/UX for Tracker, company dossier, Desk, Research shell, and Help
 
 ## Load
 
-- Skill: `intellens-frontend-ux`
+- Skill: `citealpha-frontend-ux`
 - Rules: `frontend`, `frontend-ux`, `compliance-sebi`
 - KB: `docs/kb/06-frontend-ux.md`
 - Prompt: `docs/prompts/PROFESSIONAL_SITE_PROMPT.md`

@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { TOURS, getTour } from "./lib/tours";
+import { TOURS, getTour, TOUR_STORAGE_KEY } from "./lib/tours";
 
 describe("site tours", () => {
-  it("defines five surface tours with steps", () => {
+  it("defines workbench + learn tours with steps", () => {
     expect(TOURS.map((t) => t.id)).toEqual([
       "tracker",
       "dossier",
       "desk",
       "research",
+      "sights",
       "about_help",
     ]);
+    expect(TOUR_STORAGE_KEY).toBe("citealpha.tours.seen.v2");
     for (const t of TOURS) {
       expect(t.steps.length).toBeGreaterThanOrEqual(3);
       expect(t.startRoute).toBeTruthy();
+      expect(t.group === "workbench" || t.group === "learn").toBe(true);
       for (const s of t.steps) {
         expect(s.selector).toBeTruthy();
         expect(s.title).toBeTruthy();
@@ -23,8 +26,9 @@ describe("site tours", () => {
 
   it("getTour resolves known ids", () => {
     expect(getTour("tracker")?.title).toMatch(/Tracker/i);
-    expect(getTour("desk")?.steps.some((s) => s.search?.includes("corpus"))).toBe(
-      true
-    );
+    expect(getTour("desk")?.steps.some((s) => s.search?.includes("corpus"))).toBe(true);
+    expect(getTour("desk")?.steps.some((s) => s.search?.includes("pit"))).toBe(true);
+    expect(getTour("sights")?.startRoute).toBe("/sights");
+    expect(getTour("about_help")?.steps.some((s) => s.route === "/trust")).toBe(true);
   });
 });

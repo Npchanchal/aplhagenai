@@ -1,5 +1,5 @@
 ---
-description: Testing and deployment standards for IntelLens
+description: Testing and deployment standards for CiteAlpha
 globs: "{backend/tests/**,e2e/**,**/Dockerfile*,**/docker-compose*,scripts/**}"
 alwaysApply: false
 ---

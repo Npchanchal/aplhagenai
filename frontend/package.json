@@ -1,11 +1,11 @@
 {
-  "name": "intellens-gci-ui",
+  "name": "citealpha-ui",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/prerender-seo.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 5173",
     "test": "vitest run"
   },

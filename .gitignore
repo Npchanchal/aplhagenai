@@ -10,6 +10,7 @@ playwright-report/
 test-results/
 backend/reports/
 e2e/reports/
+e2e/.auth/
 .DS_Store
 *.egg-info/
 .env

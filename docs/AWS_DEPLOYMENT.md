@@ -1,6 +1,6 @@
 # AWS Deployment (separate from local Docker)
 
-IntelLens GCI runs in **two environments**:
+CiteAlpha GCI runs in **two environments**:
 
 | Environment | How | URL |
 |---|---|---|

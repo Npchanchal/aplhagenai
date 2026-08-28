@@ -11,13 +11,13 @@ Copy everything below the line into Cursor Agent to implement (or extend).
 
 ## Role
 
-You are extending **IntelLens** (`/Users/navin/AlphaGenAI`) with three product capabilities:
+You are extending **CiteAlpha** (`/Users/navin/AlphaGenAI`) with three product capabilities:
 
 1. **Language selector** — major Indian + global languages for UI chrome (and keep GCI vernacular blurbs in sync where templates exist).
 2. **Login / registration / guest** — lightweight identity with **preferences** (language, default market, watchlist, theme).
 3. **Major markets** — markets → flagship indexes → constituent stocks (scaffolding + navigation). **GCI depth remains India-first**; other markets ship as universe/demo until labeled.
 
-Do **not** turn IntelLens into a live global terminal (no real-time quotes OMS, no Buy/Hold). Prefer scaffolding + honest `data_quality` badges.
+Do **not** turn CiteAlpha into a live global terminal (no real-time quotes OMS, no Buy/Hold). Prefer scaffolding + honest `data_quality` badges.
 
 ## Locked product decisions
 
@@ -189,4 +189,4 @@ Language selector usable · guest/register/login with preferences · multi-marke
 
 ## Short form
 
-> Add IntelLens **(1)** header language selector for major Indian + global languages with i18n chrome, **(2)** register/login/guest auth with preferences (language, market, index, watchlist), **(3)** major world markets with flagship indexes and constituent stocks for navigation — India SENSEX stays deep GCI; other markets scaffolded/`demo_structured`. No live global terminal or Buy/Hold.
+> Add CiteAlpha **(1)** header language selector for major Indian + global languages with i18n chrome, **(2)** register/login/guest auth with preferences (language, market, index, watchlist), **(3)** major world markets with flagship indexes and constituent stocks for navigation — India SENSEX stays deep GCI; other markets scaffolded/`demo_structured`. No live global terminal or Buy/Hold.

@@ -97,7 +97,9 @@ def test_g11_peers():
 def test_g12_dropped():
     o = GuidanceOutcome("FY", "m", 1.0, None, "d", 1.0, dropped=True)
     assert classify_outcome(o) == OutcomeLabel.DROPPED
-    assert outcome_score(o) == 35.0
+    # v3: dropped excluded from period score (company −15 via audit); v2 legacy = 35
+    assert outcome_score(o) is None
+    assert outcome_score(o, version="v2") == 35.0
 
 
 def test_g13_wordmap_sentiment():
@@ -169,6 +171,23 @@ def test_g20_badge():
     svg = client.get("/api/badge/INFY/svg")
     assert svg.status_code == 200
     assert "svg" in svg.text.lower()
+
+
+def test_g20_badge_listing_ticker():
+    """NSE_ALL names like 20MICRONS are not in the Sensex seed list."""
+    from app.data.markets import list_constituents
+
+    listing = next(
+        r for r in list_constituents("NSE_ALL") if r.get("ticker") == "20MICRONS"
+    )
+    badge = client.get(f"/api/badge/{listing['ticker']}")
+    assert badge.status_code == 200, badge.text
+    body = badge.json()
+    assert body["ticker"] == "20MICRONS"
+    assert body["trust_score"] is not None
+    svg = client.get("/api/badge/20MICRONS/svg")
+    assert svg.status_code == 200
+    assert "20MICRONS" in svg.text
 
 
 def test_g21_sebi():

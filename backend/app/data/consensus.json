@@ -135,6 +135,38 @@
       "street_consensus": 2.5,
       "as_of": "imported",
       "source": "import"
+    },
+    {
+      "company_id": "infy",
+      "period": "FY26",
+      "metric": "revenue_growth_pct",
+      "street_consensus": 10.0,
+      "as_of": "imported",
+      "source": "test"
+    },
+    {
+      "company_id": "infy",
+      "period": "FY26",
+      "metric": "operating_margin_pct",
+      "street_consensus": 21.0,
+      "as_of": "sample",
+      "source": "sample_import"
+    },
+    {
+      "company_id": "tcs",
+      "period": "FY26",
+      "metric": "revenue_growth_pct",
+      "street_consensus": 5.8,
+      "as_of": "sample",
+      "source": "sample_import"
+    },
+    {
+      "company_id": "reliance",
+      "period": "FY26",
+      "metric": "revenue_growth_pct",
+      "street_consensus": 8.0,
+      "as_of": "sample",
+      "source": "sample_import"
     }
   ]
 }

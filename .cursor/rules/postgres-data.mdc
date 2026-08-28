@@ -1,0 +1,13 @@
+---
+description: Postgres and SQL auth persistence conventions
+globs: backend/app/db/**
+alwaysApply: false
+---
+
+# Postgres / DB
+
+- Dev: SQLite fallback. Production: Postgres via `USE_POSTGRES_AUTH` / `USE_DB_AUTH`.
+- Keep SQL and auth I/O in `backend/app/db/` — not in scoring or pure services.
+- Parameterized queries only; never log connection strings, passwords, or tokens.
+- Schema/auth changes need coverage in `backend/tests/test_production_auth.py` or related suite.
+- Backup: `scripts/backup-intellens.sh` · env template: `.env.production.example`.

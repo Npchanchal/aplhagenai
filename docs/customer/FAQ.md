@@ -22,7 +22,7 @@ Use `GET /api/companies/{id}/gci/history` (point-in-time). Do not leak future re
 Enterprise scoping. Shared API key is for pilot/demo.
 
 **What about Marvin Labs / FinCatch?**  
-They lead globally (esp. US). IntelLens is India-localized guidance tracking — pitch that, not “world’s first.”
+They lead globally (esp. US). CiteAlpha is India-localized guidance tracking — pitch that, not “world’s first.”
 
 **Price?**  
 See [PRICING.md](PRICING.md). Pilot is time-boxed; Desk is per-seat; API is annual license; One-Stop is the bundled platform SKU.
