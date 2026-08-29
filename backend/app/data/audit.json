@@ -1294,5 +1294,108 @@
       "pending_new": 2,
       "extract_batches": 0
     }
+  },
+  {
+    "ts": "2026-08-29T06:22:05.325256+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "f62ff144-73d4-44c4-8e90-461658519900",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-29T06:24:55.624390+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-08-29T06:24:55.742336+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "abbb7183-b167-45bd-8de9-6e2a37854c09",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-29T06:24:56.803972+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-08-29T06:24:56.923384+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "6c3f0614-9c5d-491c-8e8c-f4607216c7a5",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-29T06:25:14.935308+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-08-29T06:25:15.537357+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "0a0aabb3-e2ef-4d0f-a51c-9719544f8759",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-08-29T06:25:24.099342+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
   }
 ]

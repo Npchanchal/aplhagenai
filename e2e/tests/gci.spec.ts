@@ -21,6 +21,7 @@ test("labels and sources visible on detail", async ({ page }) => {
   await page.goto("/companies/infy");
   await dismissOverlays(page);
   await waitForDossier(page);
+  await expect(page.getByTestId("gci-score")).not.toHaveText("N/A", { timeout: 10_000 });
   const table = page.getByTestId("evidence-table");
   await expect(table.locator(".pill").first()).toBeVisible();
   await expect(table).toContainText(/exceeded|met|missed|pending|dropped/i);

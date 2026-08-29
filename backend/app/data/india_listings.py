@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.data.universe import NIFTY_EXTRA, SENSEX_30
+from app.data.universe import NIFTY50_BEYOND_SENSEX, OFFICIAL_NIFTY50_TICKERS, SENSEX_30
 
 _LISTINGS = Path(__file__).with_name("listings")
 
@@ -31,7 +31,7 @@ def _sensex_by_ticker() -> Dict[str, Tuple[str, str, str, str]]:
 
 @lru_cache(maxsize=1)
 def _nifty_extra_by_ticker() -> Dict[str, Tuple[str, str, str, str]]:
-    return {t.upper(): (cid, name, t, sector) for cid, name, t, sector in NIFTY_EXTRA}
+    return {t.upper(): (cid, name, t, sector) for cid, name, t, sector in NIFTY50_BEYOND_SENSEX}
 
 
 def _load_json(name: str) -> Dict[str, Any]:
@@ -81,7 +81,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             "hand_labeled"
             if cid in {x[0] for x in SENSEX_30}
             else "demo_structured"
-            if cid in {x[0] for x in NIFTY_EXTRA}
+            if cid in {x[0] for x in NIFTY50_BEYOND_SENSEX}
             else "listing_master"
         )
         isin = (row.get("isin") or "").strip().upper()
@@ -145,16 +145,21 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
 
     # Sensex / Nifty membership overlays
     sensex_ids = {cid for cid, *_ in SENSEX_30}
-    nifty_ids = sensex_ids | {cid for cid, *_ in NIFTY_EXTRA}
+    nifty_ids = sensex_ids | {cid for cid, *_ in NIFTY50_BEYOND_SENSEX}
     bank_tickers = {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
     for cid, entry in by_id.items():
         ids = list(entry.get("index_ids") or [])
         if cid in sensex_ids:
-            for ix in ("SENSEX", "NIFTY50"):
+            for ix in ("SENSEX", "NIFTY50", "IN1000"):
+                if ix == "NIFTY50" and entry.get("ticker", "").upper() not in OFFICIAL_NIFTY50_TICKERS:
+                    continue
                 if ix not in ids:
                     ids.append(ix)
         elif cid in nifty_ids:
-            if "NIFTY50" not in ids:
+            if (
+                entry.get("ticker", "").upper() in OFFICIAL_NIFTY50_TICKERS
+                and "NIFTY50" not in ids
+            ):
                 ids.append("NIFTY50")
         if entry.get("ticker", "").upper() in bank_tickers and "NIFTYBANK" not in ids:
             ids.append("NIFTYBANK")
@@ -162,7 +167,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
 
     # Stable order: deep GCI first, then NSE ticker, then BSE-only
     deep = [by_id[c] for c, *_ in SENSEX_30 if c in by_id]
-    deep += [by_id[c] for c, *_ in NIFTY_EXTRA if c in by_id and c not in sensex_ids]
+    deep += [by_id[c] for c, *_ in NIFTY50_BEYOND_SENSEX if c in by_id and c not in sensex_ids]
     deep_ids = {r["id"] for r in deep}
     rest = sorted(
         (r for r in by_id.values() if r["id"] not in deep_ids),

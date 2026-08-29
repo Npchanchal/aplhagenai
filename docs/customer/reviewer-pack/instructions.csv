@@ -1,0 +1,24 @@
+Topic,Detail
+Purpose,"Critical structured review of citealpha.com and products. Be blunt — we want adoption blockers, not polite praise."
+Time budget,~90 minutes total (15 min positioning · 45 min hands-on · 30 min fill sheet)
+Access URL,https://citealpha.com
+Demo API key (write paths),X-API-Key: intellens-demo
+Data quality note,"Do not treat demo/seed data as production accuracy. Flag where hand_labeled vs demo_structured matters."
+Rating scale 5,Desk-ready; would use weekly without hesitation
+Rating scale 4,Strong; minor friction only
+Rating scale 3,Usable with workarounds; not yet habit-forming
+Rating scale 2,Major gap; blocks trust or workflow
+Rating scale 1,"Broken, misleading, or non-starter"
+Severity Blocker,Prevents pilot or external citation
+Severity Major,Significant friction or trust issue
+Severity Minor,Fixable polish or edge case
+Severity Nice-to-have,Enhancement only
+Task 1,"Screen for worst GCI in a sector you cover → open dossier → verify one miss with primary source."
+Task 2,"Ask Research or Sights: Did management drop FY26 margin guidance? Judge citation quality."
+Task 3,Add 3 names to watchlist/tracker; find what changed since last quarter.
+Task 4,Draft 5 sentences for a PM note using only exported/cited evidence.
+Protocol step 1,Silent first pass (10 min) — no help docs; note confusion verbatim.
+Protocol step 2,Task-based exploration (45 min) — complete all 4 tasks above.
+Protocol step 3,Compliance lens (10 min) — read disclaimers; hunt for recommendation language.
+Protocol step 4,Fill sheet (25 min) — scores required; evidence column mandatory for any score 2 or below.
+Return deliverable,Completed CSVs (or Excel workbook) + Top 3 deal-breakers in Summary tab

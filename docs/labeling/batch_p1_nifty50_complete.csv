@@ -1,0 +1,14 @@
+wave,priority,company_id,ticker,name,sector,current_quality,target_quality,min_closed_outcomes,status,assignee,ir_home,notes
+P1,1,adanient,ADANIENT,Adani Enterprises Ltd.,Metals & Mining,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,2,bajaj_auto,BAJAJ-AUTO,Bajaj Auto Ltd.,Auto,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,3,bel,BEL,Bharat Electronics Ltd.,Defence / Electronics,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,4,eternal,ETERNAL,Eternal Ltd.,Consumer Services,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,5,hindalco,HINDALCO,Hindalco Industries Ltd.,Metals,hand_labeled,hand_labeled,8,merged,,,P1 Nifty-50 completion cohort
+P1,6,indigo,INDIGO,InterGlobe Aviation Ltd.,Aviation,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,7,jiofin,JIOFIN,Jio Financial Services Ltd.,Financials,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,8,maxhealth,MAXHEALTH,Max Healthcare Institute Ltd.,Healthcare,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,9,ongc,ONGC,Oil & Natural Gas Corporation Ltd.,Energy,hand_labeled,hand_labeled,8,merged,,,P1 Nifty-50 completion cohort
+P1,10,sbilife,SBILIFE,SBI Life Insurance Co. Ltd.,Insurance,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,11,shriramfin,SHRIRAMFIN,Shriram Finance Ltd.,NBFC,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,12,tataconsum,TATACONSUM,Tata Consumer Products Ltd.,FMCG,demo_structured,hand_labeled,8,queued,,,P1 Nifty-50 completion cohort
+P1,13,trent,TRENT,Trent Ltd.,Retail,hand_labeled,hand_labeled,8,merged,,,P1 Nifty-50 completion cohort

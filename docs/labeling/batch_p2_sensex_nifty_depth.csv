@@ -1,0 +1,39 @@
+wave,priority,company_id,ticker,name,sector,current_quality,target_quality,min_closed_outcomes,status,assignee,ir_home,notes
+P2,1,jswsteel,JSWSTEEL,JSW Steel Ltd.,Metals,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 0/8 closed outcomes
+P2,2,nestleind,NESTLEIND,Nestle India Ltd.,FMCG,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 0/8 closed outcomes
+P2,3,powergrid,POWERGRID,Power Grid Corporation of India Ltd.,Power,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 0/8 closed outcomes
+P2,4,divislab,DIVISLAB,Divi's Laboratories Ltd.,Pharma,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 0/8 closed outcomes
+P2,5,hdfcbank,HDFCBANK,HDFC Bank Ltd.,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,6,titan,TITAN,Titan Company Ltd.,Consumer,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,7,wipro,WIPRO,Wipro Ltd.,IT Services,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,8,hcltech,HCLTECH,HCL Technologies Ltd.,IT Services,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,9,itc,ITC,ITC Ltd.,FMCG,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,10,hindunilvr,HINDUNILVR,Hindustan Unilever Ltd.,FMCG,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,11,maruti,MARUTI,Maruti Suzuki India Ltd.,Auto,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,12,axisbank,AXISBANK,Axis Bank Ltd.,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,13,bajajfinance,BAJFINANCE,Bajaj Finance Ltd.,NBFC,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,14,bajajfinserv,BAJAJFINSV,Bajaj Finserv Ltd.,Financials,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,15,bhartiartl,BHARTIARTL,Bharti Airtel Ltd.,Telecom,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,16,drreddy,DRREDDY,Dr. Reddy's Laboratories Ltd.,Pharma,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,17,icicibank,ICICIBANK,ICICI Bank Ltd.,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,18,indusindbk,INDUSINDBK,IndusInd Bank Ltd.,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,19,kotakbank,KOTAKBANK,Kotak Mahindra Bank Ltd.,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,20,lt,LT,Larsen & Toubro Ltd.,Industrials,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,21,m_m,M&M,Mahindra & Mahindra Ltd.,Auto,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,22,ntpc,NTPC,NTPC Ltd.,Power,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,23,sbin,SBIN,State Bank of India,Banks,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,24,sunpharma,SUNPHARMA,Sun Pharmaceutical Industries Ltd.,Pharma,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,25,tatamotors,TATAMOTORS,tatamotors,,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,26,tatasteel,TATASTEEL,Tata Steel Ltd.,Metals,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,27,techm,TECHM,Tech Mahindra Ltd.,IT Services,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,28,adani_ports,ADANIPORTS,Adani Ports & SEZ Ltd.,Infrastructure,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,29,britannia,BRITANNIA,Britannia Industries Ltd.,FMCG,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,30,hero_motocorp,HEROMOTOCO,Hero MotoCorp Ltd.,Auto,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 1/8 closed outcomes
+P2,31,tcs,TCS,Tata Consultancy Services Ltd.,IT Services,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,32,reliance,RELIANCE,Reliance Industries Ltd.,Energy / Conglomerate,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,33,asianpaints,ASIANPAINT,Asian Paints Ltd.,Consumer,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,34,coalindia,COALINDIA,Coal India Ltd.,Energy,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,35,eichermot,EICHERMOT,Eicher Motors Ltd.,Auto,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,36,grasim,GRASIM,Grasim Industries Ltd.,Conglomerate,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 2/8 closed outcomes
+P2,37,apollohosp,APOLLOHOSP,Apollo Hospitals Enterprise Ltd.,Healthcare,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 5/8 closed outcomes
+P2,38,infy,INFY,Infosys Ltd.,IT Services,hand_labeled,hand_labeled,8,queued,,,Deepen citeable depth — currently 7/8 closed outcomes

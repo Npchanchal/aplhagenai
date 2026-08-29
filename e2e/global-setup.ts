@@ -24,10 +24,11 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     (config.projects[0]?.use?.baseURL as string | undefined) ??
     process.env.E2E_BASE_URL ??
     "http://127.0.0.1:8080";
+  const apiURL = process.env.E2E_API_URL ?? "http://127.0.0.1:8000";
 
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
-  const challengeRes = await fetch(`${baseURL}/api/auth/abuse-challenge`);
+  const challengeRes = await fetch(`${apiURL}/api/auth/abuse-challenge`);
   if (!challengeRes.ok) {
     throw new Error(`E2E abuse challenge failed (${challengeRes.status})`);
   }
@@ -37,7 +38,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   };
 
   const email = `e2e-pilot-${Date.now()}@ocotillo.test`;
-  const register = await fetch(`${baseURL}/api/auth/register`, {
+  const register = await fetch(`${apiURL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

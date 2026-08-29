@@ -1,7 +1,7 @@
 # Labeling runbook — hand_labeled & provisional
 
 **Product:** CiteAlpha · **Owner:** Ocotillo Innovation Private Limited  
-**Order of work:** finish **P0 demo_structured** (Nifty-extra) → deepen Sensex HL → expand provisional only via queue.
+**Order of work:** P0 ✅ → **P1** (complete Nifty-50) → **P2** (deepen HL depth) → **P3+** (IN1000 / NSE / BSE via queue).
 
 Related: [`LABELING_PLAYBOOK.md`](LABELING_PLAYBOOK.md) · [`kb/08-data-labeling.md`](kb/08-data-labeling.md) · Desk → **Labeling queue**
 
@@ -24,12 +24,15 @@ Related: [`LABELING_PLAYBOOK.md`](LABELING_PLAYBOOK.md) · [`kb/08-data-labeling
 
 | Wave | Cohort | Exit |
 |---|---|---|
-| **P0** | 10× `NIFTY_EXTRA` (`demo_structured`) | Each name ≥8 closed outcomes with `source_url` + `quote_span`; `data_quality=hand_labeled` |
-| **P1** | Sensex core + extended HL depth | Prefer official guidance-vs-actuals tables; raise confidence / replace reconstructed bands |
-| **P2** | M3/M4 | ≥5 then all Nifty-extra HL (milestones) |
-| **P3** | Desk watchlist / high-ADTV provisional | Same HL schema; rebuild listing cache after promote |
+| **P0** | 10× `NIFTY_EXTRA` | Each ≥8 closed outcomes; `hand_labeled` ✅ |
+| **P1** | 13 missing Nifty-50 members | Deep seed + ≥8 closed HL each |
+| **P2** | 38 shallow HL names (Sensex + Nifty) | ≥8 closed citeable outcomes per name |
+| **P3** | IN1000 wave 1 (60) | Promote from `listing_provisional` after IR review |
+| **P4+** | IN1000 waves 2–17 / NSE / BSE long tail | Same HL schema; rebuild listing cache after promote |
 
-Spreadsheet for P0: [`labeling/batch_p0_nifty_extra.csv`](labeling/batch_p0_nifty_extra.csv)
+Spreadsheets: [`batch_p0_nifty_extra.csv`](labeling/batch_p0_nifty_extra.csv) · [`batch_p1_nifty50_complete.csv`](labeling/batch_p1_nifty50_complete.csv) · [`batch_p2_sensex_nifty_depth.csv`](labeling/batch_p2_sensex_nifty_depth.csv) · [`batch_p3_in1000_wave1.csv`](labeling/batch_p3_in1000_wave1.csv)
+
+Full expansion plan: [`LABELING_EXPANSION_ROADMAP.md`](LABELING_EXPANSION_ROADMAP.md)
 
 ---
 

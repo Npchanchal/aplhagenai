@@ -9,6 +9,7 @@ echo "=== Corpus refresh ($API) ==="
 curl -sS --max-time 120 -X POST \
   -H "X-API-Key: $KEY" \
   -H "Content-Type: application/json" \
+  -d '{}' \
   "$API/api/ingest/refresh" | python3 -m json.tool | head -40
 
 echo

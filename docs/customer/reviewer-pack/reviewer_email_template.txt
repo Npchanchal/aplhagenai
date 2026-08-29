@@ -1,0 +1,40 @@
+Subject: CiteAlpha critical review — 90 min structured feedback
+
+Hi [Name],
+
+We are running a structured review of CiteAlpha before our next pilot cohort. Your desk perspective would be valuable.
+
+WHAT CITEALPHA IS
+CiteAlpha scores whether Indian listed-company management delivered on stated guidance (Guidance Credibility Index, 0–100). It is factual research tooling — not Buy/Hold/Sell, not sentiment.
+
+YOUR ASK (~90 minutes)
+1. Review citealpha.com using the attached Excel workbook (or CSV pack).
+2. Complete the 4 hands-on tasks in the Instructions tab.
+3. Return the filled workbook + Top 3 deal-breakers in the Summary tab.
+
+ACCESS
+• Site: https://citealpha.com
+• Demo API key (write paths): X-API-Key: intellens-demo
+• Note: Some data is demo_structured — flag where hand_labeled coverage matters for trust.
+
+HOW TO FILL THE SHEET
+• Score each criterion 1–5 (legend in Instructions tab).
+• Mark Pass / Partial / Fail.
+• For any score ≤2, you must fill the Evidence column (URL, company, or screenshot reference).
+• Be blunt — we want adoption blockers, not polite praise.
+
+REVIEWER PACK FILES
+Import these CSVs as separate sheets in one workbook:
+• instructions.csv
+• 0_reviewer_info.csv
+• 1_master_checklist.csv  ← main deliverable (64 criteria)
+• 2_evidence_spot_checks.csv  ← 5 companies you know well
+• 3_product_deep_dive.csv
+• 4_summary.csv
+
+RETURN BY: [date]
+REPLY TO: [your email]
+
+Thank you,
+[Your name]
+CiteAlpha · Ocotillo Innovation Private Limited

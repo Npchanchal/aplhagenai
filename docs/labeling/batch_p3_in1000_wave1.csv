@@ -1,0 +1,61 @@
+wave,priority,company_id,ticker,name,sector,current_quality,target_quality,min_closed_outcomes,status,assignee,ir_home,notes
+P3,1,nse_20microns,20MICRONS,20 Microns Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,2,nse_21stcenmgm,21STCENMGM,21st Century Management Services Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,3,nse_360one,360ONE,360 ONE WAM LIMITED,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,4,nse_3bblackbio,3BBLACKBIO,3B Blackbio Dx Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,5,nse_3iinfoltd,3IINFOLTD,3i Infotech Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,6,nse_3mindia,3MINDIA,3M India Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,7,nse_3pland,3PLAND,3P Land Holdings Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,8,nse_5paisa,5PAISA,5Paisa Capital Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,9,nse_63moons,63MOONS,63 moons technologies limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,10,nse_a2zinfra,A2ZINFRA,A2Z Infra Engineering Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,11,nse_aaatech,AAATECH,AAA Technologies Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,12,nse_aadharhfc,AADHARHFC,Aadhar Housing Finance Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,13,nse_aakash,AAKASH,Aakash Exploration Services Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,14,nse_aareydrugs,AAREYDRUGS,Aarey Drugs & Pharmaceuticals Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,15,nse_aarnav,AARNAV,Aarnav Fashions Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,16,nse_aaron,AARON,Aaron Industries Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,17,nse_aartech,AARTECH,Aartech Solonics Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,18,nse_aartidrugs,AARTIDRUGS,Aarti Drugs Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,19,nse_aartiind,AARTIIND,Aarti Industries Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,20,nse_aartipharm,AARTIPHARM,Aarti Pharmalabs Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,21,nse_aartisurf,AARTISURF,Aarti Surfactants Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,22,nse_aarvi,AARVI,Aarvi Encon Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,23,nse_aastha,AASTHA,Aastha Spintex Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,24,nse_aavas,AAVAS,Aavas Financiers Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,25,nse_aban,ABAN,Aban Offshore Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,26,nse_abansent,ABANSENT,Abans Enterprises Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,27,nse_abb,ABB,ABB India Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,28,nse_abbotindia,ABBOTINDIA,Abbott India Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,29,nse_abcapital,ABCAPITAL,Aditya Birla Capital Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,30,nse_abcots,ABCOTS,A B Cotspin India Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,31,nse_abdl,ABDL,Allied Blenders and Distillers Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,32,nse_abfrl,ABFRL,Aditya Birla Fashion and Retail Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,33,nse_abinfra,ABINFRA,A B Infrabuild Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,34,nse_ablbl,ABLBL,Aditya Birla Lifestyle Brands Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,35,nse_abmintlltd,ABMINTLLTD,ABM International Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,36,nse_abmkno,ABMKNO,ABM Knowledgeware Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,37,nse_abrel,ABREL,Aditya Birla Real Estate Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,38,nse_abslamc,ABSLAMC,Aditya Birla Sun Life AMC Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,39,nse_acc,ACC,ACC Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,40,nse_accelya,ACCELYA,Accelya Solutions India Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,41,nse_accuracy,ACCURACY,Accuracy Shipping Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,42,nse_ace,ACE,Action Construction Equipment Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,43,nse_aceinteg,ACEINTEG,Ace Integrated Solutions Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,44,nse_aci,ACI,Archean Chemical Industries Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,45,nse_acl,ACL,Andhra Cements Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,46,nse_acmesolar,ACMESOLAR,Acme Solar Holdings Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,47,nse_acstech,ACSTECH,ACS Technologies Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,48,nse_acutaas,ACUTAAS,Acutaas Chemicals Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,49,nse_adaniensol,ADANIENSOL,Adani Energy Solutions Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,50,nse_adanient,ADANIENT,Adani Enterprises Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,51,nse_adanigreen,ADANIGREEN,Adani Green Energy Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,52,nse_adanipower,ADANIPOWER,Adani Power Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,53,nse_adffoods,ADFFOODS,ADF Foods Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,54,nse_adl,ADL,Archidply Decor Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,55,nse_ador,ADOR,Ador Welding Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,56,nse_adroitinfo,ADROITINFO,Adroit Infotech Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,57,nse_adsl,ADSL,Allied Digital Services Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,58,nse_advait,ADVAIT,Advait Energy Transitions Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,59,nse_advance,ADVANCE,Advance Agrolife Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review
+P3,60,nse_advanihotr,ADVANIHOTR,Advani Hotels & Resorts (India) Limited,Equity,listing_master,hand_labeled,8,queued,,,IN1000 wave 1 — promote from provisional after IR review

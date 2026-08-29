@@ -15,6 +15,89 @@ export async function dismissOverlays(page: Page): Promise<void> {
   }
 }
 
+function abuseAnswer(prompt: string): string {
+  const m = /What is (\d+) \+ (\d+)\?/.exec(prompt);
+  if (!m) throw new Error(`Unexpected abuse prompt: ${prompt}`);
+  return String(Number(m[1]) + Number(m[2]));
+}
+
+const API_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:8000";
+
+/** Seed a guest session via API (avoids web-proxy rate limits on abuse challenge). */
+export async function seedGuestSession(page: Page): Promise<void> {
+  const challengeRes = await fetch(`${API_URL}/api/auth/abuse-challenge`);
+  if (!challengeRes.ok) throw new Error(`Guest abuse challenge failed (${challengeRes.status})`);
+  const challenge = (await challengeRes.json()) as { challenge_id: string; prompt: string };
+  const guestRes = await fetch(`${API_URL}/api/auth/guest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      accept_terms: true,
+      challenge_id: challenge.challenge_id,
+      challenge_answer: abuseAnswer(challenge.prompt),
+    }),
+  });
+  if (!guestRes.ok) throw new Error(`Guest auth failed (${guestRes.status})`);
+  const { token } = (await guestRes.json()) as { token: string };
+  await page.goto("/");
+  await page.evaluate((tkn) => {
+    localStorage.setItem("intellens.auth.token", tkn);
+    localStorage.setItem("intellens.analytics_consent", "denied");
+    localStorage.setItem(
+      "citealpha.tours.seen.v2",
+      JSON.stringify({ welcome_prompt: true, tracker: true }),
+    );
+  }, token);
+  await page.goto("/tracker");
+  await dismissOverlays(page);
+}
+
+/** Complete guest login from `/login` UI (terms + abuse challenge). */
+export async function continueAsGuestFromLogin(page: Page): Promise<void> {
+  await page.goto("/login");
+  await dismissOverlays(page);
+  await expect(page.getByTestId("login-page")).toBeVisible();
+  await page.locator("#guest-accept-terms").check();
+  const challengeInput = page.getByTestId("guest-abuse-challenge");
+  await expect(challengeInput).toBeVisible({ timeout: 15_000 });
+  const labelText = await page.locator('label[for="guest-abuse-challenge"]').innerText();
+  await challengeInput.fill(abuseAnswer(labelText));
+  await page.getByTestId("guest-continue").click();
+  await expect(page).toHaveURL(/\/tracker$/, { timeout: 15_000 });
+}
+
+/** Ensure primary nav is expanded (mobile toggle). */
+export async function ensurePrimaryNav(page: Page): Promise<void> {
+  const toggle = page.getByTestId("nav-toggle");
+  if (await toggle.isVisible().catch(() => false)) {
+    const nav = page.locator("#primary-nav");
+    const open = await nav.evaluate((el) => el.classList.contains("open"));
+    if (!open) await toggle.click();
+  }
+}
+
+/** Open a header nav dropdown by `nav-dropdown-{id}`. */
+export async function openNavDropdown(page: Page, id: "sights" | "more"): Promise<void> {
+  await ensurePrimaryNav(page);
+  const root = page.getByTestId(`nav-dropdown-${id}`);
+  await root.getByRole("button").click();
+  await expect(root.locator(".nav-submenu")).toBeVisible({ timeout: 10_000 });
+}
+
+/** Click a submenu item inside an open nav dropdown. */
+export async function clickNavDropdownItem(
+  page: Page,
+  id: "sights" | "more",
+  name: RegExp | string,
+): Promise<void> {
+  await openNavDropdown(page, id);
+  await page
+    .getByTestId(`nav-dropdown-${id}`)
+    .getByRole("menuitem", { name })
+    .first()
+    .click();
+}
+
 /** Wait for tracker universe table after parallel API calls settle. */
 export async function waitForCompanyTable(page: Page): Promise<void> {
   await expect(page.getByTestId("company-table")).toBeVisible({ timeout: 20_000 });
@@ -22,27 +105,8 @@ export async function waitForCompanyTable(page: Page): Promise<void> {
 
 /** Wait for company dossier GCI + evidence to finish loading. */
 export async function waitForDossier(page: Page): Promise<void> {
-  await expect(page.getByTestId("company-name")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId("evidence-table")).toBeVisible({ timeout: 20_000 });
-}
-
-/** Solve arithmetic abuse challenge when production verification is enabled. */
-export async function fillAbuseChallengeIfPresent(page: Page, testId: string): Promise<void> {
-  const input = page.getByTestId(testId);
-  const visible = await input.isVisible({ timeout: 3000 }).catch(() => false);
-  if (!visible) return;
-  const label = page.locator(`label:has([data-testid="${testId}"])`);
-  const text = await label.textContent();
-  const m = text?.match(/What is (\d+) \+ (\d+)\?/);
-  if (!m) throw new Error(`Cannot parse abuse challenge from: ${text}`);
-  await input.fill(String(parseInt(m[1], 10) + parseInt(m[2], 10)));
-}
-
-/** Accept terms, solve verification, and continue as guest from /login. */
-export async function continueAsGuestFromLogin(page: Page): Promise<void> {
-  await page.locator("#guest-accept-terms").check();
-  await fillAbuseChallengeIfPresent(page, "guest-abuse-challenge");
-  await page.getByTestId("guest-continue").click();
+  await expect(page.getByTestId("company-name")).toBeVisible({ timeout: 25_000 });
+  await expect(page.getByTestId("evidence-table")).toBeVisible({ timeout: 25_000 });
 }
 
 /** Visit a route and assert it loads (no 404 shell). */
@@ -54,8 +118,10 @@ export async function assertRouteLoads(
     heading?: RegExp;
     mayRedirect?: boolean;
     redirectTo?: RegExp;
+    timeout?: number;
   },
 ): Promise<void> {
+  const timeout = spec.timeout ?? 15_000;
   await page.goto(spec.path);
   await dismissOverlays(page);
 
@@ -66,12 +132,12 @@ export async function assertRouteLoads(
 
   await expect(page.getByRole("heading", { name: "Page not found" })).toHaveCount(0);
   if (spec.testId) {
-    await expect(page.getByTestId(spec.testId).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId(spec.testId).first()).toBeVisible({ timeout });
   } else if (spec.heading) {
     await expect(page.getByRole("heading", { name: spec.heading }).first()).toBeVisible({
-      timeout: 15_000,
+      timeout,
     });
   } else {
-    await expect(page.locator("h1").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("h1").first()).toBeVisible({ timeout });
   }
 }

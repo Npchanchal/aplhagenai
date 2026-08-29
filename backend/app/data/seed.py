@@ -270,10 +270,10 @@ def build_dataset() -> Dict[str, Any]:
 
     # Nifty-50 extras beyond Sensex — demo until promoted into HAND_LABELED
     # (see docs/LABELING_RUNBOOK.md wave P0 / milestone M2→M3).
-    from app.data.universe import NIFTY_EXTRA
+    from app.data.universe import NIFTY50_BEYOND_SENSEX
 
     sensex_ids = {c["id"] for c in companies}
-    for cid, name, ticker, sector in NIFTY_EXTRA:
+    for cid, name, ticker, sector in NIFTY50_BEYOND_SENSEX:
         if cid in sensex_ids:
             continue
         quality = "hand_labeled" if cid in HAND_LABELED_COMPANY_IDS else "demo_structured"

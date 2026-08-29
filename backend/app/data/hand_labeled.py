@@ -438,4 +438,9 @@ from app.data.hand_labeled_nifty import NIFTY_HAND_LABELED  # noqa: E402
 
 HAND_LABELED.update(NIFTY_HAND_LABELED)
 
+# P1 Nifty-50 completion (first cohort — trent / ongc / hindalco)
+from app.data.hand_labeled_p1 import P1_HAND_LABELED  # noqa: E402
+
+HAND_LABELED.update(P1_HAND_LABELED)
+
 HAND_LABELED_COMPANY_IDS = set(HAND_LABELED.keys())

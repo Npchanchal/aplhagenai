@@ -9,7 +9,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.data.universe import NIFTY_EXTRA, SENSEX_30
+from app.data.universe import NIFTY50_BEYOND_SENSEX, OFFICIAL_NIFTY50_TICKERS, SENSEX_30
 
 StockRow = Dict[str, Any]
 
@@ -240,23 +240,29 @@ def _index_ids_for(market_id: str, rank: int, sector: str) -> List[str]:
 def _india_deep_rows() -> List[StockRow]:
     rows: List[StockRow] = []
     for cid, name, ticker, sector in SENSEX_30:
+        index_ids = ["SENSEX", "IN1000"]
+        if ticker.upper() in OFFICIAL_NIFTY50_TICKERS:
+            index_ids.insert(1, "NIFTY50")
         rows.append(
             {
                 "id": cid,
                 "market_id": "IN",
-                "index_ids": ["SENSEX", "NIFTY50", "IN1000"],
+                "index_ids": index_ids,
                 "name": name,
                 "ticker": ticker,
                 "sector": sector,
                 "data_quality": "hand_labeled",
             }
         )
-    for cid, name, ticker, sector in NIFTY_EXTRA:
+    for cid, name, ticker, sector in NIFTY50_BEYOND_SENSEX:
+        index_ids = ["IN1000"]
+        if ticker.upper() in OFFICIAL_NIFTY50_TICKERS:
+            index_ids.insert(0, "NIFTY50")
         rows.append(
             {
                 "id": cid,
                 "market_id": "IN",
-                "index_ids": ["NIFTY50", "IN1000"],
+                "index_ids": index_ids,
                 "name": name,
                 "ticker": ticker,
                 "sector": sector,

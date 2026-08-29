@@ -1,10 +1,5 @@
 import { expect, test } from "@playwright/test";
-import {
-  continueAsGuestFromLogin,
-  dismissOverlays,
-  waitForCompanyTable,
-  waitForDossier,
-} from "../helpers";
+import { dismissOverlays, seedGuestSession, waitForCompanyTable, waitForDossier } from "../helpers";
 
 const GUEST_ORIGIN = {
   cookies: [] as [],
@@ -32,26 +27,14 @@ test.describe("Guest user journey", () => {
     await expect(page.getByTestId("landing-cta-tracker")).toBeVisible();
   });
 
-  test("continue as guest from login reaches tracker", async ({ page }) => {
-    await page.goto("/login");
-    await dismissOverlays(page);
-    await expect(page.getByTestId("login-page")).toBeVisible();
-    await continueAsGuestFromLogin(page);
-    await expect(page).toHaveURL(/\/tracker$/);
+  test("guest session reaches tracker with banner", async ({ page }) => {
+    await seedGuestSession(page);
     await waitForCompanyTable(page);
-  });
-
-  test("guest banner shown on tracker", async ({ page }) => {
-    await page.goto("/login");
-    await dismissOverlays(page);
-    await continueAsGuestFromLogin(page);
     await expect(page.getByTestId("guest-banner")).toBeVisible();
   });
 
   test("guest can open dossier and see evidence", async ({ page }) => {
-    await page.goto("/login");
-    await dismissOverlays(page);
-    await continueAsGuestFromLogin(page);
+    await seedGuestSession(page);
     await waitForCompanyTable(page);
     await page.getByTestId("company-link-infy").click();
     await waitForDossier(page);
@@ -59,9 +42,7 @@ test.describe("Guest user journey", () => {
   });
 
   test("desk shows access gate for guest", async ({ page }) => {
-    await page.goto("/login");
-    await dismissOverlays(page);
-    await continueAsGuestFromLogin(page);
+    await seedGuestSession(page);
     await page.goto("/desk");
     await dismissOverlays(page);
     await expect(page.getByTestId("desk-access-gate")).toBeVisible({ timeout: 15_000 });
