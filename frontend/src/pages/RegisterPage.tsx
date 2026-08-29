@@ -2,7 +2,9 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import TermsAccept from "../components/TermsAccept";
+import AbuseChallengeField from "../components/AbuseChallengeField";
 import { useAuth } from "../lib/auth";
+import { useAbuseChallenge } from "../lib/useAbuseChallenge";
 import { useI18n } from "../i18n";
 import { LEGAL_ENTITY } from "../lib/legal";
 
@@ -18,11 +20,16 @@ export default function RegisterPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const abuse = useAbuseChallenge();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!acceptTerms) {
       setError(t("auth.termsRequired"));
+      return;
+    }
+    if (!abuse.ready || !abuse.answer.trim()) {
+      setError("Complete the verification check to register.");
       return;
     }
     setBusy(true);
@@ -32,10 +39,13 @@ export default function RegisterPage() {
         acceptTerms: true,
         accountType,
         orgName: accountType === "b2b" ? orgName : undefined,
+        challengeId: abuse.challengeId,
+        challengeAnswer: abuse.answer,
       });
-      navigate("/");
+      navigate("/tracker");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
+      void abuse.refresh();
     } finally {
       setBusy(false);
     }
@@ -46,13 +56,21 @@ export default function RegisterPage() {
       setError(t("auth.termsRequired"));
       return;
     }
+    if (!abuse.ready || !abuse.answer.trim()) {
+      setError("Complete the verification check to continue as guest.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      await continueAsGuest(true);
-      navigate("/");
+      await continueAsGuest(true, {
+        challengeId: abuse.challengeId,
+        challengeAnswer: abuse.answer,
+      });
+      navigate("/tracker");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
+      void abuse.refresh();
     } finally {
       setBusy(false);
     }
@@ -139,11 +157,19 @@ export default function RegisterPage() {
           />
         </label>
         <TermsAccept checked={acceptTerms} onChange={setAcceptTerms} />
+        <AbuseChallengeField
+          prompt={abuse.prompt}
+          answer={abuse.answer}
+          onAnswerChange={abuse.setAnswer}
+          loadError={abuse.loadError}
+          id="register-abuse-challenge"
+          testId="register-abuse-challenge"
+        />
         {error && <p className="error">{error}</p>}
         <button
           type="submit"
           className="btn-primary"
-          disabled={busy || !acceptTerms}
+          disabled={busy || !acceptTerms || !abuse.ready || !abuse.answer.trim()}
           data-testid="register-submit"
         >
           {t("common.register")}
@@ -151,7 +177,7 @@ export default function RegisterPage() {
         <button
           type="button"
           className="btn-ghost"
-          disabled={busy || !acceptTerms}
+          disabled={busy || !acceptTerms || !abuse.ready || !abuse.answer.trim()}
           onClick={() => void onGuest()}
           data-testid="register-guest"
         >

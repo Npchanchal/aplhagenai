@@ -2,8 +2,10 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import TermsAccept from "../components/TermsAccept";
+import AbuseChallengeField from "../components/AbuseChallengeField";
 import { useAuth } from "../lib/auth";
 import { fetchSsoLogin, fetchSsoStatus } from "../lib/api";
+import { useAbuseChallenge } from "../lib/useAbuseChallenge";
 import { useI18n } from "../i18n";
 import { LEGAL_ENTITY } from "../lib/legal";
 
@@ -15,7 +17,8 @@ export default function LoginPage() {
   const redirectTo =
     (location.state as { from?: string } | null)?.from?.startsWith("/") === true
       ? (location.state as { from: string }).from
-      : "/";
+      : "/tracker";
+  const abuse = useAbuseChallenge();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -83,13 +86,21 @@ export default function LoginPage() {
       setError(t("auth.termsRequired"));
       return;
     }
+    if (!abuse.ready || !abuse.answer.trim()) {
+      setError("Complete the verification check to continue as guest.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      await continueAsGuest(true);
-      navigate("/");
+      await continueAsGuest(true, {
+        challengeId: abuse.challengeId,
+        challengeAnswer: abuse.answer,
+      });
+      navigate(redirectTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
+      void abuse.refresh();
     } finally {
       setBusy(false);
     }
@@ -150,10 +161,18 @@ export default function LoginPage() {
           onChange={setAcceptTerms}
           id="guest-accept-terms"
         />
+        <AbuseChallengeField
+          prompt={abuse.prompt}
+          answer={abuse.answer}
+          onAnswerChange={abuse.setAnswer}
+          loadError={abuse.loadError}
+          id="guest-abuse-challenge"
+          testId="guest-abuse-challenge"
+        />
         <button
           type="button"
           className="btn-ghost"
-          disabled={busy || !acceptTerms}
+          disabled={busy || !acceptTerms || !abuse.ready || !abuse.answer.trim()}
           onClick={() => void onGuest()}
           data-testid="guest-continue"
         >

@@ -2296,6 +2296,8 @@ export function postRegister(body: {
   account_type?: "retail" | "b2b";
   org_name?: string;
   org_id?: string;
+  challenge_id?: string;
+  challenge_answer?: string;
 }): Promise<AuthSession> {
   return authJson("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
 }
@@ -2307,10 +2309,18 @@ export function postLogin(email: string, password: string): Promise<AuthSession>
   });
 }
 
-export function postGuest(body?: { accept_terms?: boolean }): Promise<AuthSession> {
+export function postGuest(body?: {
+  accept_terms?: boolean;
+  challenge_id?: string;
+  challenge_answer?: string;
+}): Promise<AuthSession> {
   return authJson("/api/auth/guest", {
     method: "POST",
-    body: JSON.stringify({ accept_terms: body?.accept_terms ?? false }),
+    body: JSON.stringify({
+      accept_terms: body?.accept_terms ?? false,
+      challenge_id: body?.challenge_id,
+      challenge_answer: body?.challenge_answer,
+    }),
   });
 }
 

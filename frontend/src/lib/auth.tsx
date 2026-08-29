@@ -36,9 +36,14 @@ type AuthCtx = {
       acceptTerms?: boolean;
       accountType?: "retail" | "b2b";
       orgName?: string;
+      challengeId?: string;
+      challengeAnswer?: string;
     },
   ) => Promise<void>;
-  continueAsGuest: (acceptTerms?: boolean) => Promise<void>;
+  continueAsGuest: (
+    acceptTerms?: boolean,
+    challenge?: { challengeId: string; challengeAnswer: string },
+  ) => Promise<void>;
   adoptToken: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>;
@@ -161,6 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         acceptTerms?: boolean;
         accountType?: "retail" | "b2b";
         orgName?: string;
+        challengeId?: string;
+        challengeAnswer?: string;
       },
     ) => {
       const res = await postRegister({
@@ -171,6 +178,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         account_type: opts?.accountType ?? "retail",
         org_name: opts?.orgName,
         guest_token: user?.kind === "guest" ? token ?? undefined : undefined,
+        challenge_id: opts?.challengeId,
+        challenge_answer: opts?.challengeAnswer,
         preferences: {
           language: lang,
           ...readLocalPrefs(),
@@ -184,8 +193,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const continueAsGuest = useCallback(
-    async (acceptTerms = true) => {
-      const res = await postGuest({ accept_terms: acceptTerms });
+    async (
+      acceptTerms = true,
+      challenge?: { challengeId: string; challengeAnswer: string },
+    ) => {
+      const res = await postGuest({
+        accept_terms: acceptTerms,
+        challenge_id: challenge?.challengeId,
+        challenge_answer: challenge?.challengeAnswer,
+      });
       const merged = {
         ...res.user.preferences,
         ...readLocalPrefs(),
