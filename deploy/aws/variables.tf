@@ -243,3 +243,45 @@ variable "intellens_auth_dev_tokens" {
   default     = false
   description = "Expose one-time tokens in API when SMTP unset (never true in prod)"
 }
+
+variable "use_secrets_manager" {
+  type        = bool
+  default     = true
+  description = "Store vendor keys in Secrets Manager instead of plaintext ECS environment"
+}
+
+variable "enable_cloudwatch_alarms" {
+  type        = bool
+  default     = true
+  description = "Create ALB/ECS CloudWatch alarms (SNS email when alarm_email set)"
+}
+
+variable "alarm_email" {
+  type        = string
+  default     = ""
+  description = "Optional email for CloudWatch alarm SNS subscription"
+}
+
+variable "enable_efs_backup" {
+  type        = bool
+  default     = true
+  description = "Daily AWS Backup plan for auth EFS volume"
+}
+
+variable "efs_backup_retention_days" {
+  type        = number
+  default     = 14
+  description = "Retain EFS backups for N days"
+}
+
+variable "fargate_on_demand_base" {
+  type        = number
+  default     = 1
+  description = "On-demand Fargate tasks to keep running (0 = Spot-only; 1 = one stable task)"
+}
+
+variable "fargate_spot_weight" {
+  type        = number
+  default     = 0
+  description = "Fargate Spot weight when on_demand_base >= 1 (0 = on-demand only)"
+}

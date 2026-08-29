@@ -592,10 +592,10 @@ resource "aws_ecs_task_definition" "app" {
           { name = "USE_DB_AUTH", value = "1" },
           { name = "AUTH_SQLITE_PATH", value = var.auth_sqlite_path }
         ] : [],
-        var.fmp_api_key != "" ? [
+        var.fmp_api_key != "" && !local.secrets_enabled ? [
           { name = "INTELLENS_FMP_API_KEY", value = var.fmp_api_key }
         ] : [],
-        var.openai_api_key != "" ? [
+        var.openai_api_key != "" && !local.secrets_enabled ? [
           { name = "OPENAI_API_KEY", value = var.openai_api_key }
         ] : [],
         var.force_https ? [
@@ -614,7 +614,7 @@ resource "aws_ecs_task_definition" "app" {
         var.oidc_client_id != "" ? [
           { name = "OIDC_CLIENT_ID", value = var.oidc_client_id }
         ] : [],
-        var.oidc_client_secret != "" ? [
+        var.oidc_client_secret != "" && !local.secrets_enabled ? [
           { name = "OIDC_CLIENT_SECRET", value = var.oidc_client_secret }
         ] : [],
         var.oidc_issuer != "" ? [
@@ -630,7 +630,7 @@ resource "aws_ecs_task_definition" "app" {
         var.alphahunter_api_url != "" ? [
           { name = "ALPHAHUNTER_API_URL", value = var.alphahunter_api_url }
         ] : [],
-        var.alphahunter_api_key != "" ? [
+        var.alphahunter_api_key != "" && !local.secrets_enabled ? [
           { name = "ALPHAHUNTER_API_KEY", value = var.alphahunter_api_key }
         ] : [],
         var.csm_email != "" ? [
@@ -640,7 +640,9 @@ resource "aws_ecs_task_definition" "app" {
           { name = "SMTP_HOST", value = var.smtp_host },
           { name = "SMTP_PORT", value = var.smtp_port },
           { name = "SMTP_FROM", value = var.smtp_from },
-          { name = "SMTP_USER", value = var.smtp_user },
+          { name = "SMTP_USER", value = var.smtp_user }
+        ] : [],
+        var.smtp_host != "" && var.smtp_pass != "" && !local.secrets_enabled ? [
           { name = "SMTP_PASS", value = var.smtp_pass }
         ] : [],
         var.intellens_auth_dev_tokens ? [
@@ -654,6 +656,7 @@ resource "aws_ecs_task_definition" "app" {
           { name = "PORTFOLIO_STRETCH", value = var.portfolio_stretch ? "1" : "0" }
         ]
       )
+      secrets = local.secrets_enabled ? local.api_secret_refs : []
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -701,9 +704,18 @@ resource "aws_ecs_service" "app" {
   desired_count   = var.app_desired_count
 
   capacity_provider_strategy {
-    capacity_provider = var.use_fargate_spot ? "FARGATE_SPOT" : "FARGATE"
-    weight            = 1
-    base              = 0
+    capacity_provider = "FARGATE"
+    weight            = 100 - var.fargate_spot_weight
+    base              = var.fargate_on_demand_base
+  }
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.fargate_spot_weight > 0 ? [1] : []
+    content {
+      capacity_provider = "FARGATE_SPOT"
+      weight            = var.fargate_spot_weight
+      base              = 0
+    }
   }
 
   network_configuration {

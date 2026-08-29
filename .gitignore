@@ -14,6 +14,13 @@ e2e/.auth/
 .DS_Store
 *.egg-info/
 .env
+.env.*
+!.env.example
+!.env.production.example
+.env.backup
+frontend/.env.local
+backend/tests/*.db
+backend/tests/_test_auth.db
 .coverage
 htmlcov/
 backend/app/data/store.json

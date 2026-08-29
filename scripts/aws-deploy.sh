@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy IntelLens GCI to AWS: single Fargate Spot task (API+web), public IP, no ALB.
+# Deploy CiteAlpha GCI to AWS: Fargate task (API+web), ALB, optional EFS auth + Secrets Manager.
 # Local docker-compose remains untouched.
 set -euo pipefail
 
@@ -172,13 +172,25 @@ terraform init -input=false
 if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
   terraform apply -input=false -auto-approve
 else
-  # Task def + service + persistent auth EFS when enabled
+  # Task def + service + persistent auth EFS + secrets + alarms when enabled
   TF_TARGETS=(
     -target=aws_security_group.efs
     -target=aws_efs_file_system.auth
     -target=aws_efs_mount_target.auth
     -target=aws_efs_access_point.auth
     -target=aws_iam_role_policy.ecs_task_efs
+    -target=aws_secretsmanager_secret.app
+    -target=aws_secretsmanager_secret_version.app
+    -target=aws_iam_role_policy.ecs_execution_secrets
+    -target=aws_sns_topic.alarms
+    -target=aws_cloudwatch_metric_alarm.alb_5xx
+    -target=aws_cloudwatch_metric_alarm.alb_unhealthy_hosts
+    -target=aws_cloudwatch_metric_alarm.ecs_cpu_high
+    -target=aws_iam_role.backup
+    -target=aws_iam_role_policy_attachment.backup
+    -target=aws_backup_vault.auth
+    -target=aws_backup_plan.auth_efs
+    -target=aws_backup_selection.auth_efs
     -target=aws_ecs_task_definition.app
     -target=aws_ecs_service.app
   )

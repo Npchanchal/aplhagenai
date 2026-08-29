@@ -44,6 +44,11 @@ app_desired_count  = 1
 # use_db_auth       = true
 # auth_sqlite_path  = "/data/auth.db"
 # enable_auth_efs   = true
+# use_secrets_manager = true
+# enable_cloudwatch_alarms = true
+# alarm_email = "ops@citealpha.com"
+# fargate_on_demand_base = 1
+# fargate_spot_weight = 0
 
 # SMTP (Mailtrap for staging; Hostinger/SES for prod)
 # smtp_host  = "smtp.mailtrap.io"

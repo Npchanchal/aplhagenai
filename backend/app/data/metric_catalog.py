@@ -266,6 +266,26 @@ METRICS: List[Dict[str, Any]] = [
         "tier": "sector",
         "bands_preferred": True,
     },
+    {
+        "id": "production_volume_mmt",
+        "display_name": "Production / cargo volume (MMT)",
+        "unit": "mmt",
+        "family": "volume",
+        "sectors": ["Energy", "Infrastructure", "Mining"],
+        "aliases": ["cargo_volume_mmt", "coal_production_mmt", "throughput_mmt"],
+        "tier": "sector",
+        "bands_preferred": True,
+    },
+    {
+        "id": "vehicle_volume_units",
+        "display_name": "Vehicle sales volume (units)",
+        "unit": "units",
+        "family": "volume",
+        "sectors": ["Auto", "Automobiles"],
+        "aliases": ["unit_sales", "wholesale_units"],
+        "tier": "sector",
+        "bands_preferred": False,
+    },
 ]
 
 CORE_METRICS = [m for m in METRICS if m["tier"] == "core"]
