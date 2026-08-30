@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import { useI18n } from "../i18n";
 import { useAuth } from "../lib/auth";
 import { LEGAL_ENTITY } from "../lib/legal";
 import { trackEvent } from "../lib/analytics";
@@ -22,6 +23,7 @@ type Checkout = {
 
 /** Pilot → MSA issued → signed → Desk seats. Retail confirm needs real ref unless BILLING_DEMO. */
 export default function BillingPage() {
+  const { t } = useI18n();
   const { user, token } = useAuth();
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -130,25 +132,19 @@ export default function BillingPage() {
 
   return (
     <section className="auth-page" data-testid="billing-page">
-      <p className="page-kicker">Billing</p>
-      <h1>MSA &amp; retail paywall</h1>
-      <p className="muted lede">
-        Conversion path: <strong>Pilot checklist → MSA issued → signed → Desk seats</strong>.{" "}
-        {LEGAL_ENTITY}. Retail requires counsel attestation.
-      </p>
+      <p className="page-kicker">{t("billing.kicker")}</p>
+      <h1>{t("billing.title")}</h1>
+      <p className="muted lede">{t("billing.lede", { entity: LEGAL_ENTITY })}</p>
       {!user || user.kind === "guest" ? (
         <div className="panel" data-testid="billing-guest">
-          <h2 style={{ marginTop: 0 }}>Log in to manage billing</h2>
-          <p className="muted">
-            Plans and seat quotes live on Package. After you sign in, B2B desks issue an MSA here;
-            retail checkout follows counsel attestation.
-          </p>
+          <h2 style={{ marginTop: 0 }}>{t("billing.guestTitle")}</h2>
+          <p className="muted">{t("billing.guestLede")}</p>
           <p style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
             <Link to="/login" className="btn primary">
-              Log in
+              {t("common.login")}
             </Link>
             <Link to="/package" className="btn">
-              View plans
+              {t("billing.viewPlans")}
             </Link>
           </p>
         </div>

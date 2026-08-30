@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import Toast from "../components/Toast";
+import { useI18n } from "../i18n";
 import {
   downloadLedgerPdf,
   downloadOutcomesExport,
@@ -26,17 +27,21 @@ import {
 } from "../lib/api";
 import { DESK_GUIDES } from "../lib/deskPaths";
 
-const SKU_LINKS: Record<string, { primary: string; label: string }> = {
-  score: { primary: "/tracker", label: "Open Tracker" },
-  cite: { primary: "/research", label: "Open Research" },
-  sights: { primary: "/sights", label: "Open Sights" },
-  radar: { primary: "#radar", label: "View Radar feed" },
-  ledger: { primary: "#ledger", label: "View Ledger" },
-  data: { primary: "#data", label: "View Data" },
-};
-
 export default function ProductsPage() {
+  const { t } = useI18n();
   const location = useLocation();
+  const skuLinks = useMemo(
+    () =>
+      ({
+        score: { primary: "/tracker", label: t("products.openTracker") },
+        cite: { primary: "/research", label: t("products.openResearch") },
+        sights: { primary: "/sights", label: t("products.openSights") },
+        radar: { primary: "#radar", label: t("products.viewRadar") },
+        ledger: { primary: "#ledger", label: t("products.viewLedger") },
+        data: { primary: "#data", label: t("products.viewData") },
+      }) as Record<string, { primary: string; label: string }>,
+    [t],
+  );
   const [products, setProducts] = useState<PortfolioProduct[]>([]);
   const [radar, setRadar] = useState<RadarFeedItem[]>([]);
   const [calendar, setCalendar] = useState<
@@ -162,12 +167,9 @@ export default function ProductsPage() {
     <div className="page products-page" data-testid="products-page">
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       <header className="page-header">
-        <p className="kicker">Product portfolio</p>
-        <h1>CiteAlpha products</h1>
-        <p className="lede">
-          Interactive surfaces for Score, Cite, Radar, Ledger, and Data — P0–P5. Not investment
-          advice.
-        </p>
+        <p className="kicker">{t("products.kicker")}</p>
+        <h1>{t("products.title")}</h1>
+        <p className="lede">{t("products.lede")}</p>
       </header>
 
       {error && (
@@ -180,13 +182,10 @@ export default function ProductsPage() {
         id="by-desk"
         className="products-section desk-guides"
         data-testid="by-desk-section"
-        aria-label="By desk"
+        aria-label={t("products.byDesk")}
       >
-        <h2>By desk</h2>
-        <p className="muted">
-          Same disclosure spine — pick the pathway for your desk. Not industry verticals; not
-          investment advice.
-        </p>
+        <h2>{t("products.byDesk")}</h2>
+        <p className="muted">{t("products.byDesk.lede")}</p>
         <div className="desk-guide-grid">
           {DESK_GUIDES.map((desk) => (
             <article
@@ -197,7 +196,9 @@ export default function ProductsPage() {
             >
               <h3>{desk.title}</h3>
               <p>{desk.blurb}</p>
-              <p className="muted desk-skus">SKUs: {desk.skus.join(" · ")}</p>
+              <p className="muted desk-skus">
+                {t("products.skus", { skus: desk.skus.join(" · ") })}
+              </p>
               <p className="desk-guide-links">
                 <Link to={desk.primary.to}>{desk.primary.label}</Link>
                 {desk.links.map((l) => (
@@ -212,16 +213,19 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      <section className="sku-grid" aria-label="SKU catalog">
-        <h2 className="sku-grid-heading">By product</h2>
+      <section className="sku-grid" aria-label={t("products.byProduct")}>
+        <h2 className="sku-grid-heading">{t("products.byProduct")}</h2>
         {products.map((p) => {
-          const link = SKU_LINKS[p.id] ?? { primary: "/package", label: "Package" };
+          const link = skuLinks[p.id] ?? {
+            primary: "/package",
+            label: t("footer.package"),
+          };
           return (
             <article key={p.id} className="sku-card" data-testid={`sku-${p.id}`}>
               <div className="sku-status">{p.status}</div>
               <h2>{p.name}</h2>
               <p>{p.job}</p>
-              <p className="muted">Buyer: {p.buyer}</p>
+              <p className="muted">{t("products.buyer", { buyer: p.buyer })}</p>
               {link.primary.startsWith("#") ? (
                 <a href={link.primary}>{link.label}</a>
               ) : (
@@ -233,9 +237,9 @@ export default function ProductsPage() {
       </section>
 
       <section id="radar" className="products-section" data-testid="radar-section">
-        <h2>Radar feed</h2>
+        <h2>{t("products.radarFeed")}</h2>
         <ul className="radar-list">
-          {radar.length === 0 && <li className="muted">No radar items in current seed.</li>}
+          {radar.length === 0 && <li className="muted">{t("products.radarEmpty")}</li>}
           {radar.map((item, i) => (
             <li key={`${item.company_id}-${item.kind}-${i}`}>
               <Link to={`/companies/${item.company_id}`}>

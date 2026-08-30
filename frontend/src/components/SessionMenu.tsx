@@ -33,7 +33,7 @@ export default function SessionMenu() {
 
   const label = user
     ? user.kind === "guest"
-      ? t("common.guest").replace("Continue as ", "") || "Guest"
+      ? t("session.guestLabel")
       : user.email ?? user.name
     : t("common.account");
 
@@ -75,12 +75,12 @@ export default function SessionMenu() {
               </Link>
               {canOrgAdmin && (
                 <Link to="/org/settings" role="menuitem" onClick={() => setOpen(false)}>
-                  Org settings
+                  {t("session.orgSettings")}
                 </Link>
               )}
               {user.platform_admin_role && (
                 <Link to="/admin" role="menuitem" onClick={() => setOpen(false)}>
-                  Admin portal
+                  {t("session.adminPortal")}
                 </Link>
               )}
               <button

@@ -33,24 +33,27 @@ const PAGE_SIZE = 100;
 type SortKey = "name" | "gci" | "delta" | "sector" | "peer";
 type HomeTab = "universe" | "sectors";
 
-const HOME_TABS: { id: HomeTab; label: string; title: string }[] = [
-  {
-    id: "universe",
-    label: "Universe",
-    title: "Screen companies by GCI level and Δ",
-  },
-  {
-    id: "sectors",
-    label: "Sectors",
-    title: "Sector credibility leaderboard — average GCI by sector",
-  },
-];
-
 export default function HomePage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { preferences, updatePreferences } = useAuth();
+  const homeTabs = useMemo(
+    () =>
+      [
+        {
+          id: "universe" as const,
+          label: t("home.tab.universe"),
+          title: t("home.tab.universeTitle"),
+        },
+        {
+          id: "sectors" as const,
+          label: t("home.tab.sectors"),
+          title: t("home.tab.sectorsTitle"),
+        },
+      ] as const,
+    [t],
+  );
   const homeTab: HomeTab = searchParams.get("tab") === "sectors" ? "sectors" : "universe";
   const setHomeTab = (id: HomeTab) => {
     setSearchParams(
@@ -266,7 +269,7 @@ export default function HomePage() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Name, ticker, sector, or any NSE / BSE listing…"
+            placeholder={t("home.searchPlaceholder")}
             data-testid="universe-search"
             autoComplete="off"
           />
@@ -348,10 +351,10 @@ export default function HomePage() {
       )}
 
       <TabBar
-        tabs={HOME_TABS}
+        tabs={homeTabs}
         active={homeTab}
         onChange={(id) => setHomeTab(id as HomeTab)}
-        ariaLabel="GCI views"
+        ariaLabel={t("home.gciViews")}
       />
 
       {homeTab === "sectors" ? (
@@ -361,10 +364,7 @@ export default function HomePage() {
               <SectorLeaderboard market={market} index={index} limit={40} />
             ) : (
               <div className="panel">
-                <p className="muted">
-                  Sector credibility leaderboard is available for India markets. Switch
-                  market to India to compare sector average GCI.
-                </p>
+                <p className="muted">{t("home.sectorsIndiaOnly")}</p>
               </div>
             )}
             <Disclaimer />
@@ -389,8 +389,8 @@ export default function HomePage() {
             {!loading && !error && filtered.length === 0 && (
               <div className="empty">
                 {query
-                  ? `No names in this index match “${query}”. Try entity results above, or clear search.`
-                  : "No companies in this index."}
+                  ? t("home.noSearchResults", { query })
+                  : t("home.noCompanies")}
               </div>
             )}
             {!loading && filtered.length > 0 && (

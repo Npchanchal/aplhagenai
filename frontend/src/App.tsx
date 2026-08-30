@@ -130,7 +130,7 @@ export default function App() {
       <SeoHead />
       <PageAnalytics />
       <a href="#main" className="skip-link">
-        Skip to content
+        {t("app.skipToContent")}
       </a>
       <header className="topbar">
         <div className="brand-block">
@@ -145,7 +145,7 @@ export default function App() {
           onClick={() => setNavOpen((v) => !v)}
         >
           <span className="nav-toggle-bars" aria-hidden />
-          Menu
+          {t("app.menu")}
         </button>
         <nav
           id="primary-nav"
@@ -220,12 +220,12 @@ export default function App() {
               path="*"
               element={
                 <section className="page">
-                  <h1>Page not found</h1>
+                  <h1>{t("app.notFound.title")}</h1>
                   <p className="muted">
-                    No route for <code>{location.pathname}</code>.
+                    {t("app.notFound.lede", { path: location.pathname })}
                   </p>
                   <Link to="/tracker" className="btn">
-                    Tracker
+                    {t("app.notFound.cta")}
                   </Link>
                 </section>
               }

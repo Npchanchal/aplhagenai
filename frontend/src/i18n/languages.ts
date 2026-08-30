@@ -47,3 +47,27 @@ export const LANGUAGES: LangMeta[] = [
 
 export const DEFAULT_LANG: LangCode = "en";
 export const LANG_STORAGE_KEY = "intellens.lang";
+
+/** Open Graph locale tags (primary market: India). */
+export function ogLocaleFor(code: LangCode): string {
+  const map: Partial<Record<LangCode, string>> = {
+    en: "en_IN",
+    hi: "hi_IN",
+    ta: "ta_IN",
+    te: "te_IN",
+    kn: "kn_IN",
+    ml: "ml_IN",
+    mr: "mr_IN",
+    gu: "gu_IN",
+    bn: "bn_IN",
+    pa: "pa_IN",
+    ja: "ja_JP",
+    zh: "zh_CN",
+    ar: "ar_SA",
+    es: "es_ES",
+    fr: "fr_FR",
+    de: "de_DE",
+    pt: "pt_BR",
+  };
+  return map[code] ?? "en_IN";
+}

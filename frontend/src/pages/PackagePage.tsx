@@ -3,143 +3,104 @@ import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import { useI18n } from "../i18n";
 
-const PLANS = [
-  {
-    id: "pilot",
-    name: "Pilot",
-    price: "Complimentary",
-    period: "30–60 days",
-    best: "Evaluate on Sensex with your desk",
-    includes: [
-      "Up to 5 named users",
-      "GCI Tracker + evidence dossiers",
-      "Desk console + Research Terminal",
-      "Read API + Help glossary",
-    ],
-  },
-  {
-    id: "desk",
-    name: "Desk",
-    price: "₹45,000",
-    period: "per seat / year",
-    best: "Primary ARR for research teams",
-    includes: [
-      "5–25 seats (volume above)",
-      "Alerts, review, vernacular, MoM/QoQ/YoY",
-      "Parameter catalog + charts",
-      "2h onboarding workshop",
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise API",
-    price: "₹25–80L",
-    period: "per year",
-    best: "Quant / platform embed",
-    includes: [
-      "PIT history + EM factor JSON export",
-      "Actuals / consensus import paths",
-      "Contracted SLA · optional SSO/VPC (MSA)",
-      "Named CSM",
-    ],
-  },
-  {
-    id: "onestop",
-    name: "One-Stop Platform",
-    price: "₹40L–1.2Cr",
-    period: "per year",
-    best: "Single vendor for guidance accountability",
-    includes: [
-      "Desk + API + Facts JSON import + corpus Wordmap",
-      "Up to 40 seats + badge endpoints + labeling queue",
-      "Dedicated labeling priority + QBRs (process)",
-      "SSO OIDC when configured · VPC scoped in MSA",
-    ],
-    highlight: true,
-  },
-];
-
 const INCLUDED = [
+  { tip: "gci", titleKey: "package.inc.gci.title", textKey: "package.inc.gci.text" },
+  { tip: "tier1", titleKey: "package.inc.tier1.title", textKey: "package.inc.tier1.text" },
+  { tip: "gci_parameter", titleKey: "package.inc.params.title", textKey: "package.inc.params.text" },
+  { tip: "evidence", titleKey: "package.inc.evidence.title", textKey: "package.inc.evidence.text" },
+  { tip: "change_trend", titleKey: "package.inc.change.title", textKey: "package.inc.change.text" },
+  { tip: "granger", titleKey: "package.inc.granger.title", textKey: "package.inc.granger.text" },
+  { tip: "charts", titleKey: "package.inc.charts.title", textKey: "package.inc.charts.text" },
+  { tip: "source_policy", titleKey: "package.inc.source.title", textKey: "package.inc.source.text" },
+  { tip: "pit", titleKey: "package.inc.api.title", textKey: "package.inc.api.text" },
   {
-    title: "GCI 0–100",
-    tip: "gci",
-    text: "Guidance vs delivery score with evidence",
-  },
-  {
-    title: "Tier 1 corpus",
-    tip: "tier1",
-    text: "Auto ingest, period docs, citeable citation ids",
-  },
-  {
-    title: "Parameters (~16)",
-    tip: "gci_parameter",
-    text: "Catalog metrics only — growth, margin, capital, sector",
-  },
-  {
-    title: "Evidence trail",
-    tip: "evidence",
-    text: "Band, actual, Δ, label, source, citation_id",
-  },
-  {
-    title: "MoM / QoQ / YoY",
-    tip: "change_trend",
-    text: "Honest horizons from PIT — null when no series",
-  },
-  {
-    title: "Granger analytics",
-    tip: "granger",
-    text: "LASSO → F-test · experimental; may use non-citeable PIT scaffold",
-  },
-  {
-    title: "Charts",
-    tip: "charts",
-    text: "GCI path, metric Δ, GCI↔price (India EOD may be demo without vendor key)",
-  },
-  {
-    title: "Source policy",
-    tip: "source_policy",
-    text: "Text / ASR→text in; technicals & shenanigans out",
-  },
-  {
-    title: "API + PIT",
-    tip: "pit",
-    text: "REST, point-in-time history, org seats (soft limits / SSO = roadmap)",
-  },
-  {
-    title: "Research Terminal",
     tip: "research_terminal",
-    text: "Search, cite-only chat, snapshot; tape/estimates often demo-labeled",
+    titleKey: "package.inc.research.title",
+    textKey: "package.inc.research.text",
   },
-  {
-    title: "One-Stop Desk",
-    tip: "desk_sku",
-    text: "Corpus, Reports, Facts JSON import, vernacular, labeling queue; CSM = commercial",
-  },
-];
+  { tip: "desk_sku", titleKey: "package.inc.desk.title", textKey: "package.inc.desk.text" },
+] as const;
 
 const SURFACES = [
   {
     to: "/tracker",
-    title: "Guidance Credibility Index",
     tip: "tracker",
-    blurb: "Screen Sensex GCI, Δ, quality, peers, alerts → open evidence.",
+    titleKey: "nav.tracker",
+    blurbKey: "package.surface.tracker.blurb",
   },
   {
     to: "/desk",
-    title: "Desk",
     tip: "desk_sku",
-    blurb: "Corpus foundation, cite-only Reports, PIT, AlphaHunter, Parameters, CSM.",
+    titleKey: "nav.desk",
+    blurbKey: "package.surface.desk.blurb",
   },
   {
     to: "/research",
-    title: "Research",
     tip: "research_terminal",
-    blurb: "Search, cite-only chat, desk snapshot with MoM/QoQ/YoY.",
+    titleKey: "nav.research",
+    blurbKey: "package.surface.research.blurb",
   },
-];
+] as const;
 
 export default function PackagePage() {
   const { t } = useI18n();
+
+  const plans = [
+    {
+      id: "pilot",
+      name: "Pilot",
+      price: t("package.plan.pilot.price"),
+      period: t("package.plan.pilot.period"),
+      best: t("package.plan.pilot.best"),
+      includes: [
+        t("package.plan.pilot.i1"),
+        t("package.plan.pilot.i2"),
+        t("package.plan.pilot.i3"),
+        t("package.plan.pilot.i4"),
+      ],
+    },
+    {
+      id: "desk",
+      name: "Desk",
+      price: "₹45,000",
+      period: t("package.plan.desk.period"),
+      best: t("package.plan.desk.best"),
+      includes: [
+        t("package.plan.desk.i1"),
+        t("package.plan.desk.i2"),
+        t("package.plan.desk.i3"),
+        t("package.plan.desk.i4"),
+      ],
+    },
+    {
+      id: "enterprise",
+      name: "Enterprise API",
+      price: "₹25–80L",
+      period: t("package.plan.enterprise.period"),
+      best: t("package.plan.enterprise.best"),
+      includes: [
+        t("package.plan.enterprise.i1"),
+        t("package.plan.enterprise.i2"),
+        t("package.plan.enterprise.i3"),
+        t("package.plan.enterprise.i4"),
+      ],
+    },
+    {
+      id: "onestop",
+      name: "One-Stop Platform",
+      price: "₹40L–1.2Cr",
+      period: t("package.plan.onestop.period"),
+      best: t("package.plan.onestop.best"),
+      includes: [
+        t("package.plan.onestop.i1"),
+        t("package.plan.onestop.i2"),
+        t("package.plan.onestop.i3"),
+        t("package.plan.onestop.i4"),
+      ],
+      highlight: true as const,
+    },
+  ];
+
   return (
     <section className="package-page" data-testid="package-page">
       <p className="page-kicker">{t("package.kicker")}</p>
@@ -148,77 +109,74 @@ export default function PackagePage() {
       </h1>
       <p className="muted lede">{t("package.lede")}</p>
       <aside className="disclaimer" role="note" data-testid="retail-marketing-gate">
-        <strong>Retail (B2C) paywall.</strong> Individual plans are research tooling only — not
-        investment advice. After SEBI counsel attestation, checkout is available on{" "}
-        <Link to="/billing">Billing</Link>. B2B desks use MSA e-sign on the same page.
+        {t("package.retailGate")}{" "}
+        <Link to="/billing">{t("nav.billing")}</Link>.
       </aside>
 
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Product map</h2>
+        <h2 style={{ marginTop: 0 }}>{t("package.map.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Three primary surfaces — open any to evaluate in Pilot. Parallel SKUs (Score, Cite,
-          Radar, Ledger, Data) are catalogued on{" "}
-          <Link to="/products">Products</Link>.
+          {t("package.map.lede")}{" "}
+          <Link to="/products">{t("nav.products")}</Link>.
         </p>
         <div className="package-surfaces">
           {SURFACES.map((s) => (
             <div key={s.to} className="package-surface">
               <strong>
                 <Link to={s.to} style={{ color: "inherit", fontWeight: 600 }}>
-                  {s.title}
+                  {t(s.titleKey)}
                 </Link>{" "}
                 <InfoTip termId={s.tip} />
               </strong>
-              <span className="muted">{s.blurb}</span>
+              <span className="muted">{t(s.blurbKey)}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div className="panel" data-testid="portfolio-skus">
-        <h2 style={{ marginTop: 0 }}>Parallel product lines</h2>
+        <h2 style={{ marginTop: 0 }}>{t("package.parallel.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Same disclosure spine; different jobs. Seats still sell as Pilot / Desk / API /
-          One-Stop — SKUs describe what the desk is buying.
+          {t("package.parallel.lede")}
         </p>
         <ul className="package-includes">
           <li>
             <strong>Score</strong>
-            <span className="muted">GCI 0–100 + peer delivery benchmarks</span>
+            <span className="muted">{t("package.sku.score")}</span>
           </li>
           <li>
             <strong>Cite</strong>
-            <span className="muted">Mandatory citations + Research Terminal</span>
+            <span className="muted">{t("package.sku.cite")}</span>
           </li>
           <li>
             <strong>Radar</strong>
-            <span className="muted">Guidance change / miss / drop feed</span>
+            <span className="muted">{t("package.sku.radar")}</span>
           </li>
           <li>
             <strong>Ledger</strong>
-            <span className="muted">Promise accountability dossier</span>
+            <span className="muted">{t("package.sku.ledger")}</span>
           </li>
           <li>
             <strong>Data</strong>
-            <span className="muted">PIT outcomes + factor export</span>
+            <span className="muted">{t("package.sku.data")}</span>
           </li>
         </ul>
         <p style={{ marginTop: 12 }}>
           <Link className="btn" to="/products">
-            Open products →
+            {t("package.openProducts")}
           </Link>
         </p>
       </div>
 
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>What’s included</h2>
+        <h2 style={{ marginTop: 0 }}>{t("package.included.title")}</h2>
         <ul className="package-includes">
           {INCLUDED.map((item) => (
-            <li key={item.title}>
+            <li key={item.titleKey}>
               <strong>
-                {item.title} <InfoTip termId={item.tip} />
+                {t(item.titleKey)} <InfoTip termId={item.tip} />
               </strong>
-              <span className="muted">{item.text}</span>
+              <span className="muted">{t(item.textKey)}</span>
             </li>
           ))}
         </ul>
@@ -226,32 +184,30 @@ export default function PackagePage() {
 
       <div className="panel one-stop-callout" data-testid="one-stop-panel">
         <h2 style={{ marginTop: 0 }}>
-          If you want a one-stop solution <InfoTip termId="one_stop" />
+          {t("package.onestop.title")} <InfoTip termId="one_stop" />
         </h2>
         <p className="muted">
-          Choose <strong>One-Stop Platform</strong>: one contract for Tracker + evidence +
-          API/PIT + AlphaHunter JSON import <InfoTip termId="alphahunter" /> + Wordmap context
-          (stub until corpus-derived) + vernacular + CSM <InfoTip termId="csm" />. Quotes and
-          consensus stay on your market terminal; CiteAlpha owns guidance accountability.
+          {t("package.onestop.lede")} <InfoTip termId="alphahunter" />{" "}
+          <InfoTip termId="csm" />
         </p>
         <p style={{ marginTop: 12 }}>
           <Link className="btn" to="/desk">
-            Open One-Stop desk →
+            {t("package.onestop.openDesk")}
           </Link>{" "}
           <Link className="btn ghost" to="/help" style={{ marginLeft: 8 }}>
-            Read glossary →
+            {t("package.onestop.glossary")}
           </Link>
         </p>
         <Disclaimer compact />
       </div>
 
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Plans</h2>
+        <h2 style={{ marginTop: 0 }}>{t("package.plans.title")}</h2>
         <p className="muted" style={{ marginBottom: 16 }}>
-          Illustrative INR pricing for India GTM. Final quotes via order form.
+          {t("package.plans.lede")}
         </p>
         <div className="plan-grid">
-          {PLANS.map((plan) => (
+          {plans.map((plan) => (
             <div
               key={plan.id}
               className={`plan ${plan.highlight ? "plan-highlight" : ""}`}
@@ -272,40 +228,29 @@ export default function PackagePage() {
       </div>
 
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>How to buy</h2>
+        <h2 style={{ marginTop: 0 }}>{t("package.buy.title")}</h2>
         <ol className="package-steps">
           <li>
-            Start a <strong>Pilot</strong> — open Tracker, then track conversion on{" "}
+            {t("package.buy.s1")}{" "}
             <Link to="/desk?tab=csm" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Desk → CSM checklist
+              Desk → CSM
             </Link>
-            . Export an{" "}
-            <Link to="/desk?tab=reports" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              IC audit dossier
-            </Link>{" "}
-            (PDF/JSON). See public{" "}
+            {" · "}
             <Link to="/rankings" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              GCI rankings
+              {t("nav.rankings")}
             </Link>
             .
           </li>
+          <li>{t("package.buy.s2")}</li>
           <li>
-            Integrate PIT with <code className="inline-code">GET /api/v1/pit/contract</code>{" "}
-            and <code className="inline-code">X-API-Key</code> — OpenAPI at{" "}
-            <code className="inline-code">/docs</code>.
-          </li>
-          <li>
-            Convert with <strong>Desk</strong>, <strong>Enterprise API</strong>, or{" "}
-            <strong>One-Stop Platform</strong> via{" "}
+            {t("package.buy.s3")}{" "}
             <Link to="/billing" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Billing / MSA
-            </Link>{" "}
-            or <code className="inline-code">docs/customer/ORDER_FORM.md</code>.
+              {t("nav.billing")}
+            </Link>
+            .
           </li>
         </ol>
-        <p className="cta-line">
-          Contact: <strong>sales@citealpha.com</strong> · ask for org id + API key
-        </p>
+        <p className="cta-line">{t("package.buy.contact")}</p>
       </div>
     </section>
   );

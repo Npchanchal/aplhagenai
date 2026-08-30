@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import { useI18n } from "../i18n";
 import { fetchPublicGciRankings } from "../lib/api";
 import { formatScore, scoreClass } from "../lib/score";
 
 type Rankings = Awaited<ReturnType<typeof fetchPublicGciRankings>>;
 
 export default function RankingsPage() {
+  const { t } = useI18n();
   const [data, setData] = useState<Rankings | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [md, setMd] = useState<string | null>(null);
@@ -20,16 +22,13 @@ export default function RankingsPage() {
   return (
     <section className="page" data-testid="gci-rankings-page">
       <header className="page-header">
-        <p className="eyebrow">Public · citeable only</p>
-        <h1>Guidance Credibility Quarterly</h1>
-        <p className="lede">
-          Top and bottom management delivery scores on Sensex hand-labeled / citeable
-          GCI — content for desks, not a Buy/Hold list.
-        </p>
+        <p className="eyebrow">{t("rankings.kicker")}</p>
+        <h1>{t("rankings.title")}</h1>
+        <p className="lede">{t("rankings.lede")}</p>
       </header>
 
       {err && <p className="error">{err}</p>}
-      {!data && !err && <p className="muted">Loading rankings…</p>}
+      {!data && !err && <p className="muted">{t("rankings.loading")}</p>}
 
       {data && (
         <>
@@ -39,7 +38,7 @@ export default function RankingsPage() {
           <div className="workbench">
             <div className="workbench-main">
               <div className="panel">
-                <h2>Top GCI</h2>
+                <h2>{t("rankings.topGci")}</h2>
                 <div className="table-scroll">
                   <table className="table">
                     <thead>
@@ -72,7 +71,7 @@ export default function RankingsPage() {
                 </div>
               </div>
               <div className="panel">
-                <h2>Lowest GCI (same universe)</h2>
+                <h2>{t("rankings.lowestGci")}</h2>
                 <div className="table-scroll">
                   <table className="table">
                     <thead>

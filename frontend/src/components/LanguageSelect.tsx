@@ -23,14 +23,14 @@ export default function LanguageSelect({ onChange }: Props) {
         }}
         aria-label={t("common.language")}
       >
-        <optgroup label="India">
+        <optgroup label={t("lang.group.india")}>
           {indian.map((l) => (
             <option key={l.code} value={l.code}>
               {l.native}
             </option>
           ))}
         </optgroup>
-        <optgroup label="Global">
+        <optgroup label={t("lang.group.global")}>
           {global.map((l) => (
             <option key={l.code} value={l.code}>
               {l.native}

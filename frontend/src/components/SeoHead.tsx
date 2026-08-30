@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useI18n } from "../i18n";
+import { ogLocaleFor } from "../i18n/languages";
 import { resolveSeo } from "../lib/seo";
 
 const SITE = "https://citealpha.com";
@@ -43,13 +45,13 @@ function upsertJsonLd(id: string, data: Record<string, unknown> | null) {
 /** Per-route title, description, canonical, Open Graph, and JSON-LD for SPA SEO. */
 export default function SeoHead() {
   const { pathname } = useLocation();
+  const { lang } = useI18n();
 
   useEffect(() => {
     const seo = resolveSeo(pathname);
     const url = `${SITE}${seo.path === "/" ? "/" : seo.path}`;
 
     document.title = seo.title;
-    document.documentElement.lang = "en";
 
     upsertMeta("name", "description", seo.description);
     upsertMeta("name", "robots", seo.robots ?? "index,follow");
@@ -59,7 +61,7 @@ export default function SeoHead() {
     upsertMeta("property", "og:description", seo.description);
     upsertMeta("property", "og:url", url);
     upsertMeta("property", "og:image", `${SITE}/og-image.png`);
-    upsertMeta("property", "og:locale", "en_IN");
+    upsertMeta("property", "og:locale", ogLocaleFor(lang));
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", seo.title);
     upsertMeta("name", "twitter:description", seo.description);
@@ -90,7 +92,7 @@ export default function SeoHead() {
     } else {
       upsertJsonLd("seo-jsonld-org", null);
     }
-  }, [pathname]);
+  }, [pathname, lang]);
 
   return null;
 }

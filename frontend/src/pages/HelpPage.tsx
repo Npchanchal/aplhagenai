@@ -49,59 +49,59 @@ function TermSection({
 const QUICK = [
   {
     to: "/about",
-    title: "About CiteAlpha",
+    titleKey: "help.quick.about.title",
+    textKey: "help.quick.about.text",
     tip: "gci",
-    text: "Who we are, why GCI exists, how ingest → cite works",
   },
   {
     to: "/tracker",
-    title: "Guidance Credibility Index",
+    titleKey: "help.quick.tracker.title",
+    textKey: "help.quick.tracker.text",
     tip: "tracker",
-    text: "Screen Sensex GCI · open evidence + charts",
   },
   {
     to: "/desk",
-    title: "Desk",
+    titleKey: "help.quick.desk.title",
+    textKey: "help.quick.desk.text",
     tip: "desk_sku",
-    text: "Console, review, Corpus, cite-only Reports, PIT",
   },
   {
     to: "/research",
-    title: "Research",
+    titleKey: "help.quick.research.title",
+    textKey: "help.quick.research.text",
     tip: "research_terminal",
-    text: "Search, cite-only chat, MoM/QoQ/YoY snapshot",
   },
   {
     to: "/sights",
-    title: "Sights",
+    titleKey: "help.quick.sights.title",
+    textKey: "help.quick.sights.text",
     tip: "sights",
-    text: "India IR research OS — Ask, boards, grid",
   },
   {
     to: "/products",
-    title: "Products",
+    titleKey: "help.quick.products.title",
+    textKey: "help.quick.products.text",
     tip: "score_sku",
-    text: "Score · Cite · Radar · Ledger · Data · Sights",
   },
   {
     to: "/rankings",
-    title: "GCI Rankings",
+    titleKey: "help.quick.rankings.title",
+    textKey: "help.quick.rankings.text",
     tip: "rankings",
-    text: "Citeable public rankings — not recommendations",
   },
   {
     to: "/trust",
-    title: "Trust Center",
+    titleKey: "help.quick.trust.title",
+    textKey: "help.quick.trust.text",
     tip: "trust_center",
-    text: "Security, residency, counsel, citations",
   },
   {
     to: "/package",
-    title: "Package",
+    titleKey: "help.quick.package.title",
+    textKey: "help.quick.package.text",
     tip: "one_stop",
-    text: "Plans and One-Stop commercial map",
   },
-];
+] as const;
 
 export default function HelpPage() {
   const { t } = useI18n();
@@ -126,24 +126,23 @@ export default function HelpPage() {
       <p className="muted lede">{t("help.lede")}</p>
 
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Start here</h2>
+        <h2 style={{ marginTop: 0 }}>{t("help.startHere")}</h2>
         <div className="help-quick">
           {QUICK.map((item) => (
             <Link key={item.to} to={item.to} className="help-quick-card">
               <strong>
-                {item.title} <InfoTip termId={item.tip} />
+                {t(item.titleKey)} <InfoTip termId={item.tip} />
               </strong>
-              <span className="muted">{item.text}</span>
+              <span className="muted">{t(item.textKey)}</span>
             </Link>
           ))}
         </div>
       </div>
 
       <div className="panel" id="tours" data-testid="tours-hub">
-        <h2 style={{ marginTop: 0 }}>Guided tours</h2>
+        <h2 style={{ marginTop: 0 }}>{t("help.tours.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Spotlight walkthroughs of each surface. Use <strong>Tours</strong> in the
-          header anytime. Esc skips without marking complete · ←/→ navigate steps.
+          {t("help.tours.lede")}
         </p>
         {TOUR_GROUPS.map((group) => (
           <div key={group.id}>
@@ -160,7 +159,7 @@ export default function HelpPage() {
                 >
                   <strong>
                     {tour.title}
-                    {seen[tour.id] ? " · seen" : ""}
+                    {seen[tour.id] ? ` · ${t("help.tours.seen")}` : ""}
                   </strong>
                   <span className="muted">{tour.blurb}</span>
                 </button>
@@ -174,17 +173,17 @@ export default function HelpPage() {
           style={{ marginTop: 12 }}
           onClick={() => resetSeen()}
         >
-          Reset tour progress
+          {t("help.tours.reset")}
         </button>
       </div>
 
       <label className="universe-search help-search">
-        Find a term
+        {t("help.searchLabel")}
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="GCI, citeable, Sights, Granger, PIT, MoM…"
+          placeholder={t("help.searchPlaceholder")}
           data-testid="help-search"
           autoComplete="off"
         />
@@ -192,38 +191,41 @@ export default function HelpPage() {
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>
-          Source policy <InfoTip termId="source_policy" />
+          {t("help.sourcePolicy.title")} <InfoTip termId="source_policy" />
         </h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          What can feed GCI vs what stays out of the score.
+          {t("help.sourcePolicy.lede")}
         </p>
         <div className="source-pills" style={{ marginTop: 12 }}>
           {[
-            { ok: true, label: "Transcripts" },
-            { ok: true, label: "Filings / PDF text" },
-            { ok: true, label: "IR HTML / PPT text" },
-            { ok: true, label: "ASR → transcript" },
-            { ok: true, label: "Reported actuals" },
-            { ok: false, label: "Raw audio/video scoring" },
-            { ok: false, label: "Technicals" },
-            { ok: false, label: "Shenanigans" },
-            { ok: false, label: "Sentiment-only" },
+            { ok: true, labelKey: "help.source.in.transcripts" },
+            { ok: true, labelKey: "help.source.in.filings" },
+            { ok: true, labelKey: "help.source.in.ir" },
+            { ok: true, labelKey: "help.source.in.asr" },
+            { ok: true, labelKey: "help.source.in.actuals" },
+            { ok: false, labelKey: "help.source.out.av" },
+            { ok: false, labelKey: "help.source.out.technicals" },
+            { ok: false, labelKey: "help.source.out.shenanigans" },
+            { ok: false, labelKey: "help.source.out.sentiment" },
           ].map((s) => (
-            <span key={s.label} className={`source-pill ${s.ok ? "in" : "out"}`}>
-              {s.ok ? "✓" : "✕"} {s.label}
+            <span key={s.labelKey} className={`source-pill ${s.ok ? "in" : "out"}`}>
+              {s.ok ? "✓" : "✕"} {t(s.labelKey)}
             </span>
           ))}
         </div>
         <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: 13 }}>
-          Full catalog:{" "}
+          {t("help.source.catalog")}{" "}
           <Link to="/desk" style={{ color: "var(--accent)", fontWeight: 600 }}>
-            Desk → Parameters
+            {t("help.source.deskParams")}
           </Link>{" "}
           · API <code className="inline-code">GET /api/metrics</code>
         </p>
       </div>
 
       <div className="panel">
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          {t("help.glossaryNote")}
+        </p>
         {HELP_SECTIONS.map((section) => (
           <TermSection
             key={section.title}
@@ -244,16 +246,16 @@ export default function HelpPage() {
               );
             })
           ) && (
-            <div className="empty">No glossary terms match “{q.trim()}”.</div>
+            <div className="empty">{t("help.glossaryEmpty", { query: q.trim() })}</div>
           )}
       </div>
 
       <p className="muted" data-testid="help-legal-strip">
-        <Link to="/terms">Terms of Use</Link>
+        <Link to="/terms">{t("footer.terms")}</Link>
         {" · "}
-        <Link to="/privacy">Privacy Notice</Link>
+        <Link to="/privacy">{t("footer.privacy")}</Link>
         {" · "}
-        <Link to="/trust">Trust Center</Link>
+        <Link to="/trust">{t("footer.trust")}</Link>
         {" · "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
       </p>

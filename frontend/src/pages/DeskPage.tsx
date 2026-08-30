@@ -126,7 +126,7 @@ type StatementDecision = {
 export default function DeskPage() {
   const { preferences } = useAuth();
   const { has } = useEntitlements();
-  const { t } = useI18n();
+  const { t, lang: uiLang } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -160,7 +160,11 @@ export default function DeskPage() {
   >([]);
   const [wordmap, setWordmap] = useState<WordmapPayload | null>(null);
   const [vernacular, setVernacular] = useState<VernacularPayload | null>(null);
-  const [lang, setLang] = useState("hi");
+  const [lang, setLang] = useState<string>(uiLang);
+
+  useEffect(() => {
+    setLang(uiLang);
+  }, [uiLang]);
   const [badge, setBadge] = useState<BadgePayload | null>(null);
   const [org, setOrg] = useState<OrgPayload | null>(null);
   const [labelQueue, setLabelQueue] = useState<LabelingQueueItem[]>([]);

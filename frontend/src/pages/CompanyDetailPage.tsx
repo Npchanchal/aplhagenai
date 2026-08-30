@@ -72,7 +72,7 @@ const TOC_MORE = [
 
 export default function CompanyDetailPage() {
   const { id } = useParams();
-  const { t } = useI18n();
+  const { t, lang: uiLang } = useI18n();
   const { has } = useEntitlements();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
@@ -87,7 +87,11 @@ export default function CompanyDetailPage() {
   const [priceHistory, setPriceHistory] = useState<StockHistory | null>(null);
   const [wordmap, setWordmap] = useState<WordmapPayload | null>(null);
   const [vernacular, setVernacular] = useState<VernacularPayload | null>(null);
-  const [lang, setLang] = useState("en");
+  const [lang, setLang] = useState<string>(uiLang);
+
+  useEffect(() => {
+    setLang(uiLang);
+  }, [uiLang]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [changes, setChanges] = useState<{

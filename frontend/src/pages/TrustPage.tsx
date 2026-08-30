@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import Skeleton from "../components/Skeleton";
 import { CounselStatusBanner } from "../components/TermsAccept";
+import { useI18n } from "../i18n";
 import { fetchTrustCenter, type TrustCenterPayload } from "../lib/api";
 import { CONTACT_EMAIL, copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 
 /** Procurement / security Trust Center — honest status, not marketing. */
 export default function TrustPage() {
+  const { t } = useI18n();
   const [data, setData] = useState<TrustCenterPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,34 +21,33 @@ export default function TrustPage() {
         if (!cancelled) setData(next);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load Trust Center");
+          setError(err instanceof Error ? err.message : t("trust.loadError"));
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const counsel = data?.compliance.counsel_status ?? data?.copyright?.counsel_status;
 
   return (
     <section className="trust-page" data-testid="trust-page">
-      <p className="page-kicker">Trust Center</p>
-      <h1>{PRODUCT_NAME} Trust Center</h1>
+      <p className="page-kicker">{t("trust.kicker")}</p>
+      <h1>{t("trust.title", { product: PRODUCT_NAME })}</h1>
       <p className="muted lede">
-        Security, legal, and citation posture for desks evaluating {PRODUCT_NAME} (
-        {LEGAL_ENTITY}). Honest status — not marketing claims.
+        {t("trust.lede", { product: PRODUCT_NAME, entity: LEGAL_ENTITY })}
       </p>
       <CounselStatusBanner status={counsel} />
 
       {error && <p className="error">{error}</p>}
-      {!data && !error && <Skeleton rows={8} label="Loading Trust Center" />}
+      {!data && !error && <Skeleton rows={8} label={t("trust.loading")} />}
 
       {data && (
         <div className="trust-grid">
           <article className="panel">
-            <h2 style={{ marginTop: 0 }}>Product &amp; entity</h2>
+            <h2 style={{ marginTop: 0 }}>{t("trust.productEntity")}</h2>
             <ul className="about-list">
               <li>
                 Product: <strong>{data.product}</strong>
@@ -71,7 +72,7 @@ export default function TrustPage() {
           </article>
 
           <article className="panel" data-testid="trust-counsel">
-            <h2 style={{ marginTop: 0 }}>Counsel &amp; legal</h2>
+            <h2 style={{ marginTop: 0 }}>{t("trust.counselLegal")}</h2>
             <ul className="about-list">
               <li>Counsel status: {counsel ?? "—"}</li>
               <li>

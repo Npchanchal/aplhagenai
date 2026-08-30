@@ -6,104 +6,48 @@ import { CONTACT_EMAIL, copyrightLine } from "../lib/legal";
 import { showArchitecturePage } from "../lib/siteFlags";
 
 const PIPELINE = [
-  {
-    step: "1",
-    title: "Ingest",
-    tip: "source",
-    text: "IR pages, transcripts, and filings land in the document store — Sensex crawl first; paste is the exception path.",
-  },
-  {
-    step: "2",
-    title: "Extract & review",
-    tip: "extract",
-    text: "Quantified guidance becomes pending statements. Analysts Accept / Edit / Reject before anything enters GCI math.",
-  },
-  {
-    step: "3",
-    title: "Match & score",
-    tip: "gci",
-    text: "Guidance bands meet reported actuals. Labels: met, exceeded, missed, dropped, pending — then a 0–100 company GCI.",
-  },
-  {
-    step: "4",
-    title: "Cite",
-    tip: "evidence",
-    text: "Every citeable score point carries period, metric, quote, URL, and citation id bound to an accepted document.",
-  },
+  { step: "1", tip: "source", titleKey: "about.pipeline.1.title", textKey: "about.pipeline.1.text" },
+  { step: "2", tip: "extract", titleKey: "about.pipeline.2.title", textKey: "about.pipeline.2.text" },
+  { step: "3", tip: "gci", titleKey: "about.pipeline.3.title", textKey: "about.pipeline.3.text" },
+  { step: "4", tip: "evidence", titleKey: "about.pipeline.4.title", textKey: "about.pipeline.4.text" },
 ] as const;
 
 const PERSONAS = [
   {
-    who: "Buy-side / PMS / AIF",
-    need: "Screen chronic guidance misses and size conviction with a delivery track record — not another sentiment heat map.",
-    path: "Tracker → dossier evidence → Rankings / Radar",
+    whoKey: "about.persona.buy.who",
+    needKey: "about.persona.buy.need",
+    pathKey: "about.persona.buy.path",
   },
   {
-    who: "Sell-side / desk associate",
-    need: "Put auditable guidance-vs-actuals into notes fast, with HITL review when extracts need correction.",
-    path: "Desk review queue → Evidence edit → Research / Sights Ask",
+    whoKey: "about.persona.sell.who",
+    needKey: "about.persona.sell.need",
+    pathKey: "about.persona.sell.path",
   },
   {
-    who: "Quant / data / platform",
-    need: "Point-in-time GCI series and evidence-adjacent exports without inventing retail recommendations.",
-    path: "API / PIT → Data catalog → Enterprise package",
+    whoKey: "about.persona.quant.who",
+    needKey: "about.persona.quant.need",
+    pathKey: "about.persona.quant.path",
   },
   {
-    who: "IR / compliance / credit",
-    need: "What was promised, by whom, when, and whether it was delivered — a ledger, not a score-only dashboard.",
-    path: "Ledger / Radar → Trust Center → Package",
+    whoKey: "about.persona.ir.who",
+    needKey: "about.persona.ir.need",
+    pathKey: "about.persona.ir.path",
   },
 ] as const;
 
 const ALSO = [
-  {
-    title: "Products",
-    to: "/products",
-    text: "Score, Cite, Radar, Ledger, Data, and Sights — jobs on the same India disclosure spine.",
-  },
-  {
-    title: "Sights",
-    to: "/sights",
-    text: "India IR research OS: search, cite-only Ask, boards, grid, and desk agents.",
-  },
-  {
-    title: "GCI Rankings",
-    to: "/rankings",
-    text: "Public ranking of citeable names — evidence-linked, not recommendations.",
-  },
-  {
-    title: "Trust Center",
-    to: "/trust",
-    text: "Security, residency, counsel status, and citation posture for procurement.",
-  },
+  { to: "/products", titleKey: "about.also.products.title", textKey: "about.also.products.text" },
+  { to: "/sights", titleKey: "about.also.sights.title", textKey: "about.also.sights.text" },
+  { to: "/rankings", titleKey: "about.also.rankings.title", textKey: "about.also.rankings.text" },
+  { to: "/trust", titleKey: "about.also.trust.title", textKey: "about.also.trust.text" },
 ] as const;
 
 const HOW_TO = [
-  {
-    title: "Screen the universe",
-    to: "/tracker",
-    text: "Open Guidance Credibility Index. Prefer Hand-labeled names for external citation. Sort by GCI or Δ.",
-  },
-  {
-    title: "Open a dossier",
-    to: "/companies/infy",
-    text: "Evidence + Docs (Tier 1 gate) + Trend + Granger analytics (descriptive / precedence only).",
-  },
-  {
-    title: "Run the desk loop",
-    to: "/desk",
-    text: "Console, review queue, Corpus foundation, cite-only Reports, PIT API.",
-  },
-  {
-    title: "Research Terminal",
-    to: "/research",
-    text: "Cite-only document search and chat over filings and transcripts.",
-  },
-  {
-    title: "Sights",
-    to: "/sights",
-    text: "India disclosure research OS — Ask refuses without evidence.",
-  },
+  { to: "/tracker", titleKey: "about.howto.screen.title", textKey: "about.howto.screen.text" },
+  { to: "/companies/infy", titleKey: "about.howto.dossier.title", textKey: "about.howto.dossier.text" },
+  { to: "/desk", titleKey: "about.howto.desk.title", textKey: "about.howto.desk.text" },
+  { to: "/research", titleKey: "about.howto.research.title", textKey: "about.howto.research.text" },
+  { to: "/sights", titleKey: "about.howto.sights.title", textKey: "about.howto.sights.text" },
 ] as const;
 
 export default function AboutPage() {
@@ -117,94 +61,68 @@ export default function AboutPage() {
       </h1>
       <p className="muted lede">{t("about.lede")}</p>
       <p className="muted" data-testid="about-owner">
-        {copyrightLine()} Contact{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. See{" "}
-        <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy</Link>.
+        {copyrightLine()} {t("about.contactBefore")}{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. {t("about.contactAfter")}{" "}
+        <Link to="/terms">{t("footer.terms")}</Link>
+        {" · "}
+        <Link to="/privacy">{t("footer.privacy")}</Link>.
       </p>
 
-      <nav className="about-toc" aria-label="On this page">
-        <a href="#what">What it is</a>
-        <a href="#why">Why it is needed</a>
-        <a href="#how">How it works</a>
-        <a href="#layers">Capability layers</a>
-        <Link to="/about/tiers">Tier screenshots</Link>
-        {showArchitecturePage ? <Link to="/about/architecture">Architecture</Link> : null}
-        <a href="#who">Who uses it</a>
-        <a href="#also">Also in CiteAlpha</a>
+      <nav className="about-toc" aria-label={t("about.tocLabel")}>
+        <a href="#what">{t("about.toc.what")}</a>
+        <a href="#why">{t("about.toc.why")}</a>
+        <a href="#how">{t("about.toc.how")}</a>
+        <a href="#layers">{t("about.toc.layers")}</a>
+        <Link to="/about/tiers">{t("about.toc.tiers")}</Link>
+        {showArchitecturePage ? (
+          <Link to="/about/architecture">{t("about.toc.architecture")}</Link>
+        ) : null}
+        <a href="#who">{t("about.toc.who")}</a>
+        <a href="#also">{t("about.toc.also")}</a>
       </nav>
 
       <div className="panel" id="what">
         <h2 style={{ marginTop: 0 }}>
-          What it is <InfoTip termId="gci" />
+          {t("about.what.title")} <InfoTip termId="gci" />
         </h2>
-        <p>
-          <strong>CiteAlpha</strong> is a product of{" "}
-          <strong>Ocotillo Innovation Private Limited</strong>. It delivers the{" "}
-          <strong>Guidance Credibility Index (GCI)</strong> — a 0–100 score of whether
-          Indian listed-company management <em>delivered</em> on quantified guidance.
-          It is a credit score for promises vs actuals, not a sentiment dashboard and
-          not a price terminal.
-        </p>
+        <p>{t("about.what.p1")}</p>
         <ul className="about-list">
-          <li>
-            Every citeable score links to period, metric, guided band, actual, label, and
-            source (URL + quote + citation id).
-          </li>
-          <li>
-            India beachhead: Sensex-depth hand-labeled evidence first; broader NSE/BSE
-            listings are navigable with honest quality badges.
-          </li>
-          <li>
-            Explicit non-goals: no Buy / Hold / Sell, no retail tips, no OMS or live quotes.
-          </li>
+          <li>{t("about.what.li1")}</li>
+          <li>{t("about.what.li2")}</li>
+          <li>{t("about.what.li3")}</li>
         </ul>
         <Disclaimer compact />
       </div>
 
       <div className="panel" id="why">
-        <h2 style={{ marginTop: 0 }}>Why it is needed</h2>
+        <h2 style={{ marginTop: 0 }}>{t("about.why.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Desks already have news, filings search, and market terminals. What they still
-          lack is a durable, evidence-linked answer to:{" "}
-          <em>did this management keep its word?</em>
+          {t("about.why.lede")}
         </p>
         <div className="about-why-grid">
           <div>
-            <h3>Guidance drifts</h3>
-            <p className="muted">
-              Bands move mid-year; “dropped” reiterates vanish from memory. Without a
-              thread of statements → actuals, miss patterns stay anecdotal.
-            </p>
+            <h3>{t("about.why.drift.title")}</h3>
+            <p className="muted">{t("about.why.drift.text")}</p>
           </div>
           <div>
-            <h3>India-shaped disclosure</h3>
-            <p className="muted">
-              NSE/BSE IR tables, mixed-language concalls, and local formats need a local
-              spine — not a US-first product with India as an afterthought.
-            </p>
+            <h3>{t("about.why.india.title")}</h3>
+            <p className="muted">{t("about.why.india.text")}</p>
           </div>
           <div>
-            <h3>Compliance posture</h3>
-            <p className="muted">
-              Factual delivery research stays on the right side of SEBI RA risk. Analysts
-              own forecasts; the platform shows observed delivery and citations.
-            </p>
+            <h3>{t("about.why.compliance.title")}</h3>
+            <p className="muted">{t("about.why.compliance.text")}</p>
           </div>
           <div>
-            <h3>HITL that compounds</h3>
-            <p className="muted">
-              Extract → review → commit turns desk corrections into a lasting corpus —
-              not a one-off paste into a spreadsheet.
-            </p>
+            <h3>{t("about.why.hitl.title")}</h3>
+            <p className="muted">{t("about.why.hitl.text")}</p>
           </div>
         </div>
       </div>
 
       <div className="panel" id="how">
-        <h2 style={{ marginTop: 0 }}>How it works</h2>
+        <h2 style={{ marginTop: 0 }}>{t("about.how.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          One pipeline: ingest → structure → searchable → citable. Citability is not a
-          bolt-on — it only works when documents are stored with structure preserved.
+          {t("about.how.lede")}
         </p>
         <ol className="about-pipeline">
           {PIPELINE.map((p) => (
@@ -212,107 +130,93 @@ export default function AboutPage() {
               <span className="about-step">{p.step}</span>
               <div>
                 <strong>
-                  {p.title} <InfoTip termId={p.tip} />
+                  {t(p.titleKey)} <InfoTip termId={p.tip} />
                 </strong>
-                <p className="muted">{p.text}</p>
+                <p className="muted">{t(p.textKey)}</p>
               </div>
             </li>
           ))}
         </ol>
         <p className="muted" style={{ fontSize: 13 }}>
-          Data quality stays honest: <strong>Hand-labeled</strong> for external citation;{" "}
-          <strong>Provisional</strong> listings are scored for screening only — never
-          invent citeable quotes. Analytics overlays (e.g. GCI vs tape) are descriptive
-          patterns, not forecasts. Granger panels show statistical precedence only.
+          {t("about.how.note")}
         </p>
       </div>
 
       <div className="panel" id="layers">
         <h2 style={{ marginTop: 0 }}>
-          Capability layers <InfoTip termId="tier1" />
+          {t("about.layers.title")} <InfoTip termId="tier1" />
         </h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          These are product capability layers, not commercial plans. Seats and API
-          access live on <Link to="/package">Package</Link>. Annotated screenshots:{" "}
-          <Link to="/about/tiers">tier gallery</Link>.
+          {t("about.layers.lede")}{" "}
+          <Link to="/package">{t("footer.package")}</Link>
+          {" · "}
+          <Link to="/about/tiers">{t("about.toc.tiers")}</Link>.
         </p>
         <div className="about-why-grid">
           <div>
-            <h3>Foundation</h3>
-            <p className="muted">
-              Auto ingest → period docs (transcript / results / IR) → entity search with
-              corpus honesty → citeable citation ids. Desk → Corpus builds the Sensex gate.
-            </p>
+            <h3>{t("about.layers.foundation.title")}</h3>
+            <p className="muted">{t("about.layers.foundation.text")}</p>
           </div>
           <div>
-            <h3>Workflow</h3>
-            <p className="muted">
-              Multi-horizon Δ (QoQ/YoY from PIT), GCI↔price descriptive overlays, private
-              notes, role report templates with citation appendix.
-            </p>
+            <h3>{t("about.layers.workflow.title")}</h3>
+            <p className="muted">{t("about.layers.workflow.text")}</p>
           </div>
           <div>
-            <h3>Analytics (gated)</h3>
-            <p className="muted">
-              LASSO → Granger F-test and FDR impact map on ≥12-quarter PIT series. Not
-              causation, not a forecast — methodology card on the dossier Analytics panel.
-            </p>
+            <h3>{t("about.layers.analytics.title")}</h3>
+            <p className="muted">{t("about.layers.analytics.text")}</p>
           </div>
           <div>
-            <h3>Out of scope</h3>
-            <p className="muted">
-              Buy/Hold/Sell, treating provisional listing scores as citeable IR evidence,
-              or cloning a global market-intel OS in product chrome.
-            </p>
+            <h3>{t("about.layers.oos.title")}</h3>
+            <p className="muted">{t("about.layers.oos.text")}</p>
           </div>
         </div>
       </div>
 
       <div className="panel" id="who">
-        <h2 style={{ marginTop: 0 }}>Who it is for — and how to use it</h2>
+        <h2 style={{ marginTop: 0 }}>{t("about.who.title")}</h2>
         <div className="about-persona-grid">
           {PERSONAS.map((p) => (
-            <article key={p.who} className="about-persona">
-              <h3>{p.who}</h3>
-              <p>{p.need}</p>
+            <article key={p.whoKey} className="about-persona">
+              <h3>{t(p.whoKey)}</h3>
+              <p>{t(p.needKey)}</p>
               <p className="muted" style={{ fontSize: 13, marginBottom: 0 }}>
-                Typical path: {p.path}
+                {t(p.pathKey)}
               </p>
             </article>
           ))}
         </div>
 
         <h3 style={{ marginTop: 28 }} id="also">
-          Also in CiteAlpha
+          {t("about.also.title")}
         </h3>
         <div className="help-quick">
           {ALSO.map((item) => (
             <Link key={item.to} to={item.to} className="help-quick-card">
-              <strong>{item.title}</strong>
-              <span className="muted">{item.text}</span>
+              <strong>{t(item.titleKey)}</strong>
+              <span className="muted">{t(item.textKey)}</span>
             </Link>
           ))}
         </div>
 
-        <h3 style={{ marginTop: 28 }}>Quick start</h3>
+        <h3 style={{ marginTop: 28 }}>{t("about.howto.title")}</h3>
         <div className="help-quick">
           {HOW_TO.map((item) => (
-            <Link key={item.title} to={item.to} className="help-quick-card">
-              <strong>{item.title}</strong>
-              <span className="muted">{item.text}</span>
+            <Link key={item.titleKey} to={item.to} className="help-quick-card">
+              <strong>{t(item.titleKey)}</strong>
+              <span className="muted">{t(item.textKey)}</span>
             </Link>
           ))}
         </div>
 
         <div className="about-cta-row">
           <Link to="/tracker" className="btn">
-            Open Guidance Tracker
+            {t("about.cta.tracker")}
           </Link>
           <Link to="/products" className="btn ghost">
-            Product catalog
+            {t("about.cta.products")}
           </Link>
           <Link to="/help" className="btn ghost">
-            Help &amp; glossary
+            {t("about.cta.help")}
           </Link>
         </div>
       </div>
