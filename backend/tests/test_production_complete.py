@@ -41,6 +41,17 @@ def test_sql_auth_backend_and_hsts_header():
     assert r.headers.get("X-Content-Type-Options") == "nosniff"
 
 
+def test_env_admin_api_key_for_legal_attest():
+    os.environ["INTELLENS_API_KEY"] = "prod-admin-test-key"
+    t = client.post(
+        "/api/legal/attest",
+        headers={"X-API-Key": "prod-admin-test-key"},
+        json={"kind": "terms_privacy", "attested_by": "counsel@ocotillo.test"},
+    )
+    assert t.status_code == 200, t.text
+    os.environ.pop("INTELLENS_API_KEY", None)
+
+
 def test_legal_attest_and_retail_paywall():
     # Attest terms + SEBI with admin key
     t = client.post(

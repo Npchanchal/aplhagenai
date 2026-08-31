@@ -1,4 +1,4 @@
-/** Lightweight blog metadata for SEO (main bundle). Full bodies live in blogPosts.ts. */
+/** Lightweight blog metadata for SEO (main bundle). Regenerate: node scripts/extract-blog-meta.mjs */
 export type BlogMeta = {
   slug: string;
   title: string;
@@ -15,12 +15,12 @@ export const BLOG_META: BlogMeta[] = [
     "title": "Guidance Credibility Index (GCI): Definition for Equity Research",
     "description": "What is a Guidance Credibility Index? How GCI scores management guidance vs actuals for Indian equity research — with evidence, not tips.",
     "published": "2026-03-03",
-    "updated": "2026-08-22",
+    "updated": "2026-09-01",
     "tags": [
       "GCI",
       "Guidance credibility"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 8
   },
   {
     "slug": "sentiment-vs-guidance-delivery",
@@ -32,7 +32,7 @@ export const BLOG_META: BlogMeta[] = [
       "Sentiment",
       "GCI"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "reading-guidance-vs-actuals-india",
@@ -44,7 +44,7 @@ export const BLOG_META: BlogMeta[] = [
       "Indian earnings",
       "Guidance vs actuals"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "sensex-pilot-evidence-trail",
@@ -56,7 +56,7 @@ export const BLOG_META: BlogMeta[] = [
       "Sensex",
       "Evidence trail"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "gci-outcome-labels-explained",
@@ -68,7 +68,7 @@ export const BLOG_META: BlogMeta[] = [
       "GCI labels",
       "Glossary"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "point-in-time-gci-history",
@@ -80,7 +80,7 @@ export const BLOG_META: BlogMeta[] = [
       "Point-in-time",
       "API"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "hand-labeled-vs-demo-data",
@@ -92,7 +92,7 @@ export const BLOG_META: BlogMeta[] = [
       "Data quality",
       "Compliance"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "buy-side-gci-workflow",
@@ -104,7 +104,7 @@ export const BLOG_META: BlogMeta[] = [
       "Buy-side",
       "Workflow"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "sell-side-citing-guidance-delivery",
@@ -116,7 +116,7 @@ export const BLOG_META: BlogMeta[] = [
       "Sell-side",
       "Citations"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "concall-guidance-extraction-checklist",
@@ -128,7 +128,7 @@ export const BLOG_META: BlogMeta[] = [
       "Concalls",
       "HITL"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "nse-bse-ir-disclosure-formats",
@@ -141,7 +141,7 @@ export const BLOG_META: BlogMeta[] = [
       "BSE",
       "IR"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "vernacular-research-notes-factual",
@@ -153,7 +153,7 @@ export const BLOG_META: BlogMeta[] = [
       "Vernacular",
       "Compliance"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "peer-rank-sector-average-gci",
@@ -165,7 +165,7 @@ export const BLOG_META: BlogMeta[] = [
       "Peers",
       "Sector GCI"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "alerts-when-credibility-shifts",
@@ -177,7 +177,7 @@ export const BLOG_META: BlogMeta[] = [
       "Alerts",
       "Watchlist"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "api-first-gci-for-quant-desks",
@@ -189,7 +189,7 @@ export const BLOG_META: BlogMeta[] = [
       "GCI API",
       "Enterprise"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "sebi-oriented-product-design",
@@ -201,7 +201,7 @@ export const BLOG_META: BlogMeta[] = [
       "SEBI",
       "Product design"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "sensex-to-nifty-coverage-expansion",
@@ -213,7 +213,7 @@ export const BLOG_META: BlogMeta[] = [
       "Nifty",
       "Coverage"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "why-india-needs-local-guidance-tracker",
@@ -225,7 +225,7 @@ export const BLOG_META: BlogMeta[] = [
       "India",
       "Market"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "desk-console-review-queue-hitl",
@@ -237,7 +237,7 @@ export const BLOG_META: BlogMeta[] = [
       "Desk",
       "HITL"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   },
   {
     "slug": "trust-center-checklist-institutional-buyers",
@@ -249,7 +249,7 @@ export const BLOG_META: BlogMeta[] = [
       "Trust Center",
       "Enterprise"
     ],
-    "readingMinutes": 1
+    "readingMinutes": 2
   }
 ];
 

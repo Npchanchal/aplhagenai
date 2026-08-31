@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page not found — CiteAlpha</title>
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0d6e6e" />
+    <style>
+      :root {
+        --ink: #0e1a16;
+        --muted: #4a5852;
+        --accent: #0b6b5f;
+        --paper: #f7f8f5;
+        --line: #c5cdc6;
+        --sans: "Segoe UI", system-ui, sans-serif;
+        --serif: Georgia, "Times New Roman", serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: var(--sans);
+        color: var(--ink);
+        background: #e8ebe6;
+      }
+      main {
+        max-width: 560px;
+        width: 100%;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 28px 32px 32px;
+      }
+      h1 {
+        font-family: var(--serif);
+        font-size: 1.75rem;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.55;
+        margin: 0 0 1rem;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        margin-top: 1.25rem;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.55rem 1rem;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .cta:hover {
+        text-decoration: none;
+        filter: brightness(0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Page not found</h1>
+      <p>
+        That URL is not on CiteAlpha. Use the links below to reach the Guidance Credibility Index
+        (GCI) product, documentation, or support pages.
+      </p>
+      <a class="cta" href="/tracker">Open GCI Tracker</a>
+      <nav aria-label="Helpful links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/blog">Blog</a>
+        <a href="/help">Help</a>
+        <a href="/package">Packages</a>
+        <a href="/trust">Trust Center</a>
+        <a href="/pilot">Request a pilot</a>
+      </nav>
+      <p style="margin-top: 1.5rem; font-size: 0.92rem">
+        CiteAlpha · Ocotillo Innovation Private Limited · Factual research product; not investment advice.
+      </p>
+    </main>
+  </body>
+</html>

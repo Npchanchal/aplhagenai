@@ -6,6 +6,7 @@ import SiteFooter from "./components/SiteFooter";
 import SiteTour from "./components/SiteTour";
 import TourWelcome from "./components/TourWelcome";
 import LandingPage from "./pages/LandingPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import RouteFallback from "./components/RouteFallback";
 import PageAnalytics from "./components/PageAnalytics";
 import ConsentBanner from "./components/ConsentBanner";
@@ -27,6 +28,8 @@ const LegalPage = lazy(() => import("./pages/LegalPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const PackagePage = lazy(() => import("./pages/PackagePage"));
 const PilotRequestPage = lazy(() => import("./pages/PilotRequestPage"));
+const PressPage = lazy(() => import("./pages/PressPage"));
+const AnswersPage = lazy(() => import("./pages/AnswersPage"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ResearchPage = lazy(() => import("./pages/ResearchPage"));
@@ -190,6 +193,8 @@ export default function App() {
             </Route>
             <Route path="/package" element={<PackagePage />} />
             <Route path="/pilot" element={<PilotRequestPage />} />
+            <Route path="/answers" element={<AnswersPage />} />
+            <Route path="/press" element={<PressPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/rankings" element={<RankingsPage />} />
             <Route path="/about" element={<AboutPage />} />
@@ -216,20 +221,8 @@ export default function App() {
             <Route path="/terms" element={<LegalPage />} />
             <Route path="/privacy" element={<LegalPage />} />
             <Route path="/trust" element={<TrustPage />} />
-            <Route
-              path="*"
-              element={
-                <section className="page">
-                  <h1>{t("app.notFound.title")}</h1>
-                  <p className="muted">
-                    {t("app.notFound.lede", { path: location.pathname })}
-                  </p>
-                  <Link to="/tracker" className="btn">
-                    {t("app.notFound.cta")}
-                  </Link>
-                </section>
-              }
-            />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundPage path={location.pathname} />} />
           </Routes>
         </Suspense>
       </main>

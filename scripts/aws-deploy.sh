@@ -64,7 +64,7 @@ _load_tf_env() {
       INTELLENS_PUBLIC_URL)
         [[ -z "${TF_VAR_intellens_public_url:-}" ]] && export TF_VAR_intellens_public_url="$val"
         ;;
-      VITE_PLAUSIBLE_DOMAIN|VITE_GA_MEASUREMENT_ID|VITE_GSC_VERIFICATION)
+      VITE_PLAUSIBLE_DOMAIN|VITE_GA_MEASUREMENT_ID|VITE_GSC_VERIFICATION|VITE_BING_VERIFICATION|VITE_TWITTER_SITE)
         export "$key=$val"
         ;;
       RADAR_DIGEST)
@@ -108,6 +108,15 @@ _load_tf_env() {
         ;;
       SMTP_PASS)
         [[ -z "${TF_VAR_smtp_pass:-}" ]] && export TF_VAR_smtp_pass="$val"
+        ;;
+      INTELLENS_API_KEY)
+        [[ -z "${TF_VAR_intellens_api_key:-}" ]] && export TF_VAR_intellens_api_key="$val"
+        ;;
+      INTELLENS_ABUSE_SECRET)
+        [[ -z "${TF_VAR_intellens_abuse_secret:-}" ]] && export TF_VAR_intellens_abuse_secret="$val"
+        ;;
+      PILOT_REQUEST_TO)
+        [[ -z "${TF_VAR_pilot_request_to:-}" ]] && export TF_VAR_pilot_request_to="$val"
         ;;
       INTELLENS_AUTH_DEV_TOKENS)
         v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
@@ -160,6 +169,11 @@ if [[ -n "${TF_VAR_smtp_host:-}" ]]; then
 else
   echo "== No SMTP — verify/reset mail stays stubbed =="
 fi
+if [[ -n "${TF_VAR_intellens_api_key:-}" ]]; then
+  echo "== INTELLENS_API_KEY set (admin attest / ops) =="
+else
+  echo "== WARN: INTELLENS_API_KEY unset — run scripts/production-go-live.sh setup =="
+fi
 
 echo "== AWS identity =="
 aws sts get-caller-identity --region "$REGION"
@@ -183,6 +197,7 @@ else
     -target=aws_secretsmanager_secret_version.app
     -target=aws_iam_role_policy.ecs_execution_secrets
     -target=aws_sns_topic.alarms
+    -target=aws_sns_topic_subscription.alarms_email
     -target=aws_cloudwatch_metric_alarm.alb_5xx
     -target=aws_cloudwatch_metric_alarm.alb_unhealthy_hosts
     -target=aws_cloudwatch_metric_alarm.ecs_cpu_high
@@ -219,6 +234,8 @@ WEB_BUILD_ARGS=()
 [[ -n "${VITE_PLAUSIBLE_DOMAIN:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}")
 [[ -n "${VITE_GA_MEASUREMENT_ID:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}")
 [[ -n "${VITE_GSC_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GSC_VERIFICATION=${VITE_GSC_VERIFICATION}")
+[[ -n "${VITE_BING_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_BING_VERIFICATION=${VITE_BING_VERIFICATION}")
+[[ -n "${VITE_TWITTER_SITE:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_TWITTER_SITE=${VITE_TWITTER_SITE}")
 docker build "${BUILD_OPTS[@]}" "${WEB_BUILD_ARGS[@]}" -f "$ROOT/frontend/Dockerfile.aws" -t "${ECR_WEB}:${TAG}" "$ROOT/frontend"
 docker push "${ECR_WEB}:${TAG}"
 
@@ -271,4 +288,12 @@ curl -sf "${APP_URL}/api/meta" | python3 -m json.tool | head -20
 if [[ -n "${BOOTSTRAP_SUPER_EMAIL:-}" && -n "${BOOTSTRAP_SUPER_PASSWORD:-}" ]]; then
   echo "== Bootstrap platform super user =="
   python3 "$ROOT/scripts/bootstrap-super-user.py" --api "$APP_URL"
+fi
+
+if [[ -n "${TF_VAR_intellens_api_key:-}" ]]; then
+  echo "== Apply SQL auth schema on production =="
+  curl -sf -X POST "${APP_URL}/api/infra/db/migrate" \
+    -H "X-API-Key: ${TF_VAR_intellens_api_key}" >/dev/null \
+    && echo "SQL auth schema applied" \
+    || echo "WARN: db/migrate failed — check admin key and USE_DB_AUTH on task"
 fi

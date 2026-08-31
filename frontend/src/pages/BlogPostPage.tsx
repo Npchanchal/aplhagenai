@@ -1,7 +1,7 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import { getBlogPost, listBlogPosts } from "../lib/blogPosts";
-import { LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
+import { BLOG_BYLINE, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 
 export default function BlogPostPage() {
   const { slug = "" } = useParams();
@@ -23,7 +23,15 @@ export default function BlogPostPage() {
       <header className="blog-post-header">
         <h1>{post.title}</h1>
         <p className="blog-meta">
+          <span className="blog-byline">{BLOG_BYLINE}</span>
+          {" · "}
           <time dateTime={post.published}>{post.published}</time>
+          {post.updated && post.updated !== post.published ? (
+            <>
+              {" · "}
+              <time dateTime={post.updated}>Updated {post.updated}</time>
+            </>
+          ) : null}
           {" · "}
           {post.readingMinutes} min read
           {" · "}

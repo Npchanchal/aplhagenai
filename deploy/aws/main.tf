@@ -278,6 +278,55 @@ resource "aws_lb_listener" "https_managed" {
   }
 }
 
+# Canonical host: www → apex (SEO). Applies when HTTPS listener exists.
+resource "aws_lb_listener_rule" "www_to_apex_https" {
+  count        = local.https_on && local.domain_enabled ? 1 : 0
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 1
+
+  action {
+    type = "redirect"
+    redirect {
+      host        = var.domain_name
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+      path        = "/#{path}"
+      query       = "#{query}"
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["www.${var.domain_name}"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "www_to_apex_https_managed" {
+  count        = local.managed_https_on && !local.https_on && local.domain_enabled ? 1 : 0
+  listener_arn = aws_lb_listener.https_managed[0].arn
+  priority     = 1
+
+  action {
+    type = "redirect"
+    redirect {
+      host        = var.domain_name
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+      path        = "/#{path}"
+      query       = "#{query}"
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["www.${var.domain_name}"]
+    }
+  }
+}
+
 # --- Optional custom domain HTTPS (Route53 + ACM) ---
 
 resource "aws_route53_zone" "app" {
@@ -636,6 +685,9 @@ resource "aws_ecs_task_definition" "app" {
         var.csm_email != "" ? [
           { name = "CSM_EMAIL", value = var.csm_email }
         ] : [],
+        var.pilot_request_to != "" ? [
+          { name = "PILOT_REQUEST_TO", value = var.pilot_request_to }
+        ] : [],
         var.smtp_host != "" ? [
           { name = "SMTP_HOST", value = var.smtp_host },
           { name = "SMTP_PORT", value = var.smtp_port },
@@ -650,6 +702,12 @@ resource "aws_ecs_task_definition" "app" {
         ] : [
           { name = "INTELLENS_AUTH_DEV_TOKENS", value = "0" }
         ],
+        var.intellens_api_key != "" && !local.secrets_enabled ? [
+          { name = "INTELLENS_API_KEY", value = var.intellens_api_key }
+        ] : [],
+        var.intellens_abuse_secret != "" && !local.secrets_enabled ? [
+          { name = "INTELLENS_ABUSE_SECRET", value = var.intellens_abuse_secret }
+        ] : [],
         [
           { name = "RADAR_DIGEST", value = var.radar_digest ? "1" : "0" },
           { name = "IR_MIRROR", value = var.ir_mirror ? "1" : "0" },

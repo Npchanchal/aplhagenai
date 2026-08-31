@@ -56,6 +56,8 @@ function bootstrapGa4(): void {
   window.gtag("consent", "default", {
     analytics_storage: "denied",
     ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
     wait_for_update: 500,
   });
   window.gtag("config", GA_ID, { anonymize_ip: true, send_page_view: false });

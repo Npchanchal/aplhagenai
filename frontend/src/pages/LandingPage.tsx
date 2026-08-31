@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import LandingProofPanel from "../components/LandingProofPanel";
 import PilotRequestForm from "../components/PilotRequestForm";
 import { useI18n } from "../i18n";
 import { trackEvent } from "../lib/analytics";
 import { useAuth } from "../lib/auth";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
+import { SEO_STRUCTURED } from "../lib/seoJsonLd";
 import { showArchitecturePage } from "../lib/siteFlags";
 
 const SURFACES = [
@@ -75,6 +77,34 @@ export default function LandingPage() {
         ))}
       </div>
 
+      <div className="panel landing-explain" data-testid="landing-explain">
+        <h2 style={{ marginTop: 0 }}>{t("landing.explain.title")}</h2>
+        <p>{t("landing.explain.p1", { product: PRODUCT_NAME })}</p>
+        <p>{t("landing.explain.p2")}</p>
+        <p>{t("landing.explain.p3")}</p>
+        <p>{t("landing.explain.p4", { product: PRODUCT_NAME })}</p>
+        <p>
+          {t("landing.explain.p5")}{" "}
+          <Link to="/about#how">{t("landing.explain.methodology")}</Link>.
+        </p>
+        <p className="muted landing-sources">
+          {t("landing.sources")}:{" "}
+          <a href="https://www.nseindia.com/" rel="noopener noreferrer" target="_blank">
+            {t("landing.sources.nse")}
+          </a>
+          {" · "}
+          <a href="https://www.bseindia.com/" rel="noopener noreferrer" target="_blank">
+            {t("landing.sources.bse")}
+          </a>
+          {" · "}
+          <a href="https://www.sebi.gov.in/" rel="noopener noreferrer" target="_blank">
+            {t("landing.sources.sebi")}
+          </a>
+        </p>
+      </div>
+
+      <LandingProofPanel />
+
       <div className="panel landing-pilot" id="pilot-request">
         <h2 style={{ marginTop: 0 }}>{t("landing.pilot.title")}</h2>
         <p className="muted">{t("landing.pilot.lede")}</p>
@@ -90,6 +120,23 @@ export default function LandingPage() {
         </div>
       </div>
 
+      <div className="panel landing-faq-block" data-testid="landing-faq">
+        <h2 style={{ marginTop: 0 }}>Common questions</h2>
+        <dl className="glossary landing-faq">
+          {SEO_STRUCTURED.faq.slice(0, 3).map((item) => (
+            <div className="glossary-row" key={item.question}>
+              <dt>{item.question}</dt>
+              <dd className="seo-speakable">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="muted">
+          <Link to="/answers">All FAQ answers</Link>
+          {" · "}
+          <Link to="/blog/what-is-guidance-credibility-index">Full GCI definition</Link>
+        </p>
+      </div>
+
       <div className="panel landing-trust">
         <h2 style={{ marginTop: 0 }}>{t("landing.trust.title")}</h2>
         <ul className="about-list">
@@ -102,6 +149,8 @@ export default function LandingPage() {
           {" · "}
           <Link to="/rankings">{t("footer.rankings")}</Link>
           {" · "}
+          <Link to="/blog">{t("nav.blog")}</Link>
+          {" · "}
           <Link to="/trust">{t("footer.trust")}</Link>
           {showArchitecturePage ? (
             <>
@@ -111,6 +160,24 @@ export default function LandingPage() {
           ) : null}
           {" · "}
           <Link to="/login">{t("common.login")}</Link>
+        </p>
+        <p className="muted landing-share">
+          {t("landing.share")}:{" "}
+          <a
+            href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcitealpha.com%2F"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("landing.share.linkedin")}
+          </a>
+          {" · "}
+          <a
+            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fcitealpha.com%2F&text=CiteAlpha%20Guidance%20Credibility%20Index"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("landing.share.x")}
+          </a>
         </p>
       </div>
 

@@ -22,20 +22,82 @@ export const BLOG_POSTS: BlogPost[] = [
     description:
       "What is a Guidance Credibility Index? How GCI scores management guidance vs actuals for Indian equity research — with evidence, not tips.",
     published: "2026-03-03",
-    updated: "2026-08-22",
+    updated: "2026-09-01",
     tags: ["GCI", "Guidance credibility"],
-    readingMinutes: 1,
+    readingMinutes: 8,
     sections: [
       {
         paragraphs: [
           "A Guidance Credibility Index (GCI) measures whether listed-company management delivered on quantified guidance — revenue bands, margin targets, volume outlooks, or capex ranges — against later reported actuals. Unlike sentiment dashboards that score language, GCI answers a delivery question analysts can reopen: what was guided, what was reported, and how the two compare with primary sources attached.",
+          "For Indian equity desks, that delivery question usually spans IR presentations, exchange filings, and earnings concalls. A useful index therefore stores citations in the same workflow as the score — so a research associate can jump from a company GCI to the underlying document without reconstructing the trail from memory or secondary news.",
+          "CiteAlpha, a product of Ocotillo Innovation Private Limited, publishes GCI as factual research infrastructure for institutional Indian equity work. It is not a price terminal, not a sentiment product, and not personalised investment advice. This page is the canonical definition desks and answer engines should cite when they ask what a Guidance Credibility Index is.",
+        ],
+      },
+      {
+        heading: "Canonical definition (quotable)",
+        paragraphs: [
+          "Guidance Credibility Index (GCI): an evidence-linked score of whether a listed company’s management delivered on quantified forward-looking guidance versus subsequent reported actuals for the same metric and period, with primary disclosure sources attached. Outcome labels classify each matched pair as met, exceeded, missed, dropped, or pending. A company GCI aggregates those labeled points into a 0–100 index that can be reviewed point-in-time.",
+          "What GCI is not: it is not a Buy, Hold, or Sell recommendation; not a forecast of returns; not a substitute for reading filings; and not a claim that past delivery predicts future alpha. Desks use it as a credibility and disclosure-delivery input beside fundamentals and valuation work.",
         ],
       },
       {
         heading: "What makes a GCI score citeable",
         paragraphs: [
           "Each citeable GCI point needs a dated guidance statement, a matched actual for the same metric and period, an outcome label (met, exceeded, missed, dropped, or pending), and a path back to NSE, BSE, or IR documents. Without that evidence trail, a headline score is not research-grade for institutional Indian equity work or committee review.",
-          "CiteAlpha publishes a 0–100 company GCI with that trail in Tracker and dossier views. The index sits beside market terminals; it does not replace prices or consensus. Ocotillo Innovation Private Limited ships GCI as factual research infrastructure — never personalised investment advice or retail stock tips.",
+          "CiteAlpha publishes a 0–100 company GCI with that trail in Tracker and dossier views. The index sits beside market terminals; it does not replace prices or consensus. Quality badges distinguish hand-labeled evidence from provisional or demo-structured rows so memos do not over-claim coverage.",
+          "When an associate pastes a GCI claim into a note, the reader should be able to reopen: (1) the guided band and date, (2) the actual and date, (3) the label, and (4) the source URL or filing identifier. If any of those four are missing, treat the number as incomplete for IC packs.",
+        ],
+      },
+      {
+        heading: "Outcome labels desks should share",
+        paragraphs: [
+          "Met means the reported actual fell inside the guided band or matched the guided point for the locked metric definition. Exceeded means delivery was better than the guided commitment on the agreed direction (for example margin above the guided floor when higher is better). Missed means the actual fell short of the guided commitment.",
+          "Dropped means the commitment was not carried forward in later disclosures in a way the desk can still score — often called ghosted in informal conversation — and should be labeled explicitly rather than silently forgotten. Pending means the actual period has not yet been scored because the reporting event has not arrived or the match is still under review.",
+          "Shared labels matter more than synonyms. If one analyst writes “beat” and another writes “exceeded,” committee tables fracture. CiteAlpha standardises labels so peer ranks and time series stay comparable without implying a trade recommendation.",
+        ],
+      },
+      {
+        heading: "How GCI is built (methodology overview)",
+        paragraphs: [
+          "Ingest: IR decks, NSE and BSE filings, and transcripts enter a corpus with period and document-type metadata. Extract: quantified guidance statements are structured — ideally with human-in-the-loop review before they become citeable. Match: later actuals are paired to the same metric definition and period (consolidated versus standalone, INR versus USD, quarter versus fiscal year).",
+          "Score: labeled outcomes roll into company-level GCI with point-in-time history so backtests and longitudinal reviews do not peek ahead. Cite: every score point reopens to primary sources. That spine is India-first because local disclosure formats and vernacular IR pages differ from US-centric guidance products.",
+          "Desks should demand the same spine from any guidance-delivery product: PIT series, coverage metadata, evidence hooks, and honest data-quality badges. Automation without citation is a dashboard; citation without matching is a quote binder. GCI is the intersection.",
+        ],
+      },
+      {
+        heading: "India disclosure reality",
+        paragraphs: [
+          "Indian earnings research spans IR decks, exchange filings, and mixed-language concalls. Management guidance may appear as ranges, floors, or full-year targets restated mid-quarter. Before scoring, lock metric definition and period. NSE and BSE pages, plus company IR sites, remain the primary sources — not headlines that paraphrase guidance without the original band.",
+          "A local Guidance Credibility Index therefore prioritises depth on Sensex hand-labeled evidence before thin claims of full-market coverage. Expanding to Nifty and broader listings is valuable only when evidence trails stay reopenable. CiteAlpha’s beachhead follows that depth-before-breadth rule.",
+        ],
+      },
+      {
+        heading: "How desks typically use GCI",
+        paragraphs: [
+          "Common uses include appendix tables in initiation notes, longitudinal management reviews before IC, and watchlist screening for newly linked actuals. Buy-side teams may run a weekly screen of coverage lists for new misses or drops. Sell-side associates may add an auditable guidance-versus-actuals table without turning the note into tips.",
+          "In every case the product claim is the same: evidence-linked delivery history, not a forecast of returns or a recommendation label. If a memo needs sentiment, keep it in a separate paragraph with separate sources so tone never overrides the delivery table.",
+        ],
+      },
+      {
+        heading: "GCI versus sentiment and versus prices",
+        paragraphs: [
+          "Sentiment analysis captures tone, media framing, and narrative shifts. It does not answer whether management delivered the number they guided. A warm concall can precede a miss; cautious language can precede an exceed. Delivery is a disclosure question; sentiment is a language question.",
+          "Market terminals answer price and volume questions. GCI answers a different question on the same coverage list. CiteAlpha is designed to sit beside terminals, not replace them. Mixing GCI into a single “conviction score” that also embeds sentiment and price momentum destroys auditability.",
+        ],
+      },
+      {
+        heading: "Compliance and claim hygiene",
+        paragraphs: [
+          "Institutional buyers should ask whether a GCI vendor shows counsel status honestly, separates hand-labeled from provisional data, and refuses retail recommendation language. CiteAlpha Trust Center and About pages restate that the product is factual research tooling from Ocotillo Innovation Private Limited — not SEBI registered investment advice in the retail sense of tip sheets.",
+          "When publishing or citing GCI externally, prefer: “Management delivered / missed guided X for period Y per sources Z” over “management is credible, therefore buy.” The first sentence is research. The second is a recommendation CiteAlpha does not make.",
+        ],
+      },
+      {
+        heading: "Where to go next on CiteAlpha",
+        paragraphs: [
+          "Open the GCI Tracker to screen Sensex and Nifty names with evidence links. Read the outcome-labels article for shared vocabulary. Use Desk for human-in-the-loop review queues, Research for cite-only filing search, and Trust Center for buyer diligence. Package pages describe pilot and API options for Indian equity desks.",
+          "For a one-line citation: CiteAlpha’s Guidance Credibility Index scores whether Indian listed management delivered on quantified guidance versus later actuals, with primary sources attached — factual research, not investment advice.",
+          "Bookmark this URL as the definitional source of record for GCI on CiteAlpha. When methodology details change, the updated date on this article should move with them so desks and answer engines can trust temporal consistency.",
         ],
       },
     ],
@@ -48,7 +110,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-03-10",
     updated: "2026-08-22",
     tags: ["Sentiment", "GCI"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -62,6 +124,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha stays on the delivery side so every GCI claim stays auditable. If a note needs both signals, keep separate paragraphs and separate sources. Desks that maintain the split write clearer research and avoid implying that positive language equals reliable guidance delivery.",
         ],
       },
+      {
+        heading: "Practical memo layout",
+        paragraphs: [
+          "A clean pattern is: (1) guided metric and period with citation, (2) reported actual with citation, (3) GCI outcome label, then optionally (4) a short sentiment or narrative paragraph that never overrides the delivery facts. Committees can challenge tone; they should not have to untangle tone from the guidance table.",
+        ],
+      },
     ],
   },
   {
@@ -72,7 +140,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-03-17",
     updated: "2026-08-22",
     tags: ["Indian earnings", "Guidance vs actuals"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -86,6 +154,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha's extract-and-review loop lets machines propose candidates while humans Accept, Edit, or Reject before anything enters GCI math for Indian listed names. That human gate protects research quality at the source and keeps guidance-versus-actual tables defensible under desk scrutiny and research committee challenge.",
         ],
       },
+      {
+        heading: "Common matching pitfalls",
+        paragraphs: [
+          "Watch for guidance stated on one basis (for example, volume) and actuals reported on another (for example, revenue), mid-year range resets that replace prior guides, and pending rows where the period has not yet closed. When the match is ambiguous, leave the outcome pending rather than forcing a label that cannot be defended from the document set.",
+        ],
+      },
     ],
   },
   {
@@ -96,7 +170,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-03-24",
     updated: "2026-08-22",
     tags: ["Sensex", "Evidence trail"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -110,6 +184,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Demo-structured rows train product flows; hand-labeled IR-backed rows are what you cite in notes. Prefer quality badges over vanity ticker counts when evaluating guidance credibility tooling for Indian equities. Sensex depth with citations beats shallow Nifty breadth every time for institutional adoption and vendor due diligence.",
         ],
       },
+      {
+        heading: "What buyers should sample in a pilot",
+        paragraphs: [
+          "Ask for a handful of Sensex dossiers with openable citations, quality badges visible on each row, and a clear statement of which outcomes are hand-labeled. A short, inspectable trail is more useful in procurement than a coverage map without sample evidence.",
+        ],
+      },
     ],
   },
   {
@@ -120,7 +200,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-03-31",
     updated: "2026-08-22",
     tags: ["GCI labels", "Glossary"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -134,6 +214,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha uses this vocabulary in Tracker and Desk so GCI rows stay comparable across coverage lists and through point-in-time history used in longitudinal management reviews. Shared labels make multi-analyst GCI coverage auditable and reduce ambiguity when teams hand off names mid-quarter.",
         ],
       },
+      {
+        heading: "House-style tip for research teams",
+        paragraphs: [
+          "Document how your desk treats one-sided floors, qualitative outlooks without numbers, and mid-period replacements of prior guides. Aligning house rules to these five labels keeps CiteAlpha rows and internal memos using the same language when coverage rotates.",
+        ],
+      },
     ],
   },
   {
@@ -144,7 +230,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-04-07",
     updated: "2026-08-22",
     tags: ["Point-in-time", "API"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -158,6 +244,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "When writing that management has chronically missed, cite the PIT window and evidence rows, not a screenshot of today's Tracker alone. That habit keeps longitudinal claims defensible under committee scrutiny, separates research-grade history from live-screen convenience, and prevents look-ahead bias in quant backtests and vendor model reviews.",
         ],
       },
+      {
+        heading: "What to request in an RFP",
+        paragraphs: [
+          "Ask whether corrections to accepted extracts revise historical as-of views, how pending flips appear in series, and whether quality badges travel with each PIT row. Those answers matter more for production models than interactive chart polish alone.",
+        ],
+      },
     ],
   },
   {
@@ -168,7 +260,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-04-14",
     updated: "2026-08-22",
     tags: ["Data quality", "Compliance"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -182,6 +274,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Align pitch language with labeled cohort reality. Trust Center and customer compliance docs share the same posture: research tooling for management delivery history, not investment advice and not a tip sheet. Badge-first citation protects institutional research credibility, vendor trust, and the analyst's ability to defend every row in a published guidance table.",
         ],
       },
+      {
+        heading: "Internal vs external use",
+        paragraphs: [
+          "Demo rows are fine for training new associates on Tracker navigation. External citations, RFP responses, and client appendices should stick to hand-labeled evidence — or clearly mark any provisional row as not for citation.",
+        ],
+      },
     ],
   },
   {
@@ -192,7 +290,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-04-21",
     updated: "2026-08-22",
     tags: ["Buy-side", "Workflow"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -206,6 +304,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "The standing research question is simple: what did management promise last time? Keep that question for Indian coverage lists while your market terminal remains the home for live prices and consensus. Habit beats one-off screens for buy-side GCI adoption across quarters.",
         ],
       },
+      {
+        heading: "Weekly triage checklist",
+        paragraphs: [
+          "Flag material label changes, newly linked actuals, and dropped guides; open the dossier only for names already on the IC or watchlist calendar; archive citations into the memo folder before the meeting. That rhythm keeps GCI as research hygiene rather than an extra inbox stream.",
+        ],
+      },
     ],
   },
   {
@@ -216,7 +320,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-04-28",
     updated: "2026-08-22",
     tags: ["Sell-side", "Citations"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -230,6 +334,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "When extraction looks wrong, use Desk Accept, Edit, or Reject so the corpus improves. Correcting a guidance band today prevents a false miss in tomorrow's GCI and protects the evidence trail your compliance team may audit later during research-analyst certification reviews. Citation quality is the sell-side edge CiteAlpha supports.",
         ],
       },
+      {
+        heading: "Appendix table fields to include",
+        paragraphs: [
+          "Period, metric, guided statement with date, actual with date, outcome label, quality badge, and primary-source link. Those columns let editors and compliance reopen the claim without asking the associate to reconstruct the trail from chat history.",
+        ],
+      },
     ],
   },
   {
@@ -240,7 +350,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-05-05",
     updated: "2026-08-22",
     tags: ["Concalls", "HITL"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -254,6 +364,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha Desk is built for this human-in-the-loop step so GCI math only sees accepted evidence from reviewed concall and filing extracts across your Indian coverage list. HITL review is mandatory before concall guidance enters scored history, peer ranks, or client-facing tables distributed outside the firm.",
         ],
       },
+      {
+        heading: "Quick review checklist",
+        paragraphs: [
+          "Confirm speaker role, metric units, period, whether the statement is forward guidance versus reported actual, and whether a later part of the same call withdrew or restated the number. If any check fails, Edit or Reject before the row can affect company GCI.",
+        ],
+      },
     ],
   },
   {
@@ -264,7 +380,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-05-12",
     updated: "2026-08-22",
     tags: ["NSE", "BSE", "IR"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -278,6 +394,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha prioritises crawl and citation of Indian IR and exchange documents so GCI claims stay inspectable under desk scrutiny and research committee challenge. Local primary sources are the spine of Indian GCI evidence — not scraped headlines, unverified social posts, or third-party summaries without document links.",
         ],
       },
+      {
+        heading: "Where analysts usually look first",
+        paragraphs: [
+          "Exchange corporate announcements, results PDFs, investor-presentation decks, and official transcripts or IR audio pages when available. Record the document date with the citation so later restatements can be ordered correctly in the evidence trail.",
+        ],
+      },
     ],
   },
   {
@@ -288,7 +410,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-05-19",
     updated: "2026-08-22",
     tags: ["Vernacular", "Compliance"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -302,6 +424,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Factual multi-language blurbs support distribution across Indian desks and partners. They are not a retail tip product and must not be marketed as investment advice under any language label. Consistent disclaimers across locales reduce regulatory ambiguity for cross-border research teams, vernacular distribution partners, and compliance reviewers.",
         ],
       },
+      {
+        heading: "What to keep identical across languages",
+        paragraphs: [
+          "Metric names where possible, period labels, outcome vocabulary (met, exceeded, missed, dropped, pending), quality badge meaning, and the not-investment-advice disclaimer. Consistency across locales prevents a translated blurb from sounding stronger than the English evidence supports.",
+        ],
+      },
     ],
   },
   {
@@ -312,7 +440,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-05-26",
     updated: "2026-08-22",
     tags: ["Peers", "Sector GCI"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -326,6 +454,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha surfaces peer and sector context beside evidence so relative guidance credibility claims stay inspectable in Tracker and dossier views for institutional users. Disclose the cohort or peer-rank GCI misleads readers, undermines cross-vendor comparisons during vendor bake-offs, and weakens IC discussions on relative management quality.",
         ],
       },
+      {
+        heading: "Safe wording for memos",
+        paragraphs: [
+          "Prefer phrases such as “relative delivery history within the stated cohort” over language that implies outperformance of the stock or a ranked buy list. Attach the cohort definition and quality mix whenever peer rank appears in an IC pack.",
+        ],
+      },
     ],
   },
   {
@@ -336,7 +470,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-06-02",
     updated: "2026-08-22",
     tags: ["Alerts", "Watchlist"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -350,6 +484,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "CiteAlpha watchlist and alert surfaces are built for that narrow-first approach so guidance credibility shifts get attention when they matter to the memo calendar. Narrow GCI alerts protect desk attention for real shifts that warrant dossier review before the next earnings cycle and before guidance tables go into client materials.",
         ],
       },
+      {
+        heading: "Suggested material events",
+        paragraphs: [
+          "New miss or exceed after a linked actual, dropped quantified guidance, large multi-quarter score moves on IC names, and quality-badge upgrades from demo to hand-labeled on a name you already cite. Leave micro-edits and cosmetic extract tidy-ups out of the default feed.",
+        ],
+      },
     ],
   },
   {
@@ -360,7 +500,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-06-09",
     updated: "2026-08-22",
     tags: ["GCI API", "Enterprise"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -374,6 +514,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Evaluate the feed as research infrastructure for management guidance credibility — never as a signal marketed like a tip sheet or automated trading input sold to retail users. Demand PIT fields, quality badges, and evidence hooks before you integrate any GCI API into production models or client-facing dashboards.",
         ],
       },
+      {
+        heading: "Fields that usually matter in integration",
+        paragraphs: [
+          "Company and listing identifiers, as-of timestamp, score and outcome series, quality badge, citation or document id for exception review, and cohort metadata when peer context is included. Missing any of those makes production wiring fragile.",
+        ],
+      },
     ],
   },
   {
@@ -384,7 +530,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-06-16",
     updated: "2026-08-22",
     tags: ["SEBI", "Product design"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -398,6 +544,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Institutional buyers should ask vendors where advice begins. If a credibility score is sold as a trade signal, demand the research-analyst framework behind it — or walk away from the pilot conversation. Research-versus-advice clarity is a product requirement in India, not a footnote on a landing page.",
         ],
       },
+      {
+        heading: "Questions for vendor reviews",
+        paragraphs: [
+          "Does the UI expose Buy/Hold/Sell or tip language? Are disclaimers present on scored surfaces? Are demo and hand-labeled rows distinguishable? Do marketing claims match labeled coverage? Those checks protect both the buyer’s compliance posture and the integrity of published research that cites GCI.",
+        ],
+      },
     ],
   },
   {
@@ -408,7 +560,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-06-23",
     updated: "2026-08-22",
     tags: ["Nifty", "Coverage"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -422,6 +574,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "Desks evaluating vendors should ask for labeled statement counts by universe and evidence samples, not only total tickers on a coverage map. Labeling capacity should gate every Nifty coverage claim before procurement teams sign a multi-year data contract or cite scores in external research.",
         ],
       },
+      {
+        heading: "Expansion checklist",
+        paragraphs: [
+          "Confirm review throughput for new names, primary-source ingest for IR and exchange documents, actuals-matching rules for the added universe, and badge honesty for any provisional rows. Breadth without those gates is a coverage claim, not a research corpus.",
+        ],
+      },
     ],
   },
   {
@@ -432,7 +590,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-06-30",
     updated: "2026-08-22",
     tags: ["India", "Market"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -446,6 +604,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "API export to global platforms can follow. Rebuilding US-first and localising India later usually fails the evidence and citation test desks care about most when they buy research data. Local spine first is how India guidance tracking actually works in production — not as a late localisation pass.",
         ],
       },
+      {
+        heading: "Why localisation alone is not enough",
+        paragraphs: [
+          "Translated UI strings do not fix mismatched document types, metric conventions, or review workflows. Desks trust citations that open the Indian primary they already use — exchange filings and IR decks — with labels defined for that disclosure reality.",
+        ],
+      },
     ],
   },
   {
@@ -456,7 +620,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-07-07",
     updated: "2026-08-22",
     tags: ["Desk", "HITL"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -470,6 +634,12 @@ export const BLOG_POSTS: BlogPost[] = [
           "If your vendor hides review behind a black-box score, ask how corrections enter the historical series and whether point-in-time exports reflect those corrections for audit and model use. Review queues turn extraction noise into trusted GCI history desks can cite with confidence in notes and compliance reviews.",
         ],
       },
+      {
+        heading: "Operating rhythm for a review queue",
+        paragraphs: [
+          "Triage by coverage priority, clear ambiguous candidates the same day when possible, and require a short reject note when context fails. A visible queue ownership model keeps GCI quality from depending on a single associate’s inbox.",
+        ],
+      },
     ],
   },
   {
@@ -480,7 +650,7 @@ export const BLOG_POSTS: BlogPost[] = [
     published: "2026-07-14",
     updated: "2026-08-22",
     tags: ["Trust Center", "Enterprise"],
-    readingMinutes: 1,
+    readingMinutes: 2,
     sections: [
       {
         paragraphs: [
@@ -492,6 +662,12 @@ export const BLOG_POSTS: BlogPost[] = [
         paragraphs: [
           "Ask for labeled coverage counts, SLA language, and an explicit not-investment-advice statement. Open the Trust Center and Package pages on citealpha.com, or email sales@citealpha.com for a time-boxed pilot with your coverage list, compliance questionnaire, and security review checklist attached.",
           "CiteAlpha is a product of Ocotillo Innovation Private Limited — factual GCI research tooling for Indian equity desks, not investment advice and not a retail tip product sold as trade signals. Run the Trust Center checklist before any paid GCI rollout, external citation in client materials, or firm-wide API integration.",
+        ],
+      },
+      {
+        heading: "Pilot claim-hygiene checklist",
+        paragraphs: [
+          "Verify legal entity naming, labeled versus demo counts for your universe, disclaimer presence on GCI surfaces, evidence samples for at least a few IC names, and that marketing language never frames the score as a tip or trade signal. Document the answers before the pilot expands beyond a time-boxed desk trial.",
         ],
       },
     ],

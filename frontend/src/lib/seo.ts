@@ -1,5 +1,15 @@
 import { getBlogMeta, listBlogMeta } from "./blogMeta";
 import seoRoutes from "./seoRoutes.json";
+import {
+  blogSeoTitle,
+  extraJsonLdForPath,
+  faqJsonLd,
+  howToGciJsonLd,
+  orgJsonLd,
+  speakableJsonLd,
+  websiteJsonLd,
+  SITE,
+} from "./seoJsonLd";
 
 export type SeoConfig = {
   path: string;
@@ -8,6 +18,8 @@ export type SeoConfig = {
   robots?: string;
   type?: "website" | "article";
   jsonLd?: Record<string, unknown>;
+  extraJsonLd?: Record<string, unknown>[];
+  ogImageAlt?: string;
 };
 
 type SeoRouteEntry = {
@@ -28,7 +40,6 @@ const STATIC: Record<string, Omit<SeoConfig, "path">> = Object.fromEntries(
   (seoRoutes as SeoRouteEntry[]).map(({ path, ...rest }) => [path, rest]),
 );
 
-/** Dev-only route; production redirects to /about. */
 STATIC["/about/architecture"] = {
   title: "Architecture & Design — CiteAlpha",
   description:
@@ -40,7 +51,7 @@ function blogIndexJsonLd(): Record<string, unknown> {
     "@context": "https://schema.org",
     "@type": "Blog",
     name: "CiteAlpha Research Blog",
-    url: "https://citealpha.com/blog",
+    url: `${SITE}/blog`,
     publisher: {
       "@type": "Organization",
       name: "CiteAlpha",
@@ -49,10 +60,33 @@ function blogIndexJsonLd(): Record<string, unknown> {
     blogPost: listBlogMeta().map((p) => ({
       "@type": "BlogPosting",
       headline: p.title,
-      url: `https://citealpha.com/blog/${p.slug}`,
+      url: `${SITE}/blog/${p.slug}`,
       datePublished: p.published,
       description: p.description,
     })),
+  };
+}
+
+function blogPostJsonLd(post: ReturnType<typeof getBlogMeta>): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post!.title,
+    description: post!.description,
+    datePublished: post!.published,
+    dateModified: post!.updated ?? post!.published,
+    author: {
+      "@type": "Organization",
+      name: "CiteAlpha",
+      legalName: "Ocotillo Innovation Private Limited",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "CiteAlpha",
+      logo: { "@type": "ImageObject", url: `${SITE}/citealpha-logo.png` },
+    },
+    mainEntityOfPage: `${SITE}/blog/${post!.slug}`,
+    image: `${SITE}/og-image.png`,
   };
 }
 
@@ -62,34 +96,22 @@ export function resolveSeo(pathname: string): SeoConfig {
     const slug = pathname.slice("/blog/".length).replace(/\/$/, "");
     const post = getBlogMeta(slug);
     if (post) {
+      const title = blogSeoTitle(slug, post.title);
+      const extra =
+        slug === "what-is-guidance-credibility-index"
+          ? [
+              faqJsonLd(),
+              speakableJsonLd(`${SITE}/blog/${slug}`),
+            ]
+          : undefined;
       return {
         path: `/blog/${post.slug}`,
-        title: `${post.title} — CiteAlpha Blog`,
+        title,
         description: post.description,
         type: "article",
-        jsonLd: {
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          headline: post.title,
-          description: post.description,
-          datePublished: post.published,
-          dateModified: post.updated ?? post.published,
-          author: {
-            "@type": "Organization",
-            name: "CiteAlpha",
-            legalName: "Ocotillo Innovation Private Limited",
-          },
-          publisher: {
-            "@type": "Organization",
-            name: "CiteAlpha",
-            logo: {
-              "@type": "ImageObject",
-              url: "https://citealpha.com/citealpha-logo.png",
-            },
-          },
-          mainEntityOfPage: `https://citealpha.com/blog/${post.slug}`,
-          image: "https://citealpha.com/og-image.png",
-        },
+        ogImageAlt: `${post.title} — CiteAlpha Research Blog`,
+        jsonLd: blogPostJsonLd(post),
+        extraJsonLd: extra,
       };
     }
   }
@@ -115,14 +137,30 @@ export function resolveSeo(pathname: string): SeoConfig {
 
   if (pathname.startsWith("/sights")) {
     const hit = STATIC[pathname] || STATIC["/sights"];
-    return { path: pathname, ...hit };
+    return {
+      path: pathname,
+      ...hit,
+      ogImageAlt: hit.title,
+    };
   }
 
   const staticHit = STATIC[pathname];
   if (staticHit) {
-    const seo: SeoConfig = { path: pathname, ...staticHit };
+    const seo: SeoConfig = {
+      path: pathname,
+      ...staticHit,
+      ogImageAlt: staticHit.title,
+    };
     if (pathname === "/blog") {
       seo.jsonLd = blogIndexJsonLd();
+      seo.extraJsonLd = [orgJsonLd()];
+    } else if (pathname === "/") {
+      seo.jsonLd = websiteJsonLd();
+      seo.extraJsonLd = extraJsonLdForPath("/");
+    } else if (pathname === "/about" || pathname === "/about/tiers") {
+      seo.extraJsonLd = [howToGciJsonLd()];
+    } else if (pathname === "/answers" || pathname === "/help") {
+      seo.extraJsonLd = [faqJsonLd()];
     }
     return seo;
   }

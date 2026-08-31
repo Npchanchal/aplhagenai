@@ -285,3 +285,23 @@ variable "fargate_spot_weight" {
   default     = 0
   description = "Fargate Spot weight when on_demand_base >= 1 (0 = on-demand only)"
 }
+
+variable "intellens_api_key" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Production admin API key (INTELLENS_API_KEY) — not intellens-demo"
+}
+
+variable "intellens_abuse_secret" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "HMAC secret for abuse challenge (INTELLENS_ABUSE_SECRET)"
+}
+
+variable "pilot_request_to" {
+  type        = string
+  default     = ""
+  description = "Inbound pilot request mailbox (PILOT_REQUEST_TO)"
+}

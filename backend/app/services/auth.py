@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Optional
 
 from fastapi import Header, HTTPException
@@ -9,19 +10,42 @@ from fastapi import Header, HTTPException
 from app.data.seed import get_data
 
 
-def resolve_api_key(x_api_key: Optional[str] = Header(default=None)) -> Dict[str, Any]:
-    if not x_api_key:
-        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+def _env_admin_key_row() -> Optional[Dict[str, Any]]:
+    """Rotated production admin key — survives redeploy via ECS env / Secrets Manager."""
+    key = (os.environ.get("INTELLENS_API_KEY") or "").strip()
+    if not key:
+        return None
+    return {
+        "key": key,
+        "org": "platform",
+        "role": "admin",
+        "platform_admin_role": "super",
+    }
+
+
+def _lookup_api_key(x_api_key: str) -> Optional[Dict[str, Any]]:
+    env_row = _env_admin_key_row()
+    if env_row and x_api_key == env_row["key"]:
+        return env_row
     for row in get_data().get("api_keys", []):
         if row["key"] == x_api_key:
             return row
+    return None
+
+
+def resolve_api_key(x_api_key: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    if not x_api_key:
+        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+    row = _lookup_api_key(x_api_key)
+    if row:
+        return row
     raise HTTPException(status_code=403, detail="Invalid API key")
 
 
 def optional_api_key(x_api_key: Optional[str] = Header(default=None)) -> Optional[Dict[str, Any]]:
     if not x_api_key:
         return None
-    for row in get_data().get("api_keys", []):
-        if row["key"] == x_api_key:
-            return row
+    row = _lookup_api_key(x_api_key)
+    if row:
+        return row
     raise HTTPException(status_code=403, detail="Invalid API key")

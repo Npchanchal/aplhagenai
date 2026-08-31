@@ -1232,9 +1232,23 @@ export function fetchTrustBadgeChannel(ticker: string): Promise<{
   return getJson(`/api/channel/trust-badge/${encodeURIComponent(ticker)}`);
 }
 
-export function fetchMetaFlags(): Promise<{
+export function fetchMetaFlags(): Promise<ProductMeta> {
+  return fetchProductMeta();
+}
+
+export type ProductMeta = {
+  version: string;
+  company_count: number;
+  hand_labeled_count: number;
+  demo_structured_count: number;
+  gci_scored_count: number;
+  gci_listing_scored_count: number;
+  gci_algorithm: string;
+  gci_listing_as_of?: string | null;
   feature_flags?: Record<string, boolean | string>;
-}> {
+};
+
+export function fetchProductMeta(): Promise<ProductMeta> {
   return getJson("/api/meta");
 }
 

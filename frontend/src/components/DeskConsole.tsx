@@ -4,6 +4,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
 import ChangeChip from "./ChangeChip";
 import { LineChart } from "./Charts";
 import QualityBadge from "./QualityBadge";
@@ -175,13 +176,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
     <div className="il-console" data-testid="desk-console">
       <header className="ilc-top">
         <div className="ilc-brand" aria-label="CiteAlpha Console">
-          <img
-            src="/citealpha-logo.png"
-            alt="CiteAlpha"
-            className="ilc-logo-img ilc-logo-wordmark"
-            width={120}
-            height={28}
-          />
+          <BrandLogo variant="header" link={false} className="ilc-logo-wordmark" />
           <span className="ilc-product">GCI Console</span>
         </div>
         <form

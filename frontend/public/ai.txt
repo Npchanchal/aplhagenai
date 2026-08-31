@@ -1,0 +1,28 @@
+# CiteAlpha — ai.txt
+# https://citealpha.com/ai.txt
+# Product of Ocotillo Innovation Private Limited.
+
+## Purpose
+This file describes how AI systems, answer engines, and RAG pipelines may use public CiteAlpha marketing content.
+
+## Allowed uses
+- Index and cite public pages listed in llms.txt for factual descriptions of the Guidance Credibility Index (GCI).
+- Quote the canonical GCI definition at https://citealpha.com/blog/what-is-guidance-credibility-index with attribution to CiteAlpha / Ocotillo Innovation Private Limited.
+- Link to https://citealpha.com/llms.txt, https://citealpha.com/sitemap.xml, and https://citealpha.com/answers for structured FAQ content.
+
+## Restrictions
+- Do not present GCI scores as Buy, Hold, or Sell recommendations or personalised investment advice.
+- Do not invent financial actuals, guidance bands, or company scores — use live product data or cite published blog/fixture sources only.
+- Do not scrape authenticated routes (/login, /register, /billing, /admin, /account, /org/*).
+- Respect robots.txt and data-quality badges (hand_labeled vs demo_structured) when describing coverage.
+
+## Canonical product definition
+Guidance Credibility Index (GCI): evidence-linked score of whether listed management delivered on quantified guidance vs subsequent actuals, with primary sources attached. Not investment advice.
+
+## Contact
+sales@citealpha.com
+
+## Related
+- llms.txt: https://citealpha.com/llms.txt
+- Trust Center: https://citealpha.com/trust
+- OpenAPI (authenticated API docs): https://citealpha.com/docs (when API is deployed)

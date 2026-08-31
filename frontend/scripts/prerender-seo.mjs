@@ -1,10 +1,25 @@
 /**
  * Post-build: prerender route-specific HTML + generate sitemap.xml
- * so crawlers see correct title, canonical, robots, and crawlable intro text.
+ * so crawlers see correct title, canonical, robots, and crawlable body text.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  SITE,
+  INDEXNOW_KEY,
+  loadStructured,
+  orgJsonLd,
+  websiteJsonLd,
+  softwareJsonLd,
+  faqJsonLd,
+  extraJsonLdForPath,
+  speakableJsonLd,
+  blogSeoTitle,
+  marketingBodyHtml,
+  buildImageSitemap,
+  pingIndexNow,
+} from "./seo-shared.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -12,13 +27,16 @@ const DIST = path.join(ROOT, "dist");
 const PUBLIC = path.join(ROOT, "public");
 const BLOG_TS = path.join(ROOT, "src/lib/blogPosts.ts");
 const SEO_ROUTES = path.join(ROOT, "src/lib/seoRoutes.json");
-const SITE = "https://citealpha.com";
+const GLOSSARY_TS = path.join(ROOT, "src/lib/glossary.ts");
+const BUILD_DAY = new Date().toISOString().slice(0, 10);
+const STRUCTURED = loadStructured(ROOT);
 
 function esc(s) {
-  return s
+  return String(s)
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;");
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function loadSeoRoutes() {
@@ -28,36 +46,122 @@ function loadSeoRoutes() {
 function parseBlogPosts() {
   const src = fs.readFileSync(BLOG_TS, "utf8");
   const posts = [];
-  const re =
-    /slug:\s*"([^"]+)"[\s\S]*?title:\s*"((?:[^"\\]|\\.)*)"[\s\S]*?description:\s*\n\s*"((?:[^"\\]|\\.)*)"[\s\S]*?published:\s*"([^"]+)"(?:[\s\S]*?updated:\s*"([^"]+)")?/g;
-  let m;
-  while ((m = re.exec(src)) !== null) {
+  const chunks = src.split(/\n\s*{\s*\n\s*slug:\s*/).slice(1);
+
+  function extractSections(text) {
+    const sections = [];
+    let i = 0;
+    while (true) {
+      const pIdx = text.indexOf("paragraphs:", i);
+      if (pIdx < 0) break;
+      const braceStart = text.lastIndexOf("{", pIdx);
+      const objSlice = text.slice(braceStart, pIdx);
+      const hm = objSlice.match(/heading:\s*"((?:[^"\\]|\\.)*)"/);
+      const bracket = text.indexOf("[", pIdx);
+      let depth = 0;
+      let j = bracket;
+      for (; j < text.length; j++) {
+        if (text[j] === "[") depth++;
+        else if (text[j] === "]") {
+          depth--;
+          if (depth === 0) {
+            j++;
+            break;
+          }
+        }
+      }
+      const arr = text.slice(bracket + 1, j - 1);
+      const paragraphs = [];
+      const pRe = /"((?:[^"\\]|\\.)*)"/g;
+      let pm;
+      while ((pm = pRe.exec(arr)) !== null) {
+        paragraphs.push(pm[1].replace(/\\"/g, '"').replace(/\\n/g, "\n"));
+      }
+      if (paragraphs.length) {
+        sections.push({
+          heading: hm ? hm[1].replace(/\\"/g, '"') : undefined,
+          paragraphs,
+        });
+      }
+      i = j;
+    }
+    return sections;
+  }
+
+  for (const chunk of chunks) {
+    const slugM = chunk.match(/^"([^"]+)"/);
+    if (!slugM) continue;
+    const titleM = chunk.match(/title:\s*"((?:[^"\\]|\\.)*)"/);
+    const descM = chunk.match(/description:\s*\n?\s*"((?:[^"\\]|\\.)*)"/);
+    const pubM = chunk.match(/published:\s*"([^"]+)"/);
+    const updM = chunk.match(/updated:\s*"([^"]+)"/);
+    if (!titleM || !descM || !pubM) continue;
+    const secIdx = chunk.indexOf("sections:");
+    const sections = secIdx >= 0 ? extractSections(chunk.slice(secIdx)) : [];
     posts.push({
-      slug: m[1],
-      title: m[2].replace(/\\"/g, '"'),
-      description: m[3].replace(/\\"/g, '"'),
-      published: m[4],
-      updated: m[5] || m[4],
+      slug: slugM[1],
+      title: titleM[1].replace(/\\"/g, '"'),
+      description: descM[1].replace(/\\"/g, '"'),
+      published: pubM[1],
+      updated: updM ? updM[1] : pubM[1],
+      sections,
     });
   }
   return posts;
 }
 
-function crawlFallback(seo) {
-  if ((seo.robots ?? "index,follow").includes("noindex")) {
-    return "";
+function rootFallbackHtml(seo) {
+  if ((seo.robots ?? "index,follow").includes("noindex") && !seo.bodyHtml) {
+    return `<div id="root"></div>`;
   }
-  return `
-    <div id="seo-crawl-fallback" aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">
-      <h1>${esc(seo.title)}</h1>
-      <p>${esc(seo.description)}</p>
+  if (seo.bodyHtml) {
+    return `<div id="root">${seo.bodyHtml}</div>`;
+  }
+  return `<div id="root">
+      <main>
+        <h1>${esc(seo.title)}</h1>
+        <p>${esc(seo.description)}</p>
+      </main>
     </div>`;
+}
+
+function blogArticleHtml(post) {
+  const parts = [
+    `<article>`,
+    `<h1>${esc(post.title)}</h1>`,
+    `<p><strong>CiteAlpha Research · Ocotillo Innovation Private Limited</strong> · Published ${esc(post.published)}${post.updated && post.updated !== post.published ? ` · Updated ${esc(post.updated)}` : ""}</p>`,
+    `<p>${esc(post.description)}</p>`,
+  ];
+  for (const sec of post.sections || []) {
+    if (sec.heading) parts.push(`<h2>${esc(sec.heading)}</h2>`);
+    for (const p of sec.paragraphs || []) parts.push(`<p>${esc(p)}</p>`);
+  }
+  parts.push(
+    `<p><a href="${SITE}/blog">CiteAlpha Research Blog</a> · <a href="${SITE}/tracker">GCI Tracker</a> · <a href="${SITE}/answers">FAQ</a></p>`,
+    `</article>`,
+  );
+  return parts.join("\n      ");
+}
+
+function blogIndexHtml(posts) {
+  const items = posts
+    .map(
+      (p) =>
+        `<li><a href="${SITE}/blog/${esc(p.slug)}"><strong>${esc(p.title)}</strong></a> — ${esc(p.description)}</li>`,
+    )
+    .join("\n        ");
+  return `<main>
+      <h1>CiteAlpha Research Blog</h1>
+      <p>Articles on guidance credibility, Indian earnings evidence trails, and institutional workflows — without Buy/Hold tips.</p>
+      <ul>${items}</ul>
+    </main>`;
 }
 
 function injectSeo(html, seo) {
   const url = seo.path === "/" ? `${SITE}/` : `${SITE}${seo.path}`;
   const robots = seo.robots ?? "index,follow";
   const ogType = seo.type ?? "website";
+  const ogAlt = esc(seo.ogImageAlt ?? seo.title);
   let out = html;
   out = out.replace(/<title>[^<]*<\/title>/, `<title>${esc(seo.title)}</title>`);
   out = out.replace(
@@ -88,6 +192,12 @@ function injectSeo(html, seo) {
     /<meta\s+property="og:url"\s+content="[^"]*"\s*\/>/,
     `<meta property="og:url" content="${url}" />`,
   );
+  if (out.includes('property="og:image:alt"')) {
+    out = out.replace(
+      /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/>/,
+      `<meta property="og:image:alt" content="${ogAlt}" />`,
+    );
+  }
   out = out.replace(
     /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/>/,
     `<meta name="twitter:title" content="${esc(seo.title)}" />`,
@@ -96,38 +206,35 @@ function injectSeo(html, seo) {
     /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/>/,
     `<meta name="twitter:description" content="${esc(seo.description)}" />`,
   );
-  if (seo.jsonLd) {
-    const block = `<script type="application/ld+json" id="seo-prerender-jsonld">\n${JSON.stringify(seo.jsonLd, null, 2)}\n    </script>`;
-    if (out.includes('id="seo-prerender-jsonld"')) {
-      out = out.replace(
-        /<script type="application\/ld\+json" id="seo-prerender-jsonld">[\s\S]*?<\/script>/,
-        block,
-      );
-    } else {
-      out = out.replace("</head>", `    ${block}\n  </head>`);
-    }
+
+  const jsonBlocks = [];
+  if (seo.jsonLd) jsonBlocks.push(seo.jsonLd);
+  if (seo.extraJsonLd) jsonBlocks.push(...seo.extraJsonLd);
+  if (jsonBlocks.length) {
+    const block = jsonBlocks
+      .map(
+        (j, i) =>
+          `<script type="application/ld+json" id="seo-prerender-jsonld-${i}">\n${JSON.stringify(j, null, 2)}\n    </script>`,
+      )
+      .join("\n    ");
+    out = out.replace(/<script type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>\n?/g, "");
+    out = out.replace("</head>", `    ${block}\n  </head>`);
   }
-  const fallback = crawlFallback(seo);
-  if (fallback) {
-    if (out.includes('id="seo-crawl-fallback"')) {
-      out = out.replace(/<div id="seo-crawl-fallback"[\s\S]*?<\/div>/, fallback.trim());
-    } else {
-      out = out.replace("<div id=\"root\"></div>", `<div id="root"></div>${fallback}`);
-    }
+
+  const root = rootFallbackHtml(seo);
+  if (out.includes('id="root"')) {
+    out = out.replace(/<div id="root">[\s\S]*?<\/div>/, root);
+    out = out.replace(/<div id="root"><\/div>/, root);
   }
+  out = out.replace(/<div id="seo-crawl-fallback"[\s\S]*?<\/div>/, "");
   return out;
 }
 
 function routeRel(routePath) {
-  if (routePath === "/blog") {
-    return "blog/index.html";
-  }
-  if (routePath.startsWith("/blog/")) {
-    return `blog/${routePath.slice("/blog/".length)}/index.html`;
-  }
-  if (routePath === "/") {
-    return "index.html";
-  }
+  if (routePath === "/blog") return "blog/index.html";
+  if (routePath.startsWith("/blog/")) return `blog/${routePath.slice("/blog/".length)}/index.html`;
+  if (routePath === "/") return "index.html";
+  if (routePath === "/app-shell") return "app-shell.html";
   return `${routePath.replace(/^\//, "")}/index.html`;
 }
 
@@ -135,7 +242,7 @@ function writeRoute(seo, baseHtml) {
   const html = injectSeo(baseHtml, seo);
   const rel = routeRel(seo.path);
   const outPath = path.join(DIST, rel);
-  if (rel !== "index.html") {
+  if (rel !== "index.html" && !rel.endsWith("app-shell.html")) {
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
   }
   fs.writeFileSync(outPath, html);
@@ -165,18 +272,15 @@ function blogIndexJsonLd(posts) {
 
 function buildSitemap(staticRoutes, posts) {
   const urls = [];
-
   for (const route of staticRoutes) {
-    if (!route.sitemap || (route.robots ?? "index,follow").includes("noindex")) {
-      continue;
-    }
+    if (!route.sitemap || (route.robots ?? "index,follow").includes("noindex")) continue;
     urls.push({
       loc: route.path === "/" ? `${SITE}/` : `${SITE}${route.path}`,
+      lastmod: route.sitemap.lastmod ?? BUILD_DAY,
       changefreq: route.sitemap.changefreq,
       priority: route.sitemap.priority,
     });
   }
-
   for (const post of posts) {
     urls.push({
       loc: `${SITE}/blog/${post.slug}`,
@@ -185,20 +289,14 @@ function buildSitemap(staticRoutes, posts) {
       priority: "0.7",
     });
   }
-
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   ];
   for (const u of urls) {
-    lines.push("  <url>");
-    lines.push(`    <loc>${u.loc}</loc>`);
-    if (u.lastmod) {
-      lines.push(`    <lastmod>${u.lastmod}</lastmod>`);
-    }
-    lines.push(`    <changefreq>${u.changefreq}</changefreq>`);
-    lines.push(`    <priority>${u.priority}</priority>`);
-    lines.push("  </url>");
+    lines.push("  <url>", `    <loc>${u.loc}</loc>`);
+    if (u.lastmod) lines.push(`    <lastmod>${u.lastmod}</lastmod>`);
+    lines.push(`    <changefreq>${u.changefreq}</changefreq>`, `    <priority>${u.priority}</priority>`, "  </url>");
   }
   lines.push("</urlset>");
   return `${lines.join("\n")}\n`;
@@ -208,54 +306,109 @@ const baseHtml = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
 const staticRoutes = loadSeoRoutes();
 const posts = parseBlogPosts();
 let prerenderCount = 0;
+const indexNowUrls = [];
 
 for (const route of staticRoutes) {
-  const seo = { path: route.path, ...route };
+  const seo = { path: route.path, ...route, ogImageAlt: route.title };
+  if (route.path === "/") {
+    seo.jsonLd = websiteJsonLd(STRUCTURED);
+    seo.extraJsonLd = extraJsonLdForPath("/", STRUCTURED);
+  }
   if (route.path === "/blog") {
     seo.jsonLd = blogIndexJsonLd(posts);
+    seo.extraJsonLd = [orgJsonLd(STRUCTURED)];
+    seo.bodyHtml = blogIndexHtml(posts);
   }
+  const marketingBody = marketingBodyHtml(route.path, {
+    glossaryPath: GLOSSARY_TS,
+    structuredData: STRUCTURED,
+    esc,
+  });
+  if (marketingBody) seo.bodyHtml = marketingBody;
   writeRoute(seo, baseHtml);
+  if (!((route.robots ?? "index,follow").includes("noindex"))) {
+    indexNowUrls.push(route.path === "/" ? `${SITE}/` : `${SITE}${route.path}`);
+  }
   prerenderCount += 1;
 }
 
 for (const post of posts) {
-  writeRoute(
-    {
-      path: `/blog/${post.slug}`,
-      title: `${post.title} — CiteAlpha Blog`,
+  const title = blogSeoTitle(post);
+  const seo = {
+    path: `/blog/${post.slug}`,
+    title,
+    description: post.description,
+    type: "article",
+    ogImageAlt: `${post.title} — CiteAlpha Research Blog`,
+    bodyHtml: blogArticleHtml(post),
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
       description: post.description,
-      type: "article",
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: post.title,
-        description: post.description,
-        datePublished: post.published,
-        dateModified: post.updated,
-        author: {
-          "@type": "Organization",
-          name: "CiteAlpha",
-          legalName: "Ocotillo Innovation Private Limited",
-        },
-        publisher: {
-          "@type": "Organization",
-          name: "CiteAlpha",
-          logo: {
-            "@type": "ImageObject",
-            url: `${SITE}/citealpha-logo.png`,
-          },
-        },
-        mainEntityOfPage: `${SITE}/blog/${post.slug}`,
-        image: `${SITE}/og-image.png`,
+      datePublished: post.published,
+      dateModified: post.updated,
+      author: {
+        "@type": "Organization",
+        name: "CiteAlpha",
+        legalName: "Ocotillo Innovation Private Limited",
       },
+      publisher: {
+        "@type": "Organization",
+        name: "CiteAlpha",
+        logo: { "@type": "ImageObject", url: `${SITE}/citealpha-logo.png` },
+      },
+      mainEntityOfPage: `${SITE}/blog/${post.slug}`,
+      image: `${SITE}/og-image.png`,
     },
-    baseHtml,
-  );
+  };
+  if (post.slug === "what-is-guidance-credibility-index") {
+    seo.extraJsonLd = [
+      faqJsonLd(STRUCTURED),
+      speakableJsonLd(`${SITE}/blog/${post.slug}`, STRUCTURED),
+    ];
+  }
+  writeRoute(seo, baseHtml);
+  indexNowUrls.push(`${SITE}/blog/${post.slug}`);
+  prerenderCount += 1;
+}
+
+{
+  let shell = injectSeo(baseHtml, {
+    path: "/",
+    title: "CiteAlpha",
+    description:
+      "CiteAlpha Guidance Credibility Index — evidence-linked management guidance vs delivery for Indian equity desks. Not investment advice.",
+    robots: "noindex,follow",
+    bodyHtml: "",
+  });
+  shell = shell.replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, "");
+  shell = shell.replace(/<script\b[^>]*id="seo-prerender-jsonld[^"]*"[^>]*>[\s\S]*?<\/script>/gi, "");
+  shell = shell.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${SITE}/" />`);
+  shell = shell.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${SITE}/" />`);
+  if (!/name="robots" content="noindex/.test(shell)) {
+    shell = shell.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/, '<meta name="robots" content="noindex,follow" />');
+  }
+  fs.writeFileSync(path.join(DIST, "app-shell.html"), shell);
+  console.log("prerender /app-shell -> app-shell.html");
   prerenderCount += 1;
 }
 
 const sitemap = buildSitemap(staticRoutes, posts);
+const imageSitemap = buildImageSitemap(posts);
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(PUBLIC, "sitemap.xml"), sitemap);
+fs.writeFileSync(path.join(DIST, "sitemap-images.xml"), imageSitemap);
+fs.writeFileSync(path.join(PUBLIC, "sitemap-images.xml"), imageSitemap);
+fs.writeFileSync(path.join(PUBLIC, `${INDEXNOW_KEY}.txt`), `${INDEXNOW_KEY}\n`);
+fs.writeFileSync(path.join(DIST, `${INDEXNOW_KEY}.txt`), `${INDEXNOW_KEY}\n`);
+fs.copyFileSync(path.join(PUBLIC, "robots.txt"), path.join(DIST, "robots.txt"));
+if (fs.existsSync(path.join(PUBLIC, "ai.txt"))) {
+  fs.copyFileSync(path.join(PUBLIC, "ai.txt"), path.join(DIST, "ai.txt"));
+}
 
-console.log(`prerender-seo: ${prerenderCount} routes, sitemap: ${sitemap.split("<url>").length - 1} urls`);
+console.log(
+  `prerender-seo: ${prerenderCount} routes, sitemap: ${sitemap.split("<url>").length - 1} urls, posts: ${posts.length}`,
+);
+
+await pingIndexNow(indexNowUrls);

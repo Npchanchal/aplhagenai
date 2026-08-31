@@ -101,11 +101,14 @@ def use_postgres_auth() -> bool:
 
 
 def postgres_status() -> Dict[str, Any]:
+    from app.db.auth_db import backend_name, use_db_auth
+
     url = database_url()
     if not url:
         return {
             "configured": False,
-            "auth_backend": "json",
+            "auth_backend": backend_name(),
+            "db_auth": use_db_auth(),
             "note": "Set DATABASE_URL and run schema; USE_POSTGRES_AUTH=1 to cut over session auth.",
         }
     try:

@@ -2,15 +2,15 @@
 
 **Site:** https://citealpha.com  
 **Entity:** Ocotillo Innovation Private Limited  
-**Verified:** 2026-08-23 (live HTTPS + ECS `ap-south-1`)
+# Verified: 2026-08-30 (post hardening deploy)
 
 ## Verdict (executive)
 
 | Audience | Ready? | Notes |
 |---|---|---|
-| **Public marketing / soft demo** | **Conditional YES** | HTTPS live, Tracker/Desk reachable, SEBI meta disclaimer present, retail paywall gated off |
-| **Paying B2B design partners** | **NO — close blockers first** | JSON auth on Spot (ephemeral), counsel unsigned, SMTP unset, secrets in plaintext task env, no alarms/backups |
-| **B2C retail customers** | **NO** | `counsel_status=scaffold_pending_counsel_signoff`, `retail_marketing_allowed=false`, SEBI retail pending |
+| **Public marketing / soft demo** | **YES** | HTTPS, Sensex hand_labeled, disclaimers, retail gated off |
+| **Paying B2B design partners** | **Conditional YES** | Durable SQLite auth on EFS, Secrets Manager, alarms, backups — **counsel + real SMTP still required** |
+| **B2C retail customers** | **NO** | Counsel + SEBI attest pending |
 
 **Bottom line:** citealpha.com is a **live pilot / preview**, not a durable production customer platform yet.
 

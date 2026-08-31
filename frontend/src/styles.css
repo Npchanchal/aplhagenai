@@ -161,15 +161,17 @@ a:hover {
   height: auto;
 }
 
-.brand-logo-wordmark {
-  width: clamp(140px, 22vw, 168px);
-  max-height: 40px;
+.brand-logo-mark {
+  width: 48px;
+  height: 32px;
   object-fit: contain;
 }
 
-.brand-logo-mark {
-  width: 32px;
-  height: 32px;
+.brand-logo-wordmark {
+  width: clamp(140px, 22vw, 168px);
+  max-height: 40px;
+  height: auto;
+  object-fit: contain;
 }
 
 .brand {
@@ -4117,6 +4119,47 @@ h2 .info-tip {
   max-width: 720px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.landing-explain p {
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
+.landing-explain p + p {
+  margin-top: 0.85rem;
+}
+
+.landing-sources,
+.landing-share {
+  margin-top: 1rem;
+  font-size: 0.92rem;
+}
+
+.not-found-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+}
+
+.not-found-links a {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.landing-proof-stats {
+  margin: 0.75rem 0 0;
+}
+
+.landing-proof-links {
+  margin-top: 0.75rem;
+}
+
+.blog-byline {
+  font-weight: 500;
+  color: var(--ink);
 }
 
 .landing-trust {

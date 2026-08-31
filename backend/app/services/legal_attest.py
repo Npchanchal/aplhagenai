@@ -17,20 +17,42 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _attestation_from_sqlite(kind: str) -> Optional[Dict[str, Any]]:
+    try:
+        from app.db.auth_db import latest_attestation, use_db_auth
+
+        if use_db_auth():
+            row = latest_attestation(kind)
+            if row:
+                return row
+    except Exception:
+        pass
+    return None
+
+
 def counsel_status() -> str:
+    env = os.environ.get("INTELLENS_LEGAL_COUNSEL_STATUS", "")
+    if env == "counsel_approved":
+        return "counsel_approved"
+    att = _attestation_from_sqlite("terms_privacy")
+    if att and att.get("status") == "counsel_approved":
+        return "counsel_approved"
     data = get_data()
     att = (data.get("legal_attestations") or {}).get("terms_privacy")
     if att and att.get("status") == "counsel_approved":
         return "counsel_approved"
-    return os.environ.get("INTELLENS_LEGAL_COUNSEL_STATUS", "scaffold_pending_counsel_signoff")
+    return env or "scaffold_pending_counsel_signoff"
 
 
 def sebi_retail_status() -> str:
+    if os.environ.get("INTELLENS_RETAIL_MARKETING", "").lower() in ("1", "true", "yes"):
+        return "counsel_approved"
+    att = _attestation_from_sqlite("sebi_retail")
+    if att and att.get("status") == "counsel_approved":
+        return "counsel_approved"
     data = get_data()
     att = (data.get("legal_attestations") or {}).get("sebi_retail")
     if att and att.get("status") == "counsel_approved":
-        return "counsel_approved"
-    if os.environ.get("INTELLENS_RETAIL_MARKETING", "").lower() in ("1", "true", "yes"):
         return "counsel_approved"
     return "pending_sebi_counsel"
 
@@ -76,10 +98,15 @@ def attest(
 
 def snapshot() -> Dict[str, Any]:
     data = get_data()
+    attestations = dict(data.get("legal_attestations") or {})
+    for kind in ("terms_privacy", "sebi_retail"):
+        row = _attestation_from_sqlite(kind)
+        if row:
+            attestations[kind] = row
     return {
         "counsel_status": counsel_status(),
         "sebi_retail_status": sebi_retail_status(),
-        "attestations": data.get("legal_attestations") or {},
+        "attestations": attestations,
         "terms_version": TERMS_VERSION,
         "privacy_version": PRIVACY_VERSION,
         "legal_entity": LEGAL_ENTITY,

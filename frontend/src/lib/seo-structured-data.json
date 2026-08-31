@@ -1,0 +1,49 @@
+{
+  "site": "https://citealpha.com",
+  "org": {
+    "name": "CiteAlpha",
+    "legalName": "Ocotillo Innovation Private Limited",
+    "email": "sales@citealpha.com",
+    "sameAs": [
+      "https://citealpha.com/",
+      "https://citealpha.com/trust",
+      "https://citealpha.com/blog/what-is-guidance-credibility-index"
+    ]
+  },
+  "faq": [
+    {
+      "question": "What is a Guidance Credibility Index (GCI)?",
+      "answer": "A Guidance Credibility Index measures whether listed-company management delivered on quantified guidance — such as revenue bands, margins, volumes, or capex — against later reported actuals, with primary sources attached. It is a delivery score, not a sentiment score and not investment advice."
+    },
+    {
+      "question": "Is CiteAlpha GCI investment advice?",
+      "answer": "No. CiteAlpha, a product of Ocotillo Innovation Private Limited, ships GCI as factual research infrastructure for Indian equity desks. It does not provide Buy, Hold, or Sell recommendations or personalised investment advice."
+    },
+    {
+      "question": "What evidence does a citeable GCI point need?",
+      "answer": "A citeable point needs a dated guidance statement, a matched actual for the same metric and period, an outcome label (met, exceeded, missed, dropped, or pending), and a path back to NSE, BSE, or IR documents."
+    },
+    {
+      "question": "How is CiteAlpha GCI different from sentiment analysis?",
+      "answer": "Sentiment analysis tracks tone and narrative. GCI tracks whether quantified guidance was delivered. Desks should keep them in separate lines of a memo so tone never overrides the guidance-versus-actuals table."
+    },
+    {
+      "question": "Who is CiteAlpha built for?",
+      "answer": "Indian equity desks — buy-side and sell-side research teams that need evidence-linked management delivery history beside their market terminal. Pilots start with Sensex-depth hand-labeled evidence."
+    }
+  ],
+  "howTo": {
+    "name": "How CiteAlpha builds a Guidance Credibility Index score",
+    "description": "Five-step pipeline for evidence-linked GCI on Indian listed companies.",
+    "steps": [
+      { "name": "Ingest", "text": "IR decks, NSE/BSE filings, and transcripts enter the corpus." },
+      { "name": "Extract", "text": "Quantified guidance statements are structured with human-in-the-loop review." },
+      { "name": "Match", "text": "Later actuals are paired to the same metric and period." },
+      { "name": "Score", "text": "Outcome labels roll into a company GCI with point-in-time history." },
+      { "name": "Cite", "text": "Every score point reopens to primary sources with citation ids." }
+    ]
+  },
+  "speakable": {
+    "cssSelector": [".seo-speakable", "h1", ".landing-faq dd"]
+  }
+}

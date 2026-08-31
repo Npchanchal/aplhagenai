@@ -8,5 +8,39 @@ Disallow: /reset-password
 Disallow: /verify-email
 Disallow: /login
 Disallow: /register
+Disallow: /admin
+Disallow: /app-shell
+Disallow: /account
+Disallow: /org/
+
+# AI crawlers — public marketing and definitions may be indexed; auth routes disallowed above.
+User-agent: GPTBot
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /billing
+Disallow: /admin
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /billing
+Disallow: /admin
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /billing
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /
+
+# LLM / AI discovery
+# llms.txt: https://citealpha.com/llms.txt
+# ai.txt: https://citealpha.com/ai.txt
 
 Sitemap: https://citealpha.com/sitemap.xml
+Sitemap: https://citealpha.com/sitemap-images.xml

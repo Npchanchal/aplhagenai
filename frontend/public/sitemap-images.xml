@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://citealpha.com/</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>CiteAlpha Guidance Credibility Index</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/og-image.png</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.webp</image:loc>
+      <image:title>CiteAlpha OG image WebP</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/what-is-guidance-credibility-index</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Guidance Credibility Index (GCI): Definition for Equity Research</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/sentiment-vs-guidance-delivery</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Sentiment Analysis vs Guidance Delivery: Why Desks Need Both Separately</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/reading-guidance-vs-actuals-india</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>How to Read Guidance vs Actuals in Indian Earnings Reports</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/sensex-pilot-evidence-trail</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Sensex Guidance Tracker: Building an Evidence Trail Desks Trust</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/gci-outcome-labels-explained</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>GCI Outcome Labels Explained: Met, Exceeded, Missed, Dropped, Pending</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/point-in-time-gci-history</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Point-in-Time GCI History for Quant and EM Research</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/hand-labeled-vs-demo-data</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Hand-Labeled vs Demo GCI Data: How to Cite Responsibly</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/buy-side-gci-workflow</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Buy-Side GCI Workflow: Weekly Guidance Credibility Screening</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/sell-side-citing-guidance-delivery</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Sell-Side Research: Citing Guidance Delivery Without Stock Tips</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/concall-guidance-extraction-checklist</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Earnings Concall Guidance Extraction: Analyst Checklist</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/nse-bse-ir-disclosure-formats</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>NSE BSE IR Disclosures: Finding Primary Sources for GCI</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/vernacular-research-notes-factual</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Vernacular Equity Research Notes: Factual GCI Language Only</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/peer-rank-sector-average-gci</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>GCI Peer Rank and Sector Average: Relative Context, Not Tips</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/alerts-when-credibility-shifts</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>GCI Alerts: When Guidance Credibility Shifts on Your Watchlist</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/api-first-gci-for-quant-desks</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>GCI API for Quant Desks: PIT Series and Evidence Hooks</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/sebi-oriented-product-design</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>SEBI-Oriented Fintech Design: Research Tool vs Investment Advice</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/sensex-to-nifty-coverage-expansion</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Sensex to Nifty GCI Coverage: Depth Before Breadth</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/why-india-needs-local-guidance-tracker</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Why India Needs a Local Management Guidance Tracker</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/desk-console-review-queue-hitl</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Research Desk Console: HITL Review Queue for GCI Quality</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/blog/trust-center-checklist-institutional-buyers</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/og-image.png</image:loc>
+      <image:title>Institutional Buyer Checklist: Trust Center for GCI Pilots</image:title>
+    </image:image>
+  </url>
+</urlset>
