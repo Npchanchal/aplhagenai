@@ -30,11 +30,13 @@ Full definition and methodology: https://citealpha.com/blog/what-is-guidance-cre
 - [GCI vs sentiment](https://citealpha.com/blog/sentiment-vs-guidance-delivery): Why desks keep them separate
 - [Sitemap](https://citealpha.com/sitemap.xml)
 - [AI use policy](https://citealpha.com/ai.txt)
+- [RSS feed](https://citealpha.com/rss.xml)
 
 ## Machine-readable
 - Live cohort meta: https://citealpha.com/api/meta
 - Sitemap: https://citealpha.com/sitemap.xml
 - Image sitemap: https://citealpha.com/sitemap-images.xml
+- RSS: https://citealpha.com/rss.xml
 
 ## Contact
 - sales@citealpha.com

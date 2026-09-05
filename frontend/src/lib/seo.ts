@@ -3,10 +3,6 @@ import seoRoutes from "./seoRoutes.json";
 import {
   blogSeoTitle,
   extraJsonLdForPath,
-  faqJsonLd,
-  howToGciJsonLd,
-  orgJsonLd,
-  speakableJsonLd,
   websiteJsonLd,
   SITE,
 } from "./seoJsonLd";
@@ -67,14 +63,14 @@ function blogIndexJsonLd(): Record<string, unknown> {
   };
 }
 
-function blogPostJsonLd(post: ReturnType<typeof getBlogMeta>): Record<string, unknown> {
+function blogPostJsonLd(post: NonNullable<ReturnType<typeof getBlogMeta>>): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: post!.title,
-    description: post!.description,
-    datePublished: post!.published,
-    dateModified: post!.updated ?? post!.published,
+    headline: post.title,
+    description: post.description,
+    datePublished: post.published,
+    dateModified: post.updated ?? post.published,
     author: {
       "@type": "Organization",
       name: "CiteAlpha",
@@ -85,7 +81,7 @@ function blogPostJsonLd(post: ReturnType<typeof getBlogMeta>): Record<string, un
       name: "CiteAlpha",
       logo: { "@type": "ImageObject", url: `${SITE}/citealpha-logo.png` },
     },
-    mainEntityOfPage: `${SITE}/blog/${post!.slug}`,
+    mainEntityOfPage: `${SITE}/blog/${post.slug}`,
     image: `${SITE}/og-image.png`,
   };
 }
@@ -97,13 +93,6 @@ export function resolveSeo(pathname: string): SeoConfig {
     const post = getBlogMeta(slug);
     if (post) {
       const title = blogSeoTitle(slug, post.title);
-      const extra =
-        slug === "what-is-guidance-credibility-index"
-          ? [
-              faqJsonLd(),
-              speakableJsonLd(`${SITE}/blog/${slug}`),
-            ]
-          : undefined;
       return {
         path: `/blog/${post.slug}`,
         title,
@@ -111,7 +100,7 @@ export function resolveSeo(pathname: string): SeoConfig {
         type: "article",
         ogImageAlt: `${post.title} — CiteAlpha Research Blog`,
         jsonLd: blogPostJsonLd(post),
-        extraJsonLd: extra,
+        extraJsonLd: extraJsonLdForPath(`/blog/${post.slug}`, title),
       };
     }
   }
@@ -137,10 +126,12 @@ export function resolveSeo(pathname: string): SeoConfig {
 
   if (pathname.startsWith("/sights")) {
     const hit = STATIC[pathname] || STATIC["/sights"];
+    const title = hit.title;
     return {
       path: pathname,
       ...hit,
-      ogImageAlt: hit.title,
+      ogImageAlt: title,
+      extraJsonLd: extraJsonLdForPath(pathname, title),
     };
   }
 
@@ -153,15 +144,10 @@ export function resolveSeo(pathname: string): SeoConfig {
     };
     if (pathname === "/blog") {
       seo.jsonLd = blogIndexJsonLd();
-      seo.extraJsonLd = [orgJsonLd()];
     } else if (pathname === "/") {
       seo.jsonLd = websiteJsonLd();
-      seo.extraJsonLd = extraJsonLdForPath("/");
-    } else if (pathname === "/about" || pathname === "/about/tiers") {
-      seo.extraJsonLd = [howToGciJsonLd()];
-    } else if (pathname === "/answers" || pathname === "/help") {
-      seo.extraJsonLd = [faqJsonLd()];
     }
+    seo.extraJsonLd = extraJsonLdForPath(pathname, staticHit.title);
     return seo;
   }
 

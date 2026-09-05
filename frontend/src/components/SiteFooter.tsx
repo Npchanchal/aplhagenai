@@ -16,6 +16,8 @@ export default function SiteFooter() {
           <Link to="/privacy">{t("footer.privacy")}</Link>
           <Link to="/trust">{t("footer.trust")}</Link>
           <Link to="/help">{t("footer.help")}</Link>
+          <Link to="/answers">{t("footer.answers")}</Link>
+          <Link to="/press">{t("footer.press")}</Link>
           <Link to="/rankings">{t("footer.rankings")}</Link>
           <Link to="/blog">{t("footer.blog")}</Link>
           <Link to="/billing">{t("footer.billing")}</Link>

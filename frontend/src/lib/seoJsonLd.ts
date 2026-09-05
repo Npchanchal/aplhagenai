@@ -6,6 +6,11 @@ type JsonLd = Record<string, unknown>;
 
 const ORG = structured.org;
 
+function orgSameAs(): string[] {
+  const social = (ORG as { socialProfiles?: string[] }).socialProfiles ?? [];
+  return [...ORG.sameAs, ...social.filter(Boolean)];
+}
+
 export function orgJsonLd(): JsonLd {
   return {
     "@context": "https://schema.org",
@@ -17,7 +22,7 @@ export function orgJsonLd(): JsonLd {
     description:
       "Guidance Credibility Index (GCI) — evidence-linked management guidance vs delivery for Indian equity desks. Not investment advice.",
     email: ORG.email,
-    sameAs: ORG.sameAs,
+    sameAs: orgSameAs(),
   };
 }
 
@@ -113,8 +118,38 @@ export function speakableJsonLd(pageUrl: string): JsonLd {
   };
 }
 
+/** Breadcrumb trail for nested marketing / blog URLs. */
+export function breadcrumbJsonLd(pathname: string, pageTitle: string): JsonLd | null {
+  if (pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/register")) {
+    return null;
+  }
+  const items: { name: string; path: string }[] = [{ name: "Home", path: "/" }];
+  if (pathname.startsWith("/blog/")) {
+    items.push({ name: "Blog", path: "/blog" });
+    items.push({ name: pageTitle.replace(/ — CiteAlpha.*$/, ""), path: pathname });
+  } else if (pathname.startsWith("/about/")) {
+    items.push({ name: "About", path: "/about" });
+    items.push({ name: pageTitle.replace(/ — CiteAlpha$/, ""), path: pathname });
+  } else if (pathname.startsWith("/sights/")) {
+    items.push({ name: "Sights", path: "/sights" });
+    items.push({ name: pageTitle.replace(/ — CiteAlpha$/, ""), path: pathname });
+  } else {
+    items.push({ name: pageTitle.replace(/ — CiteAlpha.*$/, ""), path: pathname });
+  }
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.path === "/" ? `${SITE}/` : `${SITE}${item.path}`,
+    })),
+  };
+}
+
 /** Extra JSON-LD blocks keyed by pathname (SPA + prerender parity). */
-export function extraJsonLdForPath(pathname: string): JsonLd[] {
+export function extraJsonLdForPath(pathname: string, pageTitle?: string): JsonLd[] {
   const blocks: JsonLd[] = [];
   if (pathname === "/") {
     blocks.push(orgJsonLd(), softwareJsonLd(), faqJsonLd());
@@ -124,6 +159,12 @@ export function extraJsonLdForPath(pathname: string): JsonLd[] {
     blocks.push(faqJsonLd());
   } else if (pathname === "/blog/what-is-guidance-credibility-index") {
     blocks.push(faqJsonLd(), speakableJsonLd(`${SITE}/blog/what-is-guidance-credibility-index`));
+  } else if (pathname === "/blog") {
+    blocks.push(orgJsonLd());
+  }
+  if (pageTitle) {
+    const crumbs = breadcrumbJsonLd(pathname, pageTitle);
+    if (crumbs) blocks.push(crumbs);
   }
   return blocks;
 }

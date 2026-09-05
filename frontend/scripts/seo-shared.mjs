@@ -14,6 +14,7 @@ export function loadStructured(root) {
 
 export function orgJsonLd(data) {
   const org = data.org;
+  const social = org.socialProfiles ?? [];
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -24,7 +25,7 @@ export function orgJsonLd(data) {
     description:
       "Guidance Credibility Index (GCI) — evidence-linked management guidance vs delivery for Indian equity desks. Not investment advice.",
     email: org.email,
-    sameAs: org.sameAs,
+    sameAs: [...(org.sameAs || []), ...social.filter(Boolean)],
   };
 }
 
@@ -117,7 +118,37 @@ export function speakableJsonLd(pageUrl, data) {
   };
 }
 
-export function extraJsonLdForPath(routePath, data) {
+export function breadcrumbJsonLd(routePath, pageTitle) {
+  if (routePath === "/" || routePath.startsWith("/login") || routePath.startsWith("/register")) {
+    return null;
+  }
+  if ((pageTitle || "").includes("Page not found")) return null;
+  const items = [{ name: "Home", path: "/" }];
+  if (routePath.startsWith("/blog/")) {
+    items.push({ name: "Blog", path: "/blog" });
+    items.push({ name: String(pageTitle).replace(/ — CiteAlpha.*$/, ""), path: routePath });
+  } else if (routePath.startsWith("/about/")) {
+    items.push({ name: "About", path: "/about" });
+    items.push({ name: String(pageTitle).replace(/ — CiteAlpha$/, ""), path: routePath });
+  } else if (routePath.startsWith("/sights/")) {
+    items.push({ name: "Sights", path: "/sights" });
+    items.push({ name: String(pageTitle).replace(/ — CiteAlpha$/, ""), path: routePath });
+  } else {
+    items.push({ name: String(pageTitle).replace(/ — CiteAlpha.*$/, ""), path: routePath });
+  }
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.path === "/" ? `${SITE}/` : `${SITE}${item.path}`,
+    })),
+  };
+}
+
+export function extraJsonLdForPath(routePath, data, pageTitle) {
   const blocks = [];
   if (routePath === "/") {
     blocks.push(orgJsonLd(data), softwareJsonLd(data), faqJsonLd(data));
@@ -125,6 +156,12 @@ export function extraJsonLdForPath(routePath, data) {
     blocks.push(howToGciJsonLd(data));
   } else if (routePath === "/answers" || routePath === "/help") {
     blocks.push(faqJsonLd(data));
+  } else if (routePath === "/blog") {
+    blocks.push(orgJsonLd(data));
+  }
+  if (pageTitle) {
+    const crumbs = breadcrumbJsonLd(routePath, pageTitle);
+    if (crumbs) blocks.push(crumbs);
   }
   return blocks;
 }
@@ -392,18 +429,73 @@ export function buildImageSitemap(posts) {
   return `${lines.join("\n")}\n`;
 }
 
+export function buildRssFeed(posts) {
+  const items = posts
+    .slice()
+    .sort((a, b) => String(b.updated || b.published).localeCompare(String(a.updated || a.published)))
+    .map((p) => {
+      const link = `${SITE}/blog/${p.slug}`;
+      return `    <item>
+      <title>${escXml(p.title)}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <pubDate>${toRfc822(p.published)}</pubDate>
+      <description>${escXml(p.description)}</description>
+    </item>`;
+    })
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CiteAlpha Research Blog</title>
+    <link>${SITE}/blog</link>
+    <description>Articles on guidance credibility, Indian earnings evidence trails, and institutional workflows — without Buy/Hold tips.</description>
+    <language>en-IN</language>
+    <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml"/>
+${items}
+  </channel>
+</rss>
+`;
+}
+
+function escXml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function toRfc822(isoDate) {
+  const d = new Date(`${isoDate}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return isoDate;
+  return d.toUTCString();
+}
+
 export async function pingIndexNow(urls) {
   if (process.env.SKIP_INDEXNOW === "1") return;
   const host = "citealpha.com";
   const keyLocation = `${SITE}/${INDEXNOW_KEY}.txt`;
-  try {
-    const res = await fetch("https://api.indexnow.org/indexnow", {
-      method: "POST",
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify({ host, key: INDEXNOW_KEY, keyLocation, urlList: urls.slice(0, 100) }),
-    });
-    console.log("indexnow ping:", res.status, res.statusText);
-  } catch (err) {
-    console.warn("indexnow ping skipped:", err.message);
+  const body = JSON.stringify({
+    host,
+    key: INDEXNOW_KEY,
+    keyLocation,
+    urlList: urls.slice(0, 100),
+  });
+  const endpoints = [
+    "https://api.indexnow.org/indexnow",
+    "https://www.bing.com/indexnow",
+  ];
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body,
+      });
+      console.log("indexnow ping:", endpoint, res.status, res.statusText);
+    } catch (err) {
+      console.warn("indexnow ping skipped:", endpoint, err.message);
+    }
   }
 }

@@ -9,15 +9,15 @@ import {
   SITE,
   INDEXNOW_KEY,
   loadStructured,
-  orgJsonLd,
   websiteJsonLd,
-  softwareJsonLd,
   faqJsonLd,
   extraJsonLdForPath,
   speakableJsonLd,
+  breadcrumbJsonLd,
   blogSeoTitle,
   marketingBodyHtml,
   buildImageSitemap,
+  buildRssFeed,
   pingIndexNow,
 } from "./seo-shared.mjs";
 
@@ -312,11 +312,9 @@ for (const route of staticRoutes) {
   const seo = { path: route.path, ...route, ogImageAlt: route.title };
   if (route.path === "/") {
     seo.jsonLd = websiteJsonLd(STRUCTURED);
-    seo.extraJsonLd = extraJsonLdForPath("/", STRUCTURED);
   }
   if (route.path === "/blog") {
     seo.jsonLd = blogIndexJsonLd(posts);
-    seo.extraJsonLd = [orgJsonLd(STRUCTURED)];
     seo.bodyHtml = blogIndexHtml(posts);
   }
   const marketingBody = marketingBodyHtml(route.path, {
@@ -325,6 +323,7 @@ for (const route of staticRoutes) {
     esc,
   });
   if (marketingBody) seo.bodyHtml = marketingBody;
+  seo.extraJsonLd = extraJsonLdForPath(route.path, STRUCTURED, route.title);
   writeRoute(seo, baseHtml);
   if (!((route.robots ?? "index,follow").includes("noindex"))) {
     indexNowUrls.push(route.path === "/" ? `${SITE}/` : `${SITE}${route.path}`);
@@ -334,6 +333,15 @@ for (const route of staticRoutes) {
 
 for (const post of posts) {
   const title = blogSeoTitle(post);
+  const extras = [];
+  if (post.slug === "what-is-guidance-credibility-index") {
+    extras.push(
+      faqJsonLd(STRUCTURED),
+      speakableJsonLd(`${SITE}/blog/${post.slug}`, STRUCTURED),
+    );
+  }
+  const crumbs = breadcrumbJsonLd(`/blog/${post.slug}`, title);
+  if (crumbs) extras.push(crumbs);
   const seo = {
     path: `/blog/${post.slug}`,
     title,
@@ -341,6 +349,7 @@ for (const post of posts) {
     type: "article",
     ogImageAlt: `${post.title} — CiteAlpha Research Blog`,
     bodyHtml: blogArticleHtml(post),
+    extraJsonLd: extras,
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
@@ -362,12 +371,6 @@ for (const post of posts) {
       image: `${SITE}/og-image.png`,
     },
   };
-  if (post.slug === "what-is-guidance-credibility-index") {
-    seo.extraJsonLd = [
-      faqJsonLd(STRUCTURED),
-      speakableJsonLd(`${SITE}/blog/${post.slug}`, STRUCTURED),
-    ];
-  }
   writeRoute(seo, baseHtml);
   indexNowUrls.push(`${SITE}/blog/${post.slug}`);
   prerenderCount += 1;
@@ -396,10 +399,13 @@ for (const post of posts) {
 
 const sitemap = buildSitemap(staticRoutes, posts);
 const imageSitemap = buildImageSitemap(posts);
+const rss = buildRssFeed(posts);
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(PUBLIC, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(DIST, "sitemap-images.xml"), imageSitemap);
 fs.writeFileSync(path.join(PUBLIC, "sitemap-images.xml"), imageSitemap);
+fs.writeFileSync(path.join(DIST, "rss.xml"), rss);
+fs.writeFileSync(path.join(PUBLIC, "rss.xml"), rss);
 fs.writeFileSync(path.join(PUBLIC, `${INDEXNOW_KEY}.txt`), `${INDEXNOW_KEY}\n`);
 fs.writeFileSync(path.join(DIST, `${INDEXNOW_KEY}.txt`), `${INDEXNOW_KEY}\n`);
 fs.copyFileSync(path.join(PUBLIC, "robots.txt"), path.join(DIST, "robots.txt"));

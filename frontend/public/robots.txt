@@ -44,3 +44,4 @@ Allow: /
 
 Sitemap: https://citealpha.com/sitemap.xml
 Sitemap: https://citealpha.com/sitemap-images.xml
+# RSS: https://citealpha.com/rss.xml

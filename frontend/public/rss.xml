@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CiteAlpha Research Blog</title>
+    <link>https://citealpha.com/blog</link>
+    <description>Articles on guidance credibility, Indian earnings evidence trails, and institutional workflows — without Buy/Hold tips.</description>
+    <language>en-IN</language>
+    <atom:link href="https://citealpha.com/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Guidance Credibility Index (GCI): Definition for Equity Research</title>
+      <link>https://citealpha.com/blog/what-is-guidance-credibility-index</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/what-is-guidance-credibility-index</guid>
+      <pubDate>Tue, 03 Mar 2026 12:00:00 GMT</pubDate>
+      <description>What is a Guidance Credibility Index? How GCI scores management guidance vs actuals for Indian equity research — with evidence, not tips.</description>
+    </item>
+    <item>
+      <title>Sentiment Analysis vs Guidance Delivery: Why Desks Need Both Separately</title>
+      <link>https://citealpha.com/blog/sentiment-vs-guidance-delivery</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/sentiment-vs-guidance-delivery</guid>
+      <pubDate>Tue, 10 Mar 2026 12:00:00 GMT</pubDate>
+      <description>Sentiment analysis tracks tone; guidance delivery tracks numbers. Why Indian equity desks should not mix them into one score.</description>
+    </item>
+    <item>
+      <title>How to Read Guidance vs Actuals in Indian Earnings Reports</title>
+      <link>https://citealpha.com/blog/reading-guidance-vs-actuals-india</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/reading-guidance-vs-actuals-india</guid>
+      <pubDate>Tue, 17 Mar 2026 12:00:00 GMT</pubDate>
+      <description>Checklist for matching management guidance to NSE/BSE and IR actuals in Indian earnings — without inventing numbers.</description>
+    </item>
+    <item>
+      <title>Sensex Guidance Tracker: Building an Evidence Trail Desks Trust</title>
+      <link>https://citealpha.com/blog/sensex-pilot-evidence-trail</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/sensex-pilot-evidence-trail</guid>
+      <pubDate>Tue, 24 Mar 2026 12:00:00 GMT</pubDate>
+      <description>Why a Sensex guidance tracker should prioritise hand-labeled evidence trails before claiming broad Nifty coverage.</description>
+    </item>
+    <item>
+      <title>GCI Outcome Labels Explained: Met, Exceeded, Missed, Dropped, Pending</title>
+      <link>https://citealpha.com/blog/gci-outcome-labels-explained</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/gci-outcome-labels-explained</guid>
+      <pubDate>Tue, 31 Mar 2026 12:00:00 GMT</pubDate>
+      <description>Definitions of Guidance Credibility Index outcome labels so Indian research desks cite guidance delivery consistently.</description>
+    </item>
+    <item>
+      <title>Point-in-Time GCI History for Quant and EM Research</title>
+      <link>https://citealpha.com/blog/point-in-time-gci-history</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/point-in-time-gci-history</guid>
+      <pubDate>Tue, 07 Apr 2026 12:00:00 GMT</pubDate>
+      <description>Why point-in-time Guidance Credibility Index history matters for backtests and longitudinal management reviews.</description>
+    </item>
+    <item>
+      <title>Hand-Labeled vs Demo GCI Data: How to Cite Responsibly</title>
+      <link>https://citealpha.com/blog/hand-labeled-vs-demo-data</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/hand-labeled-vs-demo-data</guid>
+      <pubDate>Tue, 14 Apr 2026 12:00:00 GMT</pubDate>
+      <description>When to cite hand-labeled Guidance Credibility Index rows versus demo data — quality badges for Indian equity notes.</description>
+    </item>
+    <item>
+      <title>Buy-Side GCI Workflow: Weekly Guidance Credibility Screening</title>
+      <link>https://citealpha.com/blog/buy-side-gci-workflow</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/buy-side-gci-workflow</guid>
+      <pubDate>Tue, 21 Apr 2026 12:00:00 GMT</pubDate>
+      <description>A weekly buy-side workflow for screening Guidance Credibility Index moves on PMS and AIF coverage lists.</description>
+    </item>
+    <item>
+      <title>Sell-Side Research: Citing Guidance Delivery Without Stock Tips</title>
+      <link>https://citealpha.com/blog/sell-side-citing-guidance-delivery</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/sell-side-citing-guidance-delivery</guid>
+      <pubDate>Tue, 28 Apr 2026 12:00:00 GMT</pubDate>
+      <description>How sell-side associates add auditable guidance vs actuals tables to notes using CiteAlpha GCI — without tips.</description>
+    </item>
+    <item>
+      <title>Earnings Concall Guidance Extraction: Analyst Checklist</title>
+      <link>https://citealpha.com/blog/concall-guidance-extraction-checklist</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/concall-guidance-extraction-checklist</guid>
+      <pubDate>Tue, 05 May 2026 12:00:00 GMT</pubDate>
+      <description>Human-in-the-loop checklist for extracting management guidance from Indian earnings concalls before it enters GCI.</description>
+    </item>
+    <item>
+      <title>NSE BSE IR Disclosures: Finding Primary Sources for GCI</title>
+      <link>https://citealpha.com/blog/nse-bse-ir-disclosure-formats</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/nse-bse-ir-disclosure-formats</guid>
+      <pubDate>Tue, 12 May 2026 12:00:00 GMT</pubDate>
+      <description>Where Indian management guidance and actuals live on NSE, BSE, and IR pages — and why local formats matter for GCI.</description>
+    </item>
+    <item>
+      <title>Vernacular Equity Research Notes: Factual GCI Language Only</title>
+      <link>https://citealpha.com/blog/vernacular-research-notes-factual</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/vernacular-research-notes-factual</guid>
+      <pubDate>Tue, 19 May 2026 12:00:00 GMT</pubDate>
+      <description>How multi-language guidance delivery blurbs stay useful for India distribution without becoming retail advice.</description>
+    </item>
+    <item>
+      <title>GCI Peer Rank and Sector Average: Relative Context, Not Tips</title>
+      <link>https://citealpha.com/blog/peer-rank-sector-average-gci</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/peer-rank-sector-average-gci</guid>
+      <pubDate>Tue, 26 May 2026 12:00:00 GMT</pubDate>
+      <description>How to use Guidance Credibility Index peer ranks and sector averages without treating ranks as trade lists.</description>
+    </item>
+    <item>
+      <title>GCI Alerts: When Guidance Credibility Shifts on Your Watchlist</title>
+      <link>https://citealpha.com/blog/alerts-when-credibility-shifts</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/alerts-when-credibility-shifts</guid>
+      <pubDate>Tue, 02 Jun 2026 12:00:00 GMT</pubDate>
+      <description>Design Δ-based Guidance Credibility Index alerts for new misses, drops, and label changes without alert fatigue.</description>
+    </item>
+    <item>
+      <title>GCI API for Quant Desks: PIT Series and Evidence Hooks</title>
+      <link>https://citealpha.com/blog/api-first-gci-for-quant-desks</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/api-first-gci-for-quant-desks</guid>
+      <pubDate>Tue, 09 Jun 2026 12:00:00 GMT</pubDate>
+      <description>What quant and EM platforms should demand from a Guidance Credibility Index API: PIT history, coverage metadata, evidence.</description>
+    </item>
+    <item>
+      <title>SEBI-Oriented Fintech Design: Research Tool vs Investment Advice</title>
+      <link>https://citealpha.com/blog/sebi-oriented-product-design</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/sebi-oriented-product-design</guid>
+      <pubDate>Tue, 16 Jun 2026 12:00:00 GMT</pubDate>
+      <description>Why CiteAlpha ships Guidance Credibility Index as factual research tooling without retail recommendations.</description>
+    </item>
+    <item>
+      <title>Sensex to Nifty GCI Coverage: Depth Before Breadth</title>
+      <link>https://citealpha.com/blog/sensex-to-nifty-coverage-expansion</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/sensex-to-nifty-coverage-expansion</guid>
+      <pubDate>Tue, 23 Jun 2026 12:00:00 GMT</pubDate>
+      <description>How to expand Guidance Credibility Index coverage from Sensex to Nifty without thin, untrusted scores.</description>
+    </item>
+    <item>
+      <title>Why India Needs a Local Management Guidance Tracker</title>
+      <link>https://citealpha.com/blog/why-india-needs-local-guidance-tracker</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/why-india-needs-local-guidance-tracker</guid>
+      <pubDate>Tue, 30 Jun 2026 12:00:00 GMT</pubDate>
+      <description>Category whitespace: global guidance products vs Indian NSE/BSE disclosure reality — and CiteAlpha's local spine.</description>
+    </item>
+    <item>
+      <title>Research Desk Console: HITL Review Queue for GCI Quality</title>
+      <link>https://citealpha.com/blog/desk-console-review-queue-hitl</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/desk-console-review-queue-hitl</guid>
+      <pubDate>Tue, 07 Jul 2026 12:00:00 GMT</pubDate>
+      <description>How a research desk console turns concall extraction into accepted Guidance Credibility Index evidence.</description>
+    </item>
+    <item>
+      <title>Institutional Buyer Checklist: Trust Center for GCI Pilots</title>
+      <link>https://citealpha.com/blog/trust-center-checklist-institutional-buyers</link>
+      <guid isPermaLink="true">https://citealpha.com/blog/trust-center-checklist-institutional-buyers</guid>
+      <pubDate>Tue, 14 Jul 2026 12:00:00 GMT</pubDate>
+      <description>Security, legal, and claim-hygiene questions before piloting a Guidance Credibility Index product in India.</description>
+    </item>
+  </channel>
+</rss>

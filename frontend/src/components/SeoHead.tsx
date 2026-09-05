@@ -16,9 +16,14 @@ function upsertMeta(attr: "name" | "property", key: string, content: string) {
 }
 
 function upsertLink(rel: string, href: string, extra?: Record<string, string>) {
-  const selector = extra?.hreflang
-    ? `link[rel="${rel}"][hreflang="${extra.hreflang}"]`
-    : `link[rel="${rel}"]`;
+  let selector = `link[rel="${rel}"]`;
+  if (extra?.hreflang) {
+    selector = `link[rel="${rel}"][hreflang="${extra.hreflang}"]`;
+  } else if (extra?.type) {
+    selector = `link[rel="${rel}"][type="${extra.type}"]`;
+  } else if (rel === "canonical") {
+    selector = `link[rel="canonical"]`;
+  }
   let el = document.head.querySelector(selector) as HTMLLinkElement | null;
   if (!el) {
     el = document.createElement("link");
@@ -83,6 +88,7 @@ export default function SeoHead() {
     upsertLink("canonical", url);
     upsertLink("alternate", url, { hreflang: "x-default" });
     upsertLink("alternate", url, { hreflang: "en-IN" });
+    upsertLink("alternate", `${SITE}/rss.xml`, { type: "application/rss+xml", title: "CiteAlpha Research Blog" });
 
     const gsc = import.meta.env.VITE_GSC_VERIFICATION?.trim();
     if (gsc) upsertMeta("name", "google-site-verification", gsc);
