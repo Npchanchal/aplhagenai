@@ -118,7 +118,7 @@ export default function RankingsPage() {
                   Export Markdown
                 </button>
                 <Link className="btn ghost" to="/package">
-                  Pilot / Desk packaging
+                  Packages &amp; pilots
                 </Link>
               </div>
               {md && (

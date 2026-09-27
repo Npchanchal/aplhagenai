@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 import { dismissOverlays, ensurePrimaryNav } from "../helpers";
 
 const NAV_TARGETS: { label: RegExp; url: RegExp; menu?: RegExp }[] = [
-  { label: /^Tracker$/i, url: /\/tracker$/ },
-  { label: /^Desk$/i, url: /\/desk/ },
-  { label: /^Research$/i, url: /\/research/ },
-  { label: /^Hub$/i, url: /\/sights/, menu: /^Sights$/i },
+  { label: /^GCI Screener$/i, url: /\/tracker$/ },
+  { label: /^Analyst Workbench$/i, url: /\/desk/ },
+  { label: /^Filing Search$/i, url: /\/research/ },
+  { label: /^Overview$/i, url: /\/sights/, menu: /^Disclosure Explorer$/i },
 ];
 
 const FOOTER_TARGETS: { label: RegExp; url: RegExp }[] = [

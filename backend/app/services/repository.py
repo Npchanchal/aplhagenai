@@ -58,6 +58,10 @@ def _to_view(
         source_ref=o.source_ref,
         quote_span=cite["quote_span"],
         as_of=o.as_of,
+        guidance_source_url=o.guidance_source_url,
+        guidance_source_ref=o.guidance_source_ref,
+        guidance_quote=o.guidance_quote,
+        guidance_as_of=o.guidance_as_of,
         dropped=o.dropped,
         actual_change_pct=actual_change_pct,
         actual_change_horizon=actual_change_horizon,
@@ -828,7 +832,9 @@ def merge_matched(company_id: str, matched: List[Dict[str, Any]]) -> int:
     return len(cleaned)
 
 
-def save_pending_extract(company_id: str, statements: List[Dict[str, Any]]) -> Dict[str, Any]:
+def save_pending_extract(
+    company_id: str, statements: List[Dict[str, Any]], *, sample: bool = False
+) -> Dict[str, Any]:
     from uuid import uuid4
 
     data = get_data()
@@ -837,6 +843,7 @@ def save_pending_extract(company_id: str, statements: List[Dict[str, Any]]) -> D
         "company_id": company_id,
         "statements": statements,
         "status": "pending",
+        "sample": sample,
     }
     data.setdefault("pending_extracts", []).append(batch)
     save_data()

@@ -37,7 +37,7 @@ export type TourDef = {
 export const TOURS: TourDef[] = [
   {
     id: "tracker",
-    title: "Guidance Tracker",
+    title: "GCI Screener",
     blurb: "Screen the Sensex / India universe, find citeable names, open a dossier.",
     group: "workbench",
     startRoute: "/tracker",
@@ -113,59 +113,66 @@ export const TOURS: TourDef[] = [
   },
   {
     id: "desk",
-    title: "One-Stop Desk",
-    blurb: "Console, review queue, corpus, cite-only reports, PIT/API.",
+    title: "Analyst Workbench",
+    blurb: "First run: check extracted guidance, see new filings, export cited reports.",
     group: "workbench",
     startRoute: "/desk?tab=console",
     steps: [
       {
         selector: '[data-testid="desk-console"]',
-        title: "Desk Console",
-        body: "Multi-pane ops terminal. Primary tabs: Console, Review, Corpus, Reports, PIT. Parameters and CSM live under More.",
+        title: "Welcome to the Analyst Workbench",
+        body: "This is where analysts check guidance we pulled from filings before it counts toward a GCI score. Nothing here changes a live score until you accept it. Takes about a minute.",
         route: "/desk",
         search: "?tab=console",
       },
       {
         selector: '[data-testid="desk-page"] .tab-bar',
-        title: "Desk tabs",
-        body: "Sticky picker + URL ?tab= sync. Review is the HITL queue; Corpus builds the Sensex citation gate.",
+        title: "Your sections",
+        body: "Console is the overview. Review is the queue of statements to check. Corpus shows source coverage. Reports builds cited notes. PIT exports history.",
         route: "/desk",
         search: "?tab=review",
       },
       {
         selector: '[data-testid="crawl-bar"]',
-        title: "Live IR refresh",
-        body: "Primary ingest path — scheduled every 6h. Pending docs stay out of citeable GCI until Accept.",
+        title: "New filings arrive on their own",
+        body: "We check company IR pages every 6 hours. New documents wait here until someone reviews them.",
+        route: "/desk",
+        search: "?tab=review",
+      },
+      {
+        selector: '[data-testid="queue-extract"]',
+        title: "Try it with a demo sample",
+        body: "Click this to pull guidance from a demo transcript. Those items are badged “Demo sample” — practice data, not a real filing. Accept, edit, or reject each line, then commit.",
         route: "/desk",
         search: "?tab=review",
       },
       {
         selector: '[data-testid="queue-paste"]',
-        title: "Exception paste",
-        body: "Use paste/URL only when a transcript is not yet in the corpus. Automatic crawl remains primary.",
+        title: "Missing a document?",
+        body: "Paste transcript text or an IR link here only when a filing isn't in the corpus yet. Most days you won't need this.",
         route: "/desk",
         search: "?tab=review",
       },
       {
         selector: '[data-testid="corpus-panel"]',
-        title: "Tier 1 Corpus",
-        body: "Build Sensex citation bindings + PIT warehouse so analytics and horizons work honestly.",
+        title: "Source coverage",
+        body: "See which companies have a transcript, results release, and IR page for each year, and how many rows can be cited.",
         route: "/desk",
         search: "?tab=corpus",
         waitMs: 4000,
       },
       {
         selector: '[data-testid="reports-panel"]',
-        title: "Role reports",
-        body: "Markdown templates embed citeable outcomes only, with a citation appendix. Provisional rows are excluded.",
+        title: "Cited reports",
+        body: "Build a note that includes only rows with a source, plus a citation list at the end. Unverified rows are left out.",
         route: "/desk",
         search: "?tab=reports",
         waitMs: 4000,
       },
       {
         selector: '[data-testid="pit-panel"]',
-        title: "API / PIT",
-        body: "Point-in-time GCI for backtests — no look-ahead. Demo key is for evaluation writes only.",
+        title: "Scores as of any date",
+        body: "Export GCI as it stood on a past date, so backtests never see later data. Replay this tour any time from Help.",
         route: "/desk",
         search: "?tab=pit",
         waitMs: 4000,
@@ -174,14 +181,14 @@ export const TOURS: TourDef[] = [
   },
   {
     id: "research",
-    title: "Research Terminal",
+    title: "Filing Search",
     blurb: "Cite-only search & chat, desk snapshot, watchlist with MoM/QoQ/YoY.",
     group: "workbench",
     startRoute: "/research?tab=search",
     steps: [
       {
         selector: '[data-testid="research-page"]',
-        title: "Research Terminal",
+        title: "Filing Search",
         body: "Document search and cite-only chat over filings/transcripts. Complements GCI — not a price terminal.",
         route: "/research",
         search: "?tab=search",
@@ -221,35 +228,35 @@ export const TOURS: TourDef[] = [
   },
   {
     id: "sights",
-    title: "CiteAlpha Sights",
+    title: "Disclosure Explorer",
     blurb: "Compare disclosures across companies — hub, search, cite-only Ask, boards.",
     group: "workbench",
     startRoute: "/sights",
     steps: [
       {
         selector: '[data-testid="sights-hub"]',
-        title: "Sights hub",
+        title: "Disclosure Explorer overview",
         body: "Cross-company disclosure research: search, cite-only Ask, boards, grid, and agents. Own brands only — no competitor chrome.",
         route: "/sights",
       },
       {
         selector: '[data-testid="sights-search"]',
-        title: "Sights Search",
-        body: "Search public IR and filings with Business Lexicon synonym expand. Complements the Research Terminal.",
+        title: "Search across companies",
+        body: "Search public IR and filings with Business Lexicon synonym expand. Complements single-company Filing Search.",
         route: "/sights/search",
         waitMs: 4000,
       },
       {
         selector: '[data-testid="sights-ask"]',
-        title: "Sights Ask",
+        title: "Ask with citations",
         body: "Cite-only answers over the India disclosure corpus. Refuses when evidence is missing — never invents actuals.",
         route: "/sights/ask",
         waitMs: 4000,
       },
       {
         selector: '[data-testid="sights-boards"]',
-        title: "Sights Boards",
-        body: "Watchlist and saved queries for the desk session. Other tools (themes, grid, agents) live under Sights ▾ More.",
+        title: "Boards",
+        body: "Watchlist and saved queries for the desk session. Other tools (themes, grid, agents) live under Disclosure Explorer ▾ More.",
         route: "/sights/boards",
         waitMs: 4000,
       },
@@ -277,7 +284,7 @@ export const TOURS: TourDef[] = [
       {
         selector: '[data-testid="help-search"]',
         title: "Find a term",
-        body: "Type citeable, dropped, Sights, or Granger to jump definitions used across Tracker, Desk, Research, and Sights.",
+        body: "Type citeable, dropped, PIT, or Granger to jump to definitions used across the GCI Screener, Analyst Workbench, Filing Search, and Disclosure Explorer.",
         route: "/help",
       },
       {
@@ -302,7 +309,7 @@ export const TOUR_GROUPS: { id: TourGroup; label: string }[] = [
 
 export const TOUR_STORAGE_KEY = "citealpha.tours.seen.v2";
 
-export type TourSeenMap = Partial<Record<TourId | "welcome_prompt", boolean>>;
+export type TourSeenMap = Partial<Record<TourId | "welcome_prompt" | "desk_first_run", boolean>>;
 
 export function loadTourSeen(): TourSeenMap {
   try {

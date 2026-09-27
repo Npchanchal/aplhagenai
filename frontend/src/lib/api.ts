@@ -35,6 +35,10 @@ export type OutcomeView = {
   source_ref?: string | null;
   quote_span?: string | null;
   as_of?: string | null;
+  guidance_source_url?: string | null;
+  guidance_source_ref?: string | null;
+  guidance_quote?: string | null;
+  guidance_as_of?: string | null;
   dropped?: boolean;
   actual_change_pct?: number | null;
   actual_change_horizon?: string | null;
@@ -1307,6 +1311,8 @@ export type PendingExtractBatch = {
   statements: PendingStatement[];
   status: string;
   accepted_count?: number;
+  /** Extracted from the seeded demo transcript, not a real filing. */
+  sample?: boolean;
 };
 
 export function postExtract(

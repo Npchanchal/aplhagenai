@@ -30,10 +30,11 @@ const METHOD_STEPS = [
 ] as const;
 
 const SURFACES = [
-  { titleKey: "landing.next.tracker.title", textKey: "landing.next.tracker.text", to: "/tracker" },
-  { titleKey: "landing.next.research.title", textKey: "landing.next.research.text", to: "/research" },
-  { titleKey: "landing.next.sights.title", textKey: "landing.next.sights.text", to: "/sights" },
-  { titleKey: "landing.next.rankings.title", textKey: "landing.next.rankings.text", to: "/rankings" },
+  { id: "tracker", to: "/tracker", beta: false },
+  { id: "desk", to: "/desk", beta: false },
+  { id: "research", to: "/research", beta: false },
+  { id: "sights", to: "/sights", beta: true },
+  { id: "rankings", to: "/rankings", beta: false },
 ] as const;
 
 /** Public marketing home — citealpha.com apex. */
@@ -64,21 +65,21 @@ export default function LandingPage() {
           {t("landing.hero.lede", { product: PRODUCT_NAME })}
         </p>
         <div className="landing-cta">
-          <Link
-            to={`/companies/${EXAMPLE_COMPANY_ID}`}
+          <a
+            href="#pilot-request"
             className="btn primary"
-            data-testid="landing-cta-example"
-            onClick={() => trackEvent("example_cta", { source: "landing-hero" })}
-          >
-            {t("landing.hero.ctaExample")}
-          </Link>
-          <Link
-            to="/pilot"
-            className="btn"
             data-testid="landing-cta-pilot"
             onClick={() => trackEvent("pilot_cta", { source: "landing-hero", type: "form" })}
           >
             {t("landing.ctaPilot")}
+          </a>
+          <Link
+            to={`/companies/${EXAMPLE_COMPANY_ID}`}
+            className="landing-text-link"
+            data-testid="landing-cta-example"
+            onClick={() => trackEvent("example_cta", { source: "landing-hero" })}
+          >
+            {t("landing.hero.ctaExample")}
           </Link>
         </div>
         <p className="muted landing-personas" data-testid="landing-personas">
@@ -144,24 +145,36 @@ export default function LandingPage() {
         <h2 style={{ marginTop: 0 }}>{t("landing.pilot.title")}</h2>
         <p className="muted">{t("landing.pilot.lede")}</p>
         <PilotRequestForm source="landing" />
-        <div className="landing-cta" style={{ marginTop: "1rem" }}>
+        <p className="muted" style={{ marginTop: "1rem" }}>
           <Link
             to="/package"
-            className="btn"
             onClick={() => trackEvent("pilot_cta", { source: "landing", type: "package" })}
           >
             {t("landing.viewPackages")}
           </Link>
-        </div>
+        </p>
       </div>
 
       <div className="landing-next" data-testid="landing-surfaces">
         <h2>{t("landing.next.title")}</h2>
+        <p className="muted">{t("landing.next.lede")}</p>
         <div className="landing-grid">
           {SURFACES.map((s) => (
-            <Link key={s.to} to={s.to} className="panel landing-card">
-              <h3>{t(s.titleKey)}</h3>
-              <p className="muted">{t(s.textKey)}</p>
+            <Link
+              key={s.to}
+              to={s.to}
+              className="panel landing-card"
+              data-testid={`landing-surface-${s.id}`}
+            >
+              <p className="landing-card-tags">
+                <span className="landing-card-fn">{t(`landing.next.${s.id}.fn`)}</span>
+                <span className={`landing-card-stage ${s.beta ? "beta" : "live"}`}>
+                  {t(s.beta ? "landing.next.stage.beta" : "landing.next.stage.live")}
+                </span>
+              </p>
+              <h3>{t(`landing.next.${s.id}.title`)}</h3>
+              <p className="muted">{t(`landing.next.${s.id}.text`)}</p>
+              <p className="landing-card-access">{t(`landing.next.${s.id}.access`)}</p>
             </Link>
           ))}
         </div>

@@ -60,4 +60,25 @@ test.describe("Desk — pilot user workflows", () => {
     await expect(page).toHaveURL(/tab=review/);
     await expect(page.getByTestId("review-queue-panel")).toBeVisible();
   });
+
+  test("first Workbench visit auto-launches the walkthrough once", async ({ page }) => {
+    await page.evaluate(() => {
+      const key = "citealpha.tours.seen.v2";
+      const seen = JSON.parse(localStorage.getItem(key) || "{}");
+      delete seen.desk;
+      delete seen.desk_first_run;
+      localStorage.setItem(key, JSON.stringify(seen));
+    });
+    await page.reload();
+    const card = page.getByTestId("site-tour-card");
+    await expect(card).toBeVisible({ timeout: 25_000 });
+    await expect(card).toContainText("Welcome to the Analyst Workbench");
+    await page.getByTestId("tour-skip").click();
+    await expect(card).toBeHidden();
+
+    await page.reload();
+    await expect(page.getByTestId("desk-page")).toBeVisible({ timeout: 25_000 });
+    await page.waitForTimeout(2000);
+    await expect(card).toBeHidden();
+  });
 });

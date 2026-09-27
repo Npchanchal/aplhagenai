@@ -204,6 +204,10 @@ class OutcomeView(BaseModel):
     source_ref: Optional[str] = None
     quote_span: Optional[str] = None
     as_of: Optional[str] = None
+    guidance_source_url: Optional[str] = None
+    guidance_source_ref: Optional[str] = None
+    guidance_quote: Optional[str] = None
+    guidance_as_of: Optional[str] = None
     dropped: bool = False
     actual_change_pct: Optional[float] = None
     actual_change_horizon: Optional[str] = None

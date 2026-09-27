@@ -24,6 +24,7 @@ type TourContextValue = {
   skipTour: () => void;
   finishTour: () => void;
   markWelcomePrompted: () => void;
+  markSeen: (key: keyof TourSeenMap) => void;
   resetSeen: () => void;
 };
 
@@ -85,6 +86,14 @@ export function TourProvider({ children }: { children: ReactNode }) {
     persist({ ...seen, welcome_prompt: true });
   }, [persist, seen]);
 
+  const markSeen = useCallback((key: keyof TourSeenMap) => {
+    setSeen((prev) => {
+      const next = { ...prev, [key]: true };
+      saveTourSeen(next);
+      return next;
+    });
+  }, []);
+
   const resetSeen = useCallback(() => {
     persist({});
   }, [persist]);
@@ -100,6 +109,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       skipTour,
       finishTour,
       markWelcomePrompted,
+      markSeen,
       resetSeen,
     }),
     [
@@ -112,6 +122,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       skipTour,
       finishTour,
       markWelcomePrompted,
+      markSeen,
       resetSeen,
     ]
   );

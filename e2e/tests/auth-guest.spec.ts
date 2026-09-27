@@ -10,7 +10,7 @@ const GUEST_ORIGIN = {
         { name: "intellens.analytics_consent", value: "denied" },
         {
           name: "citealpha.tours.seen.v2",
-          value: JSON.stringify({ welcome_prompt: true, tracker: true }),
+          value: JSON.stringify({ welcome_prompt: true, tracker: true, desk_first_run: true }),
         },
       ],
     },
@@ -40,7 +40,11 @@ test.describe("Guest user journey", () => {
       timeout: 15_000,
     });
     await expect(example.getByTestId("example-label-FY24")).toHaveText("missed");
-    await expect(example.locator('a[href*="infosys.com"]').first()).toBeVisible();
+    const fy22Trail = example.getByTestId("example-trail-FY22");
+    await expect(fy22Trail.locator('a[href^="https://www.sec.gov/Archives/edgar/data/1067491/"]')).toHaveCount(2);
+    await expect(fy22Trail).toContainText("Guidance given · 2021-04-14");
+    await expect(fy22Trail).toContainText("Revenue growth guidance of 12%-14% in constant currency");
+    await expect(fy22Trail).toContainText("Actual reported · 2022-04-13");
 
     const exampleBox = await example.boundingBox();
     const defineBox = await page.getByTestId("landing-explain").boundingBox();
@@ -55,6 +59,41 @@ test.describe("Guest user journey", () => {
 
     await page.getByTestId("landing-cta-example").click();
     await expect(page).toHaveURL(/\/companies\/infy$/);
+  });
+
+  test("hero has one primary CTA and surfaces carry function and stage labels", async ({ page }) => {
+    await page.goto("/");
+    await dismissOverlays(page);
+    await expect(page.locator(".landing-hero .btn")).toHaveCount(1);
+    await expect(page.getByTestId("landing-cta-pilot")).toHaveText("Request a pilot");
+    await page.getByTestId("landing-cta-pilot").click();
+    await expect(page).toHaveURL(/#pilot-request$/);
+    await expect(page.locator("#pilot-request")).toBeInViewport();
+
+    const surfaces = page.getByTestId("landing-surfaces");
+    for (const [id, title] of [
+      ["tracker", "GCI Screener"],
+      ["desk", "Analyst Workbench"],
+      ["research", "Filing Search"],
+      ["sights", "Disclosure Explorer"],
+      ["rankings", "Public Snapshot"],
+    ]) {
+      const card = surfaces.getByTestId(`landing-surface-${id}`);
+      await expect(card.locator("h3")).toHaveText(title);
+      await expect(card.locator(".landing-card-stage")).toHaveText(/^(Live|Beta)$/);
+    }
+    await expect(surfaces.getByTestId("landing-surface-rankings")).toContainText("no login");
+    await expect(page.getByTestId("site-footer").getByRole("link", { name: "Request a pilot" })).toBeVisible();
+  });
+
+  test("Public Snapshot opens without login and without recommendation chrome", async ({ page }) => {
+    await page.goto("/rankings");
+    await dismissOverlays(page);
+    await expect(page).toHaveURL(/\/rankings$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Public Snapshot");
+    await expect(page.getByTestId("login-page")).toHaveCount(0);
+    const text = await page.locator("#main").innerText();
+    expect(text).not.toMatch(/\b(strong buy|target price|overweight|underweight|top picks?)\b/i);
   });
 
   test("guest session reaches tracker with banner", async ({ page }) => {

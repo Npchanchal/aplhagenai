@@ -27,7 +27,7 @@ type SeoRouteEntry = {
 
 const DEFAULT: SeoConfig = {
   path: "/",
-  title: "CiteAlpha — Guidance Credibility Index",
+  title: "GCI by CiteAlpha — Guidance Credibility Index",
   description:
     "CiteAlpha GCI by Ocotillo Innovation Private Limited — management guidance vs delivery for Indian equity desks. Factual research product; not investment advice.",
 };

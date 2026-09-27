@@ -95,6 +95,9 @@ def test_static_worked_example_matches_live_infosys_data():
         o = rows[period]
         assert o["citeable"] is True
         assert o["source_url"] in static_html
+        assert o["guidance_source_url"] in static_html
+        assert f"“{o['guidance_quote']}”" in static_html
+        assert f"“{o['quote_span']}”" in static_html
         line = (
             f"{period} — guided {o['guided_low']:g}–{o['guided_high']:g}%, "
             f"actual {o['actual_value']:g}% — <strong>{o['label']}</strong> "

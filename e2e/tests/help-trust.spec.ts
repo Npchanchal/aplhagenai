@@ -6,7 +6,7 @@ test("about, help, trust, and terms surfaces", async ({ page }) => {
   await dismissOverlays(page);
   await expect(page.getByTestId("about-page")).toBeVisible();
   await expect(page.getByRole("heading", { name: /About CiteAlpha/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sights" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Disclosure Explorer" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Trust Center" }).first()).toBeVisible();
 
   await page.goto("/help");

@@ -22,10 +22,10 @@ export const DESK_GUIDES: DeskGuide[] = [
     blurb:
       "Screen chronic guidance misses and drill into evidence — GCI first, Radar for revisions.",
     skus: ["Score", "Radar"],
-    primary: { to: "/tracker", label: "Open Tracker" },
+    primary: { to: "/tracker", label: "Open GCI Screener" },
     links: [
       { to: "/products#radar", label: "Radar feed" },
-      { to: "/rankings", label: "GCI Rankings" },
+      { to: "/rankings", label: "Public Snapshot" },
     ],
   },
   {
@@ -33,12 +33,12 @@ export const DESK_GUIDES: DeskGuide[] = [
     hash: "desk-sell-side",
     title: "Sell-side / research ops",
     blurb:
-      "Cite primary guidance↔actuals in notes; Research Terminal for cite-only answers.",
+      "Cite primary guidance↔actuals in notes; Filing Search for cite-only answers.",
     skus: ["Cite", "Score"],
-    primary: { to: "/research", label: "Open Research" },
+    primary: { to: "/research", label: "Open Filing Search" },
     links: [
-      { to: "/sights", label: "Sights" },
-      { to: "/tracker", label: "GCI Tracker" },
+      { to: "/sights", label: "Disclosure Explorer" },
+      { to: "/tracker", label: "GCI Screener" },
       { to: "/products", label: "Cite packaging" },
     ],
   },

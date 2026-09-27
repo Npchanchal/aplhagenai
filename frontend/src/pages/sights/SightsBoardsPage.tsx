@@ -50,12 +50,12 @@ export default function SightsBoardsPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-boards">
-      <h2>Sights Boards</h2>
+      <h2>Boards</h2>
       <p className="muted">Watchlist + saved queries for India equity coverage.</p>
 
       <h3>Watchlist</h3>
       {(!preferences?.watchlist || preferences.watchlist.length === 0) && (
-        <p className="muted">Star names below or on Tracker to build a board.</p>
+        <p className="muted">Star names below or in the GCI Screener to build a board.</p>
       )}
       <ul className="doc-list">
         {watch.map((w) => (

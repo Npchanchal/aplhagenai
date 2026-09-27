@@ -23,8 +23,17 @@ def test_g01_hand_labeled_cohort():
     assert "infy" in HAND_LABELED_COMPANY_IDS
     infy = client.get("/api/companies/infy/gci").json()
     assert infy["data_quality"] == "hand_labeled"
-    assert any("guidance-vs-actuals" in (o.get("source_url") or "") for o in infy["outcomes"])
     assert len(infy["outcomes"]) >= 8
+    rev = [o for o in infy["outcomes"] if o.get("thread_id") == "infy-rev-cc"]
+    assert len(rev) == 5
+    for o in rev:
+        assert o["source_url"].startswith("https://www.sec.gov/Archives/edgar/data/1067491/")
+        assert o["guidance_source_url"].startswith("https://www.sec.gov/Archives/edgar/data/1067491/")
+        assert o["guidance_source_url"] != o["source_url"]
+        assert o["guidance_quote"] and o["quote_span"]
+        assert o["guidance_as_of"] < o["as_of"]
+    fy22 = next(o for o in rev if o["period"] == "FY22")
+    assert (fy22["guided_low"], fy22["guided_high"]) == (12.0, 14.0)
 
 
 def test_g02_extract():

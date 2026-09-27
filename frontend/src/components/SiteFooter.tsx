@@ -22,6 +22,7 @@ export default function SiteFooter() {
           <Link to="/blog">{t("footer.blog")}</Link>
           <Link to="/billing">{t("footer.billing")}</Link>
           <Link to="/package">{t("footer.package")}</Link>
+          <Link to="/pilot">{t("footer.pilot")}</Link>
           <Link to="/about">{t("footer.about")}</Link>
           {showArchitecturePage ? (
             <Link to="/about/architecture">{t("footer.architecture")}</Link>

@@ -24,20 +24,20 @@ function linkClass(isActive: boolean) {
   return isActive ? "sights-nav-link active" : "sights-nav-link";
 }
 
-/** CiteAlpha Sights shell — cross-company disclosure research. */
+/** Disclosure Explorer (Sights) shell — cross-company disclosure research. */
 export default function SightsLayout() {
   const { pathname } = useLocation();
   const moreActive = MORE.some((l) => pathname === l.to || pathname.startsWith(`${l.to}/`));
 
   return (
     <div className="page sights-page" data-testid="sights-shell">
-      <p className="page-kicker">CiteAlpha Sights</p>
-      <h1>India disclosure research</h1>
+      <p className="page-kicker">GCI by CiteAlpha · cross-company disclosures</p>
+      <h1>Disclosure Explorer</h1>
       <p className="lede">
         Search, cite-only answers, boards, and desk agents over public IR and CiteAlpha evidence —
         not sell-side note redistribution.
       </p>
-      <nav className="sights-nav" aria-label="Sights sections">
+      <nav className="sights-nav" aria-label="Disclosure Explorer sections">
         {PRIMARY.map((l) => (
           <NavLink
             key={l.to}

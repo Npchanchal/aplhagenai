@@ -56,7 +56,7 @@ export const SIGHTS_ROUTES: RouteSpec[] = [
 
 export const CORE_ROUTES: RouteSpec[] = [
   { path: "/", testId: "landing-page", mayRedirect: true, redirectTo: /\/tracker$/ },
-  { path: "/tracker", heading: /Guidance Credibility Index/i },
+  { path: "/tracker", heading: /GCI Screener/i },
   { path: "/companies/infy", testId: "company-name" },
   { path: "/desk", testId: "desk-page" },
   { path: "/research", testId: "research-page" },

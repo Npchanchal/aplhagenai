@@ -21,6 +21,39 @@ function sourceHost(url: string): string {
   }
 }
 
+function TrailStep({
+  kind,
+  label,
+  date,
+  quote,
+  url,
+}: {
+  kind: "guidance" | "actual";
+  label: string;
+  date?: string | null;
+  quote?: string | null;
+  url: string;
+}) {
+  const { t } = useI18n();
+  return (
+    <a
+      className={`landing-example-step ${kind}`}
+      href={url}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <span className={`landing-example-chip ${kind}`}>
+        {label}
+        {date ? ` · ${date}` : ""}
+      </span>
+      {quote ? <q>{quote}</q> : null}
+      <span className="landing-example-host">
+        {t("landing.example.source")}: {sourceHost(url)}
+      </span>
+    </a>
+  );
+}
+
 /** One real, cited guidance thread — proof before definition. */
 export default function LandingWorkedExample() {
   const { t } = useI18n();
@@ -74,17 +107,26 @@ export default function LandingWorkedExample() {
                     ? t("landing.example.points", { points: o.contribution_score })
                     : "—"}
                 </span>
-                {o.source_url ? (
-                  <a
-                    className="landing-example-source"
-                    href={o.source_url}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {t("landing.example.source")}: {sourceHost(o.source_url)}
-                    {o.as_of ? ` · ${t("landing.example.reported", { date: o.as_of })}` : ""}
-                  </a>
-                ) : null}
+                <div className="landing-example-trail" data-testid={`example-trail-${o.period}`}>
+                  {o.guidance_source_url ? (
+                    <TrailStep
+                      kind="guidance"
+                      label={t("landing.example.trailGuidance")}
+                      date={o.guidance_as_of}
+                      quote={o.guidance_quote}
+                      url={o.guidance_source_url}
+                    />
+                  ) : null}
+                  {o.source_url ? (
+                    <TrailStep
+                      kind="actual"
+                      label={t("landing.example.trailActual")}
+                      date={o.as_of}
+                      quote={o.quote_span}
+                      url={o.source_url}
+                    />
+                  ) : null}
+                </div>
               </li>
             ))}
           </ol>

@@ -671,7 +671,7 @@ export default function DeskPage() {
                   }
                 }}
               >
-                Run extract
+                {pasteText.trim() ? "Run extract" : "Run extract on demo sample"}
               </button>
             </div>
           </div>
@@ -686,6 +686,11 @@ export default function DeskPage() {
             <div className="queue-batch" key={batch.id} data-testid={`batch-${batch.id}`}>
               <div className="queue-batch-head">
                 <span className="muted" style={{ fontSize: 12 }}>
+                  {batch.sample ? (
+                    <span className="quality-badge demo" data-testid={`batch-demo-${batch.id}`}>
+                      Demo sample — practice data, not a real filing
+                    </span>
+                  ) : null}{" "}
                   Batch <code className="inline-code">{batch.id.slice(0, 8)}</code> ·{" "}
                   {batch.statements.length} statement(s)
                 </span>

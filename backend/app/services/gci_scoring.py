@@ -61,6 +61,11 @@ class GuidanceOutcome:
     span_start: Optional[int] = None
     span_end: Optional[int] = None
     unmapped: bool = False  # qualitative / NLP UNMAPPED — excluded from GCI
+    # Where the guidance was given, when source_* cites the actual.
+    guidance_source_url: Optional[str] = None
+    guidance_source_ref: Optional[str] = None
+    guidance_quote: Optional[str] = None
+    guidance_as_of: Optional[str] = None
 
 
 @dataclass

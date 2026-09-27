@@ -25,7 +25,8 @@ describe("site tours", () => {
   });
 
   it("getTour resolves known ids", () => {
-    expect(getTour("tracker")?.title).toMatch(/Tracker/i);
+    expect(getTour("tracker")?.title).toMatch(/Screener/i);
+    expect(getTour("desk")?.title).toBe("Analyst Workbench");
     expect(getTour("desk")?.steps.some((s) => s.search?.includes("corpus"))).toBe(true);
     expect(getTour("desk")?.steps.some((s) => s.search?.includes("pit"))).toBe(true);
     expect(getTour("sights")?.startRoute).toBe("/sights");

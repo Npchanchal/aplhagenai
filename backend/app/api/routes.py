@@ -451,6 +451,7 @@ def extract(body: ExtractRequest, auth=Depends(require_feature("desk_write"))) -
     from app.services.llm_client import llm_configured
 
     text = body.text
+    sample = not text
     if not text:
         text = get_data().get("sample_transcripts", {}).get(body.company_id)
     if not text:
@@ -461,7 +462,7 @@ def extract(body: ExtractRequest, auth=Depends(require_feature("desk_write"))) -
         period=body.period,
         source_ref=body.source_ref,
     )
-    batch = repository.save_pending_extract(body.company_id, statements)
+    batch = repository.save_pending_extract(body.company_id, statements, sample=sample)
     engines = sorted({str(s.get("extract_engine") or "") for s in statements})
     audit_log.record(
         "extract",

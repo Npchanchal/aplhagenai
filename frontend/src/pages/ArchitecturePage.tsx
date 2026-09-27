@@ -91,10 +91,10 @@ export default function ArchitecturePage() {
         <SurfacesDiagram />
         <ul className="about-list">
           <li>
-            <Link to="/tracker">Tracker</Link> — universe GCI, Δ, quality badges
+            <Link to="/tracker">GCI Screener</Link> — universe GCI, Δ, quality badges
           </li>
           <li>
-            <Link to="/desk">Desk</Link> — review queue, corpus, PIT/API, reports, CSM
+            <Link to="/desk">Analyst Workbench</Link> — review queue, corpus, PIT/API, reports, CSM
           </li>
           <li>
             <Link to="/research">Research</Link> — search, cite-only chat, snapshot, watchlist

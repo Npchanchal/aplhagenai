@@ -129,8 +129,8 @@ export function SurfacesDiagram() {
       <svg viewBox="0 0 720 260" className="arch-svg" xmlns="http://www.w3.org/2000/svg">
         <rect width="720" height="260" fill={paper} />
         {[
-          { x: 40, title: "Tracker", path: "/tracker", sub: "Universe · GCI · Δ" },
-          { x: 260, title: "Desk", path: "/desk", sub: "Review · PIT · reports" },
+          { x: 40, title: "GCI Screener", path: "/tracker", sub: "Universe · GCI · Δ" },
+          { x: 260, title: "Workbench", path: "/desk", sub: "Review · PIT · reports" },
           { x: 480, title: "Research", path: "/research", sub: "Search · cite-only" },
         ].map((b) => (
           <g key={b.title}>

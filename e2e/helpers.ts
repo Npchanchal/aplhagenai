@@ -45,7 +45,7 @@ export async function seedGuestSession(page: Page): Promise<void> {
     localStorage.setItem("intellens.analytics_consent", "denied");
     localStorage.setItem(
       "citealpha.tours.seen.v2",
-      JSON.stringify({ welcome_prompt: true, tracker: true }),
+      JSON.stringify({ welcome_prompt: true, tracker: true, desk_first_run: true }),
     );
   }, token);
   await page.goto("/tracker");

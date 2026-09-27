@@ -4,7 +4,7 @@ import { dismissOverlays, waitForCompanyTable, waitForDossier } from "../helpers
 test("US-001/002/003: list companies, open detail, see evidence", async ({ page }) => {
   await page.goto("/tracker");
   await dismissOverlays(page);
-  await expect(page.getByRole("heading", { name: "Guidance Credibility Index" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "GCI Screener" })).toBeVisible();
   await waitForCompanyTable(page);
   await expect(page.getByTestId("alerts-panel")).toBeVisible();
 

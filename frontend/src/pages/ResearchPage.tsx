@@ -669,7 +669,7 @@ export default function ResearchPage() {
           {(!preferences?.watchlist || preferences.watchlist.length === 0) && (
             <p className="muted" style={{ fontSize: 13 }}>
               Showing default names. Add tickers via ★ on{" "}
-              <Link to="/tracker">GCI Tracker</Link>.
+              <Link to="/tracker">GCI Screener</Link>.
             </p>
           )}
           <div className="table-scroll">

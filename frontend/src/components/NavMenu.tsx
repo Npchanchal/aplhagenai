@@ -26,7 +26,7 @@ type NavEntry =
   | ({ kind: "group" } & NavGroup);
 
 /**
- * Primary: Tracker · Desk · Research · Sights · More.
+ * Primary: GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · More.
  * All items visible — entitlements gate content on each route, not in nav.
  */
 export const NAV_ENTRIES: NavEntry[] = [

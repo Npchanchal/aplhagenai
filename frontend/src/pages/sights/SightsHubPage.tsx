@@ -79,7 +79,7 @@ export default function SightsHubPage() {
 
       {Object.keys(brandMap).length > 0 && (
         <>
-          <h2>Also in Sights</h2>
+          <h2>Also in Disclosure Explorer</h2>
           <ul className="sights-brand-list">
             {Object.entries(brandMap).map(([k, v]) => {
               const to = BRAND_LINKS[k];
@@ -95,7 +95,7 @@ export default function SightsHubPage() {
 
       <p className="muted">
         Cite-only research — not sell-side note redistribution. Policy and refuse list live on the{" "}
-        <Link to="/trust">Trust Center</Link>. Research Terminal remains at{" "}
+        <Link to="/trust">Trust Center</Link>. Single-company Filing Search remains at{" "}
         <Link to="/research">/research</Link>.
       </p>
     </section>

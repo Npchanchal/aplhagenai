@@ -396,6 +396,10 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         span_start=None if d.get("span_start") is None else int(d["span_start"]),
         span_end=None if d.get("span_end") is None else int(d["span_end"]),
         unmapped=bool(d.get("unmapped", False)),
+        guidance_source_url=d.get("guidance_source_url"),
+        guidance_source_ref=d.get("guidance_source_ref"),
+        guidance_quote=d.get("guidance_quote"),
+        guidance_as_of=d.get("guidance_as_of"),
     )
 
 

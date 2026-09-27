@@ -1,50 +1,50 @@
 [
   {
     "path": "/",
-    "title": "CiteAlpha — Guidance Credibility Index for Indian Equity Desks",
+    "title": "GCI by CiteAlpha — Guidance Credibility Index for Indian Equity Desks",
     "description": "Guidance Credibility Index (GCI): did Indian listed management deliver on quantified guidance? Evidence-linked scores with the filing behind every point. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "1.0" }
   },
   {
     "path": "/tracker",
-    "title": "GCI Tracker: Sensex Guidance Credibility Scores — CiteAlpha",
+    "title": "GCI Screener: Sensex Guidance Credibility Scores — GCI by CiteAlpha",
     "description": "Screen Sensex companies by Guidance Credibility Index with hand-labeled evidence. Other NSE/BSE listings are provisional and not for citation. Not investment advice.",
     "sitemap": { "changefreq": "daily", "priority": "0.9" }
   },
   {
     "path": "/desk",
-    "title": "Desk Console for GCI Review Queues — CiteAlpha",
-    "description": "Multi-pane desk for review queue, corpus, PIT/API, and reports — human-in-the-loop GCI workflows for Indian equity research.",
+    "title": "Analyst Workbench: Review Guidance Before It Scores — GCI by CiteAlpha",
+    "description": "Workspace where analysts check guidance extracted from filings, review new documents, and export cited reports and point-in-time data. For pilot and paid desks.",
     "sitemap": { "changefreq": "weekly", "priority": "0.8" }
   },
   {
     "path": "/research",
-    "title": "Research Terminal: Cite-Only Filings Search — CiteAlpha",
+    "title": "Filing Search: Cite-Only Search of One Company's Filings — CiteAlpha",
     "description": "Search filings and transcripts with cite-only chat. No hallucinated actuals. Built for Indian IR and concall workflows.",
     "sitemap": { "changefreq": "weekly", "priority": "0.8" }
   },
   {
     "path": "/sights",
-    "title": "CiteAlpha Sights — Compare Indian Company Disclosures",
-    "description": "Search, cite-only Ask, Compare Grid, and Desk Agents over public IR and CiteAlpha evidence. Not investment advice.",
+    "title": "Disclosure Explorer: Compare Indian Company Disclosures — CiteAlpha",
+    "description": "Search, cite-only Ask, Compare Grid, and agents across Indian companies' public IR and CiteAlpha evidence. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "0.85" }
   },
   {
     "path": "/sights/search",
-    "title": "Sights Search: India IR Documents — CiteAlpha",
+    "title": "Disclosure Explorer Search: India IR Documents — CiteAlpha",
     "description": "Search Indian IR decks, filings, and transcripts with Business Lexicon synonym expand. Evidence-first disclosure research.",
     "sitemap": { "changefreq": "weekly", "priority": "0.7" }
   },
   {
     "path": "/sights/ask",
-    "title": "Sights Ask: Cite-Only Disclosure Answers — CiteAlpha",
+    "title": "Disclosure Explorer Ask: Cite-Only Answers — CiteAlpha",
     "description": "Cite-only answers from the India disclosure corpus. Refuses without evidence. Built for equity research desks.",
     "sitemap": { "changefreq": "weekly", "priority": "0.65" }
   },
   {
     "path": "/products",
-    "title": "Product Portfolio: Score, Cite, Sights & More — CiteAlpha",
-    "description": "Score, Cite, Sights, Radar, Ledger, and Data SKUs for Guidance Credibility Index workflows on Indian equity desks. Not investment advice.",
+    "title": "Product Portfolio: Score, Cite, Disclosure Explorer & More — CiteAlpha",
+    "description": "Score, Cite, Disclosure Explorer, Radar, Ledger, and Data SKUs for Guidance Credibility Index workflows on Indian equity desks. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
   },
   {
@@ -56,7 +56,7 @@
   {
     "path": "/pilot",
     "title": "Request a CiteAlpha GCI Pilot — Ocotillo Innovation",
-    "description": "Time-boxed GCI pilot for Indian equity desks: Sensex hand-labeled evidence, Desk console, and Research Terminal. Not investment advice.",
+    "description": "Time-boxed GCI pilot for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.85" }
   },
   {
@@ -73,8 +73,8 @@
   },
   {
     "path": "/rankings",
-    "title": "GCI Rankings for Indian Listings — CiteAlpha",
-    "description": "Browse Guidance Credibility Index rankings for covered Indian listings. Evidence-linked scores, not recommendations.",
+    "title": "Public Snapshot: GCI for Indian Listings — GCI by CiteAlpha",
+    "description": "Public, no-login snapshot of Guidance Credibility Index scores for covered Indian listings. Evidence-linked scores, not recommendations.",
     "sitemap": { "changefreq": "weekly", "priority": "0.7" }
   },
   {
@@ -85,14 +85,14 @@
   },
   {
     "path": "/about/tiers",
-    "title": "Tier Features: Tracker, Desk, Research — CiteAlpha",
-    "description": "Feature map across CiteAlpha tiers: Tracker, Desk, Research, and Enterprise API capabilities for Indian equity desks.",
+    "title": "Tier Features: Screener, Workbench, Filing Search — CiteAlpha",
+    "description": "Feature map across CiteAlpha tiers: GCI Screener, Analyst Workbench, Filing Search, and Enterprise API capabilities for Indian equity desks.",
     "sitemap": { "changefreq": "monthly", "priority": "0.5" }
   },
   {
     "path": "/help",
     "title": "Help & Glossary for GCI Workflows — CiteAlpha",
-    "description": "Start here, guided tours, glossary, and source policy for GCI, Desk, Research, and Sights. Factual research; not investment advice.",
+    "description": "Start here, guided tours, glossary, and source policy for the GCI Screener, Analyst Workbench, Filing Search, and Disclosure Explorer. Factual research; not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.6" }
   },
   {
@@ -128,7 +128,7 @@
   {
     "path": "/register",
     "title": "Register — CiteAlpha",
-    "description": "Create a CiteAlpha account for GCI Tracker and Desk access.",
+    "description": "Create a CiteAlpha account for GCI Screener and Analyst Workbench access.",
     "robots": "noindex,nofollow"
   },
   {
@@ -170,7 +170,7 @@
   {
     "path": "/404",
     "title": "Page not found — CiteAlpha",
-    "description": "This URL is not on CiteAlpha. Open the GCI Tracker, documentation, or support pages.",
+    "description": "This URL is not on CiteAlpha. Open the GCI Screener, documentation, or support pages.",
     "robots": "noindex,follow"
   }
 ]

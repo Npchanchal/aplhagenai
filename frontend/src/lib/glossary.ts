@@ -13,17 +13,17 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   tracker: {
     id: "tracker",
-    term: "Guidance Credibility Index (Tracker)",
+    term: "GCI Screener",
     tip: "Universe screen for Sensex names: GCI level, Δ GCI (YoY/QoQ/PoP), quality badge, peers, and alerts. Open a name for the evidence dossier and charts.",
   },
   desk_sku: {
     id: "desk_sku",
-    term: "Desk (review & export workspace)",
+    term: "Analyst Workbench (review & export workspace)",
     tip: "Review workspace for pilot and paid desks: approve extracted guidance, check evidence, export point-in-time data, and build reports. Requires a pilot or paid seat.",
   },
   research_terminal: {
     id: "research_terminal",
-    term: "Research Terminal",
+    term: "Filing Search",
     tip: "One company at a time: search its filings and transcripts, ask cite-only questions, and see a snapshot of guidance vs reported numbers. Complements GCI — demo tape is not live prices.",
   },
   guidance: {
@@ -253,7 +253,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   sights: {
     id: "sights",
-    term: "CiteAlpha Sights",
+    term: "Disclosure Explorer",
     tip: "Compare disclosures across Indian companies: search, cite-only Ask, boards, compare grid, and desk agents over public IR and labeled evidence. Complements GCI — not a price terminal.",
   },
   score_sku: {
@@ -278,8 +278,8 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   rankings: {
     id: "rankings",
-    term: "GCI Rankings",
-    tip: "Public ranking of citeable GCI names. Evidence-linked scores, not recommendations.",
+    term: "Public Snapshot",
+    tip: "Public, no-login snapshot of citeable GCI names. Evidence-linked scores, not recommendations.",
   },
   trust_center: {
     id: "trust_center",

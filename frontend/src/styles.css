@@ -4073,6 +4073,53 @@ h2 .info-tip {
   font-size: 1.1rem;
 }
 
+.landing-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.landing-card-fn,
+.landing-card-stage {
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.landing-card-fn {
+  background: var(--bg-deep);
+  color: var(--muted);
+}
+
+.landing-card-stage.live {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.landing-card-stage.beta {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.landing-card-access {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.landing-cta {
+  align-items: center;
+}
+
+.landing-text-link {
+  padding: 8px 4px;
+  font-weight: 500;
+}
+
 .landing-personas {
   margin: 16px 0 0;
   font-size: 0.92rem;
@@ -4124,10 +4171,57 @@ h2 .info-tip {
   font-weight: 700;
 }
 
-.landing-example-source {
+.landing-example-trail {
   grid-column: 1 / -1;
-  font-size: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.landing-example-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 12.5px;
+  color: var(--ink, inherit);
+  text-decoration: none;
+}
+
+.landing-example-step:hover,
+.landing-example-step:focus-visible {
+  border-color: var(--accent);
+}
+
+.landing-example-step q {
+  line-height: 1.4;
+}
+
+.landing-example-chip {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.landing-example-chip.guidance {
+  background: #e8eefb;
+  color: #27457d;
+}
+
+.landing-example-chip.actual {
+  background: #e3f3ef;
+  color: #0b6b5f;
+}
+
+.landing-example-host {
   color: var(--accent);
+  font-size: 11.5px;
 }
 
 .landing-example-why {
@@ -4141,6 +4235,10 @@ h2 .info-tip {
 @media (max-width: 560px) {
   .landing-example-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .landing-example-trail {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -81,7 +81,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
       );
       localStorage.setItem(
         tourKey,
-        JSON.stringify({ welcome_prompt: true, tracker: true }),
+        JSON.stringify({ welcome_prompt: true, tracker: true, desk_first_run: true }),
       );
     },
     {

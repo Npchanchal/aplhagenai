@@ -131,7 +131,7 @@ export function breadcrumbJsonLd(pathname: string, pageTitle: string): JsonLd | 
     items.push({ name: "About", path: "/about" });
     items.push({ name: pageTitle.replace(/ — CiteAlpha$/, ""), path: pathname });
   } else if (pathname.startsWith("/sights/")) {
-    items.push({ name: "Sights", path: "/sights" });
+    items.push({ name: "Disclosure Explorer", path: "/sights" });
     items.push({ name: pageTitle.replace(/ — CiteAlpha$/, ""), path: pathname });
   } else {
     items.push({ name: pageTitle.replace(/ — CiteAlpha.*$/, ""), path: pathname });
