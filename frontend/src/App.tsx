@@ -8,6 +8,7 @@ import TourWelcome from "./components/TourWelcome";
 import LandingPage from "./pages/LandingPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import RouteFallback from "./components/RouteFallback";
+import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import PageAnalytics from "./components/PageAnalytics";
 import ConsentBanner from "./components/ConsentBanner";
 import SeoHead from "./components/SeoHead";
@@ -168,6 +169,7 @@ export default function App() {
       )}
       <ConsentBanner />
       <main id="main" className="app-main">
+        <RouteErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -225,6 +227,7 @@ export default function App() {
             <Route path="*" element={<NotFoundPage path={location.pathname} />} />
           </Routes>
         </Suspense>
+        </RouteErrorBoundary>
       </main>
       <SiteFooter />
       <TourWelcome />
