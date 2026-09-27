@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
 
+from app.services.guidance_flags import audited_company_gci
 from app.data.seed import get_data, get_outcomes, list_companies, outcome_from_dict, save_data
 from app.models.schemas import (
     AlertItem,
@@ -124,7 +125,7 @@ def _sector_stats() -> Dict[str, Tuple[Optional[float], Dict[str, Optional[float
     """sector -> (avg, {company_id: score}) for seed companies only."""
     by_sector: Dict[str, Dict[str, Optional[float]]] = defaultdict(dict)
     for c in list_companies():
-        score = compute_company_gci(get_outcomes(c["id"]))
+        score = audited_company_gci(get_outcomes(c["id"]))
         by_sector[c["sector"]][c["id"]] = score
     out: Dict[str, Tuple[Optional[float], Dict[str, Optional[float]]]] = {}
     for sector, mapping in by_sector.items():
@@ -199,7 +200,7 @@ def list_company_summaries(
         rows: List[CompanySummary] = []
         for c in list_companies():
             outcomes = get_outcomes(c["id"])
-            score = compute_company_gci(outcomes)
+            score = audited_company_gci(outcomes)
             trend = gci_trend_series(outcomes)
             ch_pct, ch_h = _latest_trend_change(trend)
             avg, mapping = stats[c["sector"]]
@@ -284,7 +285,7 @@ def list_company_summaries(
             # Prefer live seed outcomes for deep GCI names on small pages
             if seeded.get("data_quality") == "hand_labeled" or not large:
                 outcomes = get_outcomes(seeded["id"])
-                score = compute_company_gci(outcomes)
+                score = audited_company_gci(outcomes)
                 trend = gci_trend_series(outcomes)
                 ch_pct, ch_h = _latest_trend_change(trend)
                 sector = seeded["sector"]
@@ -514,7 +515,7 @@ def pit_history(company_id: str) -> List[PitPoint]:
         raw = []
         for i, period in enumerate(periods):
             subset = [o for o in outcomes if o.period in periods[: i + 1]]
-            score = compute_company_gci(subset)
+            score = audited_company_gci(subset)
             if score is None:
                 continue
             raw.append({"as_of": period, "gci_score": score})
@@ -522,7 +523,7 @@ def pit_history(company_id: str) -> List[PitPoint]:
         raw = []
         for d in dates:
             subset = [o for o in outcomes if o.as_of and o.as_of <= d]
-            raw.append({"as_of": d, "gci_score": compute_company_gci(subset)})
+            raw.append({"as_of": d, "gci_score": audited_company_gci(subset)})
     enriched = enrich_value_series(raw, period_key="as_of", value_key="gci_score")
     return [
         PitPoint(
@@ -963,7 +964,7 @@ def search_entities(
         citeable_n = 0
         if seeded:
             outs = get_outcomes(seeded["id"])
-            score = compute_company_gci(outs)
+            score = audited_company_gci(outs)
             quality = seeded.get("data_quality", quality)
             if quality in CITEABLE_QUALITIES:
                 citeable_n = sum(
@@ -1276,7 +1277,7 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
             return {
                 "id": c["id"],
                 "ticker": c["ticker"],
-                "gci_score": compute_company_gci(outcomes),
+                "gci_score": audited_company_gci(outcomes),
                 "data_quality": c.get("data_quality", "demo_structured"),
             }
 

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.data.seed import get_outcomes, list_companies
-from app.services.gci_scoring import compute_company_gci
+from app.services.guidance_flags import audited_company_gci
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "pit_series.json"
 TARGET_POINTS = 16  # ≥12 bivariate Granger; short of VAR(24) on purpose
@@ -43,7 +43,7 @@ def _quarter_labels(n: int = TARGET_POINTS) -> List[str]:
 def build_company_pit_series(company_id: str, *, n: int = TARGET_POINTS) -> Dict[str, Any]:
     """Deterministic quarterly GCI path anchored on current seed GCI."""
     outcomes = get_outcomes(company_id)
-    anchor = compute_company_gci(outcomes)
+    anchor = audited_company_gci(outcomes)
     if anchor is None:
         anchor = 70.0
     labels = _quarter_labels(n)
@@ -213,7 +213,7 @@ def _citeable_points(company_id: str) -> List[Dict[str, Any]]:
     if len(dates) >= 2:
         for d in dates:
             subset = [o for o in outcomes if o.as_of and o.as_of <= d]
-            score = compute_company_gci(subset)
+            score = audited_company_gci(subset)
             if score is None:
                 continue
             raw.append(
@@ -228,7 +228,7 @@ def _citeable_points(company_id: str) -> List[Dict[str, Any]]:
         periods = sorted({o.period for o in outcomes if o.period})
         for i, period in enumerate(periods):
             subset = [o for o in outcomes if o.period in periods[: i + 1]]
-            score = compute_company_gci(subset)
+            score = audited_company_gci(subset)
             if score is None:
                 continue
             raw.append(

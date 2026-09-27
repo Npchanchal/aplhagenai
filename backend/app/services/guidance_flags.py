@@ -13,6 +13,7 @@ from app.services.gci_scoring import (
     GuidanceOutcome,
     audit_deduction,
     classify_outcome,
+    compute_company_gci,
 )
 
 # Human labels for UI chips
@@ -68,6 +69,12 @@ def collect_audit_flags(outcomes: Sequence[GuidanceOutcome]) -> List[str]:
                 break
 
     return sorted(flags)
+
+
+def audited_company_gci(outcomes: Sequence[GuidanceOutcome], **kwargs: Any) -> Optional[float]:
+    """Company GCI after audit deductions — the number every surface must show."""
+    rows = list(outcomes)
+    return compute_company_gci(rows, audit_flags=collect_audit_flags(rows), **kwargs)
 
 
 def audit_summary(outcomes: Sequence[GuidanceOutcome]) -> Dict[str, Any]:

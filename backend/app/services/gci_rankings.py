@@ -27,8 +27,8 @@ def gci_rankings(
             continue
         # Prefer companies with at least one citeable outcome when available
         try:
-            outs = repository.get_outcomes(c.id)
-            cite_n = sum(1 for o in outs if getattr(o, "citeable", None) is True)
+            outs = repository.get_company_gci(c.id).outcomes
+            cite_n = sum(1 for o in outs if o.citeable)
         except Exception:
             cite_n = 0
         if citeable_only and cite_n < 1 and quality != "hand_labeled":

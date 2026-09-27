@@ -28,7 +28,7 @@ def desk_throughput() -> Dict[str, Any]:
     missing_source = 0
 
     for c in hand:
-        outs = repository.get_outcomes(c["id"])
+        outs = repository.get_company_gci(c["id"]).outcomes
         outcomes_total += len(outs)
         co = [o for o in outs if getattr(o, "citeable", None) is True]
         if co:

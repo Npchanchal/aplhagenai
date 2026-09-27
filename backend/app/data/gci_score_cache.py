@@ -58,11 +58,11 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
     from app.services.changes import change_bundle, multi_horizon_gci_series
     from app.services.gci_scoring import (
         algorithm_id,
-        compute_company_gci,
         gci_trend_series,
         label_counts,
         metric_breakdown,
     )
+    from app.services.guidance_flags import audited_company_gci
     from app.services.provisional_gci import QUALITY, score_provisional
 
     algo = algorithm_id()
@@ -118,7 +118,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
         seeded = seed_by_id.get(cid)
         if seeded is not None:
             outcomes = get_outcomes(cid)
-            gci = compute_company_gci(outcomes)
+            gci = audited_company_gci(outcomes)
             trend = gci_trend_series(outcomes)
             ch_pct, ch_h = _trend_change(trend)
             horizons = _horizon_fields(cid, gci, trend)

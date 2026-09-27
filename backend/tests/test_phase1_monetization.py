@@ -77,6 +77,12 @@ def test_public_gci_rankings_citeable_only():
     assert "top" in body and "bottom" in body
     for row in body["top"]:
         assert row["data_quality"] == "hand_labeled"
+    rows = {r["company_id"]: r for r in body["top"] + body["bottom"]}
+    if "infy" in rows:
+        dossier = client.get("/api/companies/infy/gci").json()
+        expected = sum(1 for o in dossier["outcomes"] if o["citeable"])
+        assert rows["infy"]["citeable_outcomes"] == expected > 0
+    assert any(r["citeable_outcomes"] > 0 for r in rows.values())
 
 
 def test_pit_v1_contract_and_history():
