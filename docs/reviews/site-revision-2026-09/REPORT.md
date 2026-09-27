@@ -2,7 +2,7 @@
 
 **Prepared for:** the reviewer of *"CiteAlpha — Site Revision Proposal" (as of 25 Sep 2026)*
 **Status as of:** 27 Sep 2026 · all changes below are live on [citealpha.com](https://citealpha.com)
-**Screenshots:** captured from production on 27 Sep 2026 at 1280 px desktop width
+**Screenshots:** captured from production on 27 Sep 2026 at 1280 px desktop width. The three Analyst Workbench captures (Figures 11–13) come from a local build because they need a pilot login; that build is the same code that is live.
 
 ---
 
@@ -10,14 +10,19 @@
 
 We accepted the proposal's central call. The homepage is now a **category-definition + proof page** whose job is to earn a "show me more" from a Head of Research, not to explain five products.
 
-- **Every P0 item is done**: the worked example, coverage precision, PIT/API claims and a single primary call to action.
-- **Every P1 item is done**: descriptors under each surface, a methodology strip and a persona routing line.
-- **P2** is partly done: the full IA restructure is live; the onboarding walkthrough and the snapshot-vs-screener polish are deferred (section 6).
+This revision (round 2) closes the items the first response left open:
+- the **naming table**
+- the **three user journeys**, including the Workbench first run the proposal called a P0 gap
+- **surfaces labelled by function and stage**
+- the **footer relabel**
+- a worked example that shows **guidance quote + call date, the actual's filing link, and the citation trail as a card with coloured chips**
+
+Every P0, P1 and P2 item in the proposal is now done. Section 6 lists the few things we still chose not to do, with reasons.
 
 Three things went beyond the proposal:
-1. **We found why the page read as it did.** Crawlers, link previews and AI tools see a static HTML version of the homepage, not the interactive React page, and the two had drifted apart. The review text matches that static version (for example the bare `/api/meta` link). Both versions now carry identical content.
-2. **The worked example exposed a scoring problem.** With real Infosys data, a large beat of guidance scored about 1 point out of 100. We changed the methodology (scorer v4, section 5) so large beats are treated as imprecise guidance, not as failure.
-3. **The copy rules are now enforced automatically.** A test in the suite fails if recommendation language or the retired claims come back into public copy.
+1. **Building the citation trail corrected our own data.** When we linked each Infosys row to its primary filing, two values turned out to differ from the filings: the FY22 guidance band (12–14%, not 10–12%) and the FY26 report date. Both are fixed and logged (section 4.2).
+2. **We found and fixed a score mismatch between pages.** For 22 companies, the screener list and the Public Snapshot showed a different GCI from the company dossier (Infosys: 73.2 vs 48.2). Every page now shows the same, audited number, and a test enforces it (section 5.2).
+3. **The copy rules are enforced automatically.** A test fails if recommendation language, the retired claims, or a stale static worked example come back into public copy.
 
 ![Full homepage](00-homepage-full.png)
 
@@ -25,269 +30,265 @@ Three things went beyond the proposal:
 
 ---
 
-## 2. The page order: before and after
+## 2. Naming: the proposal's table, and what is live
 
-| # | Before | After (live) |
-|---|---|---|
-| 1 | Descriptive H1 ("Guidance Credibility Index for Indian equity desks") | **Claim H1** + one primary CTA + persona routing |
-| 2 | Five equal product cards (Tracker, Desk, Research, Sights, Rankings) | **Worked example**: Infosys, real data, cited |
-| 3 | Five paragraphs explaining GCI | **Short definition** + outcome chips |
-| 4 | "Live cohort" counts linking to `/api/meta` | **How we build a score** (methodology strip) |
-| 5 | Pilot form | **Coverage today**: precise, including PIT/API status |
-| 6 | Trust list | Pilot form (the conversion point) |
-| 7 | Footer incl. bare `API meta` link | Product surfaces, **demoted**, with one-line descriptors |
-| 8 | — | FAQ, trust links, disclaimer |
+We adopted the proposal's suggested names. These are **display names**: URLs are unchanged (`/tracker`, `/desk`, `/research`, `/sights`, `/rankings`), so existing links and bookmarks keep working.
 
-This follows the proposal's order ("hook + worked example → definition → methodology/trust → CTA → surfaces → footer"). The one difference is that coverage sits directly above the pilot form, because a desk decides whether to ask for a pilot based on coverage.
+| Proposal: current name | Proposal: suggested | Live now | Where it changed |
+|---|---|---|---|
+| CiteAlpha (brand) | Lead marketing with "GCI by CiteAlpha" | **"GCI by CiteAlpha"** in the hero kicker, the browser/page titles, link-preview (Open Graph / X) titles, the static HTML and `llms.txt` | The logo and brand assets are unchanged |
+| Tracker | "GCI Screener" / "Scorecard" | **GCI Screener** | Nav, page H1, homepage card, glossary, guided tour, 404 page, SEO title |
+| Desk | "Analyst Workbench" / "Research Desk" | **Analyst Workbench** | Nav, page H1, homepage card, glossary, tour, SEO title and static page |
+| Research | "Filing Search" | **Filing Search** | Nav, page H1, homepage card, glossary, tour, SEO title |
+| Sights | Fold into Filing Search, or "Disclosure Explorer"; drop "OS" | **Disclosure Explorer** (kept separate; no "OS" anywhere) | Nav menu, section H1, homepage card, glossary, tour, breadcrumbs, SEO titles |
+| Rankings | Merge as a toggle, or "Public Snapshot" | **Public Snapshot** (kept as its own page) | Nav, footer, page H1, homepage card, SEO title |
+
+Two deliberate choices:
+- **Disclosure Explorer and Public Snapshot were renamed, not merged.** The two jobs are separate: *one company's filings* (Filing Search) vs *across companies* (Disclosure Explorer), and *public, no login* (Public Snapshot) vs *full screener* (GCI Screener). The names and descriptors now make that split explicit. Merging can follow if usage shows people treat them as one tool.
+- **"Desk" survives only as a plan name** (Pilot / Desk / Enterprise on the Packages page), where it describes a seat type, not a screen.
+
+![Navigation with new names](07-nav-sights-open.png)
+
+*Figure 1. Navigation and the GCI Screener page with the new names; the Disclosure Explorer menu is open (live).*
 
 ---
 
-## 3. Item-by-item response
+## 3. The three journeys
 
-### P0 — before showing to any institutional prospect
+The proposal described three visitors and what each should see. Here is what each one gets now.
 
-| Proposal item | Status | Where |
-|---|---|---|
-| Add worked example with visible citations | **Done**, using real data instead of a mock-up | §4.2 |
-| Fix coverage-claim precision (Sensex-30 vs Nifty framing) | **Done** | §4.5 |
-| Confirm PIT/API claims match actual build state | **Done**, plus an API bug fix | §4.5 |
-| Single primary CTA (pilot request), not five equal links | **Done** | §4.1 |
+| Visitor | Proposal's journey | Live journey | Status |
+|---|---|---|---|
+| **Cold visitor** (first touch from search, LinkedIn or a forward) | Homepage → worked example → methodology → **Request a pilot** | Hero with **one** primary button, "Request a pilot", which scrolls to the pilot form on the same page. Next comes the cited worked example (section 4.2), then the definition, the methodology strip and coverage, and then the pilot form. "Or see a scored company (Infosys)" is a text link, not a competing button. | **Done** |
+| **Warm evaluator** (pilot seat, first login) | Straight into Desk/Workbench with a **guided first run** (a P0 gap if missing) | On the first visit to the Analyst Workbench, an 8-step walkthrough **opens automatically** in plain language: what the Workbench is for, the sections, how new filings arrive, and a **demo sample to practise on**. Then coverage, cited reports and point-in-time export. Demo items carry the badge "Demo sample — practice data, not a real filing". It runs once and can be replayed from Help. | **Done** (was the P0 gap) |
+| **Public visitor** (no account) | Rankings / Public Snapshot only, **no login, no recommendation chrome** | **Public Snapshot** opens without login. It shows the citeable-only GCI table and its methodology line, and no Buy/Hold/Sell, target or rating language. An automated browser test checks both conditions. | **Done**, and fixed a data bug found on the way (section 5.2) |
 
-### P1 — before wider demo circulation
+![Workbench first run](11-workbench-first-run.png)
 
-| Proposal item | Status | Where |
-|---|---|---|
-| Rename Desk/Sights/Research, **or** add one-line function descriptors | **Descriptors added**, names kept | §4.6 |
-| Build the methodology/trust strip | **Done** | §4.4 |
-| Add persona-based routing line under the hero | **Done** | §4.1 |
+*Figure 2. Warm evaluator: the walkthrough opens by itself on the first Workbench visit (step 1 of 8).*
 
-### P2 — once the core loop is validated
+![Workbench demo step](12-workbench-demo-step.png)
 
-| Proposal item | Status | Where |
-|---|---|---|
-| Full IA restructure (surfaces demoted) | **Done** | §2, §4.6 |
-| Onboarding walkthrough for Desk/Workbench | **Deferred**; existing guided tours were only reworded | §6 |
-| Public snapshot vs full screener polish | **Deferred** | §6 |
+*Figure 3. Step 4 points at the demo extract and explains that demo items are practice data, not a real filing.*
 
-### Content, trust and compliance items outside the P-list
+![Demo sample badge](13-workbench-demo-badge.png)
 
-| Proposal item | Status | Where |
-|---|---|---|
-| H1 as a claim, not a description | **Done** | §4.1 |
-| Definition in 2–3 sentences; taxonomy as chips | **Done** | §4.3 |
-| Surface "point-in-time" and "API access" as their own line | **Done** | §4.5 |
-| Move "Not investment advice" out of trust-building copy | **Done** | §4.7 |
-| Cut or substantiate platform-scale language ("OS") | **Cut everywhere** | §4.7 |
-| `/api/meta` in the footer reads as a dev artifact | **Removed** from public pages | §4.7 |
-| "No recommendation chrome" enforced beyond Rankings | **Done, and enforced by a test** | §4.8 |
+*Figure 4. Demo items in the review queue are badged so no one mistakes them for real filings. The button now reads "Run extract on demo sample" when no text is pasted.*
+
+![Public Snapshot](10-public-snapshot.png)
+
+*Figure 5. Public visitor: Public Snapshot, no login, no recommendation chrome; each row shows how many citeable rows back it (live).*
 
 ---
 
 ## 4. What changed, section by section
 
-### 4.1 Hero: a claim, one primary action, persona routing
+### 4.1 Hero: a claim, "GCI by CiteAlpha", one primary action
 
 ![Hero](01-hero.png)
 
-*Figure 1. Hero section (live).*
+*Figure 6. Hero section (live).*
 
-- **H1 is now the proposal's suggested claim:** "Did management deliver on what they promised? We check." The page title and meta description stay descriptive for search engines, as the review suggested.
-- **The primary CTA** "See a scored company" opens a real evidence trail (Infosys). The secondary CTA is "Request a pilot".
-  - We chose "see the proof" as the first action because the proposal frames the page's job as proof. The pilot request stays one click away and has its own section further down.
-- **Persona routing line:** "Built for: Buy-side · Sell-side research · Quant / data · IR & compliance". Each persona links to its own pathway on the Products page. This is the lightweight version of the proposal's "three separate journeys".
-- **The lede no longer ends with a disclaimer.** It is two sentences: what GCI compares, and that every score opens to its source.
+- **Kicker:** "GCI by CiteAlpha · Guidance Credibility Index for Indian listed companies".
+- **H1** is the proposal's claim: "Did management deliver on what they promised? We check."
+- **One primary CTA: "Request a pilot"**, which scrolls to the pilot form on the same page.
+  - The worked-example link is now a text link, "Or see a scored company (Infosys) →".
+  - In round 1 we had made the example the primary button; we reversed that to match the proposal's single-CTA rule.
+- **Persona routing line** unchanged: Buy-side · Sell-side research · Quant / data · IR & compliance.
 
-> **Before:** *"Guidance Credibility Index for Indian equity desks"* followed by a lede ending *"…Factual research tooling — not investment advice."* and five equal links.
-
-### 4.2 Worked example: real data, visible citations, above the definition
+### 4.2 Worked example: quote, date, both filings, citation trail
 
 ![Worked example](02-worked-example.png)
 
-*Figure 2. Worked example (live). Every row links to the company's published guidance-vs-actuals page.*
+*Figure 7. Worked example (live). Each year cites two SEC-filed Infosys results releases: the one that set the guidance and the one that reported the actual.*
 
-The proposal supplied a mock-up and asked us to "swap in an actual tracked name before publishing". We went straight to a real one:
+The proposal's mock-up asked for a guidance quote plus call date, the actual's filing link, and a citation trail rendered as a card with coloured chips. Each year's card now shows:
 
-- **Company and metric:** Infosys Ltd., full-year revenue growth guidance in constant currency, FY22 to FY26.
-- **Each row shows** the guided band, the reported actual, the outcome as a coloured chip (not a plain word), the points that row contributed, and a clickable source with the date reported.
-- **Data is live**, not hard-coded. The card reads the same production API as the company dossier, so it cannot drift from what a user sees on the evidence trail.
-- **Placement:** directly above the definition, as proposed (proof before definition).
-- **A "Why doesn't a big beat score 100?" note** explains the one row a sceptical reader will question (section 5).
-- **Link through:** "Open the full Infosys Ltd. evidence trail →" goes to the full dossier.
+| Element | What is on the card |
+|---|---|
+| Outcome | Guided band, reported actual, outcome chip (exceeded / missed) and the points that row contributed |
+| **Guidance given** (blue chip) | Date the guidance was issued, the exact sentence in quotes, and a link to the filing |
+| **Actual reported** (green chip) | Date the actual was reported, the exact sentence in quotes, and a link to the filing |
+
+For example, FY22 reads *Guidance given · 2021-04-14 — "Revenue growth guidance of 12%-14% in constant currency"* and *Actual reported · 2022-04-13 — "Revenues in CC terms grew by 19.7% YoY"*.
+
+**Sources.** All ten links point to Infosys's Form 6-K Exhibit 99.1 results releases on sec.gov, the filed primary documents. We downloaded every filing and checked that each quoted sentence and each date appears in it word for word; all 20 checks pass. We moved off Infosys's own "guidance vs actuals" summary page because it blocks automated checks, and because it disagreed with the filings (next point).
+
+**Data corrections found while building the trail.** We are telling you rather than quietly fixing them:
+
+| Row | Before | After (per filing) | Effect |
+|---|---|---|---|
+| FY22 guided band | 10–12% (from the IR summary table) | **12–14%** (April 2021 results release) | Still "exceeded"; FY22 points 60.4 → 61.8; Infosys GCI 48.1 → 48.2 |
+| FY26 report date | 17 Apr 2026 | **23 Apr 2026** | None on the score |
+
+No outcome label changed. Both corrections are logged in the methodology changelog (`docs/kb/03-scoring.md`).
+
+**Behind the card.** Every outcome can now carry a separate guidance source (`guidance_source_url`, `guidance_quote`, `guidance_as_of`) alongside the actual's source, and the dossier API returns both. The crawler-visible static homepage carries the same quotes and links. A test pins it to the live data so the two can't drift apart.
 
 ![Infosys dossier](08-infy-dossier.png)
 
-*Figure 3. The dossier the worked example links to (live).*
+*Figure 8. The dossier the worked example links to (live).*
 
-### 4.3 Definition: shortened, with the taxonomy as chips
+### 4.3 Definition and methodology (unchanged from round 1)
 
 ![Definition and outcome chips](03-definition.png)
 
-*Figure 4. Short definition and outcome chips (live).*
-
-- **The definition went from five paragraphs to two sentences:** "GCI is a 0–100 score of how closely a company's reported results matched its own quantified guidance — revenue bands, margins, volumes, capex. It tracks delivery, not sentiment or share price."
-- **Outcome labels are chips:** met, exceeded, missed, dropped and pending, in the same colours used on the example rows and the dossier. Each chip has an ⓘ tooltip with its precise meaning, so the prose is gone but the detail is one tap away.
-
-### 4.4 Methodology strip: "How we build a score"
+*Figure 9. Two-sentence definition; outcome labels as chips with ⓘ tooltips.*
 
 ![Methodology strip](04-methodology.png)
 
-*Figure 5. Methodology strip (live).*
+*Figure 10. "How we build a score": sources, what counts as guidance, verification, and scoring (with the live scorer version).*
 
-This covers the four points the proposal asked for:
-
-| Proposal asked for | What the strip says |
-|---|---|
-| Data sources | NSE and BSE filings, company IR decks and guidance tables, earnings-call transcripts |
-| What counts as guidance (formal vs informal) | A number or range for a named metric and period. Qualitative commentary is marked *unmapped* and left out of the score |
-| Verification process | An analyst reviews every extracted row; each row keeps the quote, document link and date |
-| Update latency, filing → score | Scores change **after a new filing is reviewed, not automatically**. We deliberately state this as a process rather than a number of days, because we have no measured SLA to publish yet |
-
-The strip also names the scorer version (`gci_scoring_v4`), which is read live from the API. It links to the full methodology and to NSE, BSE and SEBI.
-
-### 4.5 Coverage honesty, and PIT/API stated plainly
+### 4.4 Coverage: precise, with the roadmap stated as process
 
 ![Coverage today](05-coverage.png)
 
-*Figure 6. Coverage panel (live counts from production).*
-
-The proposal's concern was that "Sensex and Nifty" read as more than we have. The panel now says exactly what each tier is, and whether it is meant for citation:
+*Figure 11. Coverage panel (live counts from production).*
 
 - **43 companies hand-labeled with cited evidence (Sensex depth).** These are the only rows meant for citation.
-- **10 companies with demo-structured data** (including early Nifty names): useful for walkthroughs, not for citation.
-- **5,049 NSE/BSE listings** are browsable with provisional scores built from placeholder outcomes. The panel says "Not for citation" in so many words.
-- **Nifty 50 hand-labeling is in progress.** Names move into the first line only after analyst review. We did not publish a target quarter because we won't commit to a date we can't back.
-- **Point-in-time API (pit.v1):** available to design partners. Every point is as-of stamped and flagged citeable or not. The panel also admits that most hand-labeled names have only one or two scored periods so far, which is the qualifying or disqualifying detail a quant desk needs.
+- **10 demo-structured companies** (including early Nifty names): for walkthroughs, not citation.
+- **5,049 NSE/BSE listings** browsable with provisional scores, labelled "Not for citation".
+- **Roadmap:** Nifty 50 hand-labeling is in progress; names move into the first line only after analyst review. We deliberately publish no target quarter (section 6).
+- **Point-in-time API (pit.v1):** available to design partners. Every point is as-of stamped and flagged citeable or not, and the panel admits most names have one or two scored periods so far.
 
-Every count is read live from production, so the panel can't go stale.
-
-**PIT build-state check (proposal: "confirm PIT/API claims match actual build state").** While checking, we found the PIT API was under-counting citeable outcomes compared with the company dossier. That is exactly the kind of mismatch the review warned about.
-- **Fix:** the API now counts from the same enriched outcomes the dossier uses. Infosys, for example, reports 8 citeable outcomes on both.
-- **Guard:** a regression test now compares the dossier, PIT history and PIT bulk endpoints.
-
-The retired phrasings are gone everywhere, including the static HTML, the page metadata and `llms.txt`:
-- "Sensex → Nifty names" (implied Nifty was already covered)
-- "Screen Sensex → Nifty names by guidance credibility"
-
-### 4.6 Product surfaces: demoted, with one-line descriptors
+### 4.5 Surfaces: labelled by function and stage
 
 ![Explore the product](06-surfaces.png)
 
-*Figure 7. Product surfaces, now a secondary section near the bottom (live).*
+*Figure 12. Product surfaces with function, stage and access labels (live).*
 
-- **Position:** the surfaces moved from the top of the page to a secondary "Explore the product" section after the pilot form.
-- **Descriptors, not renames.** The proposal offered either. We kept the names and gave each a literal descriptor of what you do there:
+Each card now answers three questions, as the proposal asked: *what it does*, *how mature it is*, and *who can use it today*:
 
-| Surface | Descriptor (live) |
-|---|---|
-| GCI Tracker | Screen covered companies by GCI score and change, with quality badges on every row. |
-| Research | Search one company's filings and transcripts. Answers only when a source can be cited. |
-| Sights | Compare disclosures across companies — themes, boards, and grids with cite-only answers. |
-| Rankings | Public GCI snapshot by sector. No recommendation labels. |
+| Surface | Function | Stage | Who can use it |
+|---|---|---|---|
+| GCI Screener | Screen | Live | Free preview, no seat needed |
+| Analyst Workbench | Review & export | Live | Pilot and paid seats (with first-run walkthrough) |
+| Filing Search | Search one company | Live | Registered users; cite-only chat with a pilot seat |
+| Disclosure Explorer | Compare companies | **Beta** | Browse free; cite-only Ask with a pilot seat |
+| Public Snapshot | Share | Live | Public, no login, no recommendation labels |
 
-- **Desk was removed from the homepage.** It is the paid review workspace, not a first-visit destination, and its old descriptor ("Ops console — review queue, corpus, PIT/API, reports, and CSM") implied PIT was part of a shipped workspace. In navigation and the glossary it is now "Desk (review & export workspace)", and the "CSM" jargon is gone.
-- **Research vs Sights overlap:** the descriptors now separate them: *one company at a time* (Research) vs *across companies* (Sights).
+The access lines come straight from the product's entitlement rules, not from marketing copy. The Analyst Workbench is back on the homepage because the warm-evaluator journey now starts there.
 
-**Navigation fix found during testing.** On desktop, hovering over "Sights" opened its menu, and the natural click that followed closed it again. This is fixed, and the menu now stays open on click:
+### 4.6 Footer
 
-![Sights menu](07-nav-sights-open.png)
+![Footer](09-footer.png)
 
-*Figure 8. Sights menu open after a click (live).*
+*Figure 13. Site footer (live).*
 
-### 4.7 Disclaimer placement, "OS" language and the `/api/meta` link
+- **FAQ, Package and Request a pilot** are all in the footer, alongside Public Snapshot and the legal links. On the homepage, "View packages" under the pilot form is now a text link, so the pilot form has no competing button.
+- **"GCI Rankings" is relabelled "Public Snapshot".**
+- **The bare `/api/meta` link stays removed** from every public page. Coverage counts remain available to integrators as "Coverage counts (JSON)" in `llms.txt`.
 
-- **Disclaimer:** "Not investment advice" no longer sits inside trust-building copy (the hero lede and pilot lede). It lives in three places:
-  - a small persistent header badge (visible in Figure 8)
-  - the site footer: "factual research product, not investment advice. No Buy / Hold / Sell."
-  - a one-line footnote under the pilot form
-- **"OS" and similar platform-scale language are cut** from the homepage, the Sights pages and help text, the glossary, the guided tours, page metadata and `llms.txt`. Sights is now described by what it does: "Compare Indian Company Disclosures".
-- **The `/api/meta` link is removed** from all public pages, including the static HTML where the reviewer saw it. Machine-readable coverage counts remain available to integrators, labelled "Coverage counts (JSON)" in `llms.txt`, not as a footer link beside Packages and Pilot.
+### 4.7 Disclaimer, "OS" language, recommendation chrome (round 1, still enforced)
 
-### 4.8 "No recommendation chrome", enforced across the product
+- "Not investment advice" sits in the header badge, the footer and a footnote under the pilot form, not inside trust-building copy.
+- "OS" and platform-scale language are gone everywhere.
+- The copy-hygiene test (`backend/tests/test_public_copy_hygiene.py`) scans public copy and blocks:
+  - recommendation phrasing
+  - the retired claims
+  - a static worked example that no longer matches the live Infosys data, now including both quotes and both filing links
 
-The proposal warned that one stray "avoid this stock"-style phrase anywhere undermines the non-RA position. We made that rule executable:
-
-- **A copy-hygiene test** (`backend/tests/test_public_copy_hygiene.py`) scans all public copy and fails on recommendation phrasing, while still allowing negations such as "not Buy/Hold/Sell". The copy it scans:
-  - UI strings
-  - page metadata
-  - the glossary
-  - guided tours
-  - blog posts
-  - the static HTML
-  - `llms.txt`
-- **The same test blocks the retired claims:** "Sensex → Nifty names", "research OS" and the `/api/meta` footer link.
-- **It also pins the static worked-example lines to the backend data**, so the crawler version of the example can't drift from the real numbers.
-- **Alarm-style labels were softened** on the Tracker, dossier and Products pages:
-  - Severity pills now read "large change / change / note" instead of "high / medium / low".
-  - The dossier heading "Red alerts" is now "Guidance flags".
-
-### 4.9 Subpages (the proposal suggested auditing them with the same lens)
-
-We did not do a full subpage audit, but we fixed the claims the same lens catches:
-- **Tracker:** H1 "GCI Tracker: Sensex Guidance Credibility Scores", with text that says which scores are provisional.
-- **Sights:** H1 "CiteAlpha Sights — Compare Indian Company Disclosures" (no "OS").
-- **Blog:** one post that implied full Nifty coverage now says "hand-labeled Sensex companies … (other listings are provisional)".
+  The copy it scans: UI strings, page metadata, glossary, tours, blog, static HTML and `llms.txt`.
 
 ---
 
-## 5. Methodology change prompted by the worked example (scorer v4)
+## 5. Score changes: the methodology change and a consistency fix
 
-Publishing a real worked example surfaced something a mock-up would have hidden. Under the previous scorer (v3), a **large beat** decayed toward zero, exactly like a large miss:
+### 5.1 Scorer v4 (round 1)
+
+Under the old scorer (v3), a large beat decayed toward zero like a large miss (Infosys FY22 scored about 1 point). v4 keeps that decay for beats but floors it at 60: `60 + 40·exp(−α·δ^β)`. In-band results and misses are unchanged, and a beat always outscores a miss of the same distance.
 
 | Infosys row | Guided | Actual | Outcome | v3 points | **v4 points (live)** |
 |---|---|---|---|---|---|
-| FY22 | 10–12% | 19.7% | exceeded | 1.1 | **60.4** |
+| FY22 | 12–14% | 19.7% | exceeded | ≈1 | **61.8** |
 | FY23 | 13–15% | 15.4% | exceeded | 89.5 | **95.8** |
 | FY24 | 4–7% | 1.4% | missed | 29.8 | **29.8** (unchanged) |
 | FY25 | 1–3% | 4.2% | exceeded | 64.4 | **85.8** |
 | FY26 | 0–3% | 3.1% | exceeded | 98.8 | **99.5** |
 
-A row saying "exceeded, 1 point" contradicts the headline claim ("did management deliver?"), and an institutional reader would stop at it. Awarding 100 for any beat would be wrong in the other direction, because it rewards sandbagging (guiding low on purpose). **v4 is the middle path:**
+Infosys's company GCI is **48.2**, after audit deductions for withdrawn or reset guidance.
 
-- **Beats:** `60 + 40·exp(−α·δ^β)`. A small beat scores close to 100; a large beat still shows the guidance was imprecise, so it decays, but never below 60.
-- **In-band results and misses:** identical to v3. Misses still carry the γ = 1.4 penalty.
-- **Consistency:** a beat always outscores a miss of the same distance.
-- **Everything else is unchanged:** dropped guidance, pending periods, recency weighting and audit deductions.
+### 5.2 Every page now shows the same score
 
-Impact when v4 went live: 15 of 49 scored companies rose and none fell (e.g. Axis Bank 59.6 → 83.8; Infosys 40.7 → 48.1 after audit deductions). The change is documented with an effective date (27 Sep 2026) in the methodology changelog (`docs/kb/03-scoring.md`). The earlier scorers remain selectable for comparison. The homepage note, glossary and architecture page explain the rule in plain language.
+While checking the Public Snapshot for the public journey, we found two bugs:
+
+1. **Different scores on different pages.** For 22 companies with audit flags (for example a definition shift or withdrawn guidance), the screener list, the Public Snapshot, entity search and the listing cache showed the score *before* audit deductions. The dossier showed it *after*. Examples:
+   - Infosys 73.2 vs 48.2
+   - Coal India 4.7 vs 0.0
+   - HDFC Life, ONGC, Hindalco and Trent about 10 points higher in lists than in their dossiers
+
+   All surfaces now use the audited number. A new test (`tests/test_score_consistency.py`) fails if any list, snapshot or point-in-time series disagrees with the dossier.
+2. **"Citeable rows" always read 0 on the Public Snapshot.** It was counting the wrong objects. It now matches the dossier (Infosys 8).
+
+Both fixes are logged in the methodology changelog with the before and after numbers.
 
 ---
 
-## 6. What we deliberately did not do (yet), and why
+## 6. Existing vs revised: impact on users
+
+The proposal closed with this table. Here is how each row landed:
+
+| Area | Existing (before review) | Revised (live) | Impact on users |
+|---|---|---|---|
+| First impression | Descriptive H1, five equal product links | Claim H1, "GCI by CiteAlpha", one primary CTA | A Head of Research sees the question GCI answers, and one next step |
+| Proof | No example | Real Infosys example: quotes, dates and two filed sources per year | A sceptic can verify a row in two clicks, from guidance to actual |
+| Naming | Tracker / Desk / Research / Sights / Rankings | GCI Screener / Analyst Workbench / Filing Search / Disclosure Explorer / Public Snapshot | Each name says what the tool does; no "OS" |
+| Surfaces | Equal cards, no maturity or access signal | Function, stage (Live/Beta) and access on every card | Visitors know what they can open today, and what needs a seat |
+| Cold journey | Five competing links | Hero → proof → method → coverage → pilot form | One path to a pilot request |
+| Warm journey | Desk opened on a dense console with no guidance | Automatic first-run walkthrough and badged demo sample | A new pilot user learns the Workbench in about a minute without a call |
+| Public journey | "GCI Rankings", citeable column always 0, list score ≠ dossier | "Public Snapshot": no login, real citeable counts, same score as the dossier | Public numbers can be quoted and will match the evidence trail |
+| Coverage | "Sensex → Nifty" read as more than we had | Four precise tiers, "not for citation" where it applies, roadmap as process | No over-claim for a quant or compliance reviewer to catch |
+| Footer | Bare `API meta` link beside commercial links | FAQ · Package · Request a pilot; machine endpoint only in `llms.txt` | No developer artefacts in buyer-facing chrome |
+| Compliance | Rules in reviewers' heads | Enforced by automated tests (copy hygiene, static example, score consistency) | Regressions fail the test suite before they reach the site |
+
+---
+
+## 7. What we still chose not to do, and why
 
 | Item | Decision | Reason |
 |---|---|---|
-| Rename Desk / Sights / Research | Kept names, added descriptors | The proposal allowed either; renames can follow once usage shows what people call each tool, which is the proposal's own guidance |
-| Three fully designed journeys | Persona routing line + per-desk pathways on Products | Full journey design depends on pilot feedback; the routing line gives each persona a first step now |
-| Onboarding walkthrough for Desk | Deferred (P2) | Desk is not yet paid; existing guided tours were only reworded |
-| Public snapshot vs screener polish | Deferred (P2) | Needs the core loop validated first, as the proposal suggests |
-| Target quarter for Nifty expansion | Not published | We won't publish a date we can't commit to; the panel says "in progress" instead |
+| Merge Disclosure Explorer into Filing Search; merge Public Snapshot into the Screener as a toggle | Renamed, not merged | The jobs differ (one company vs across companies; public vs full). Merge once usage shows people treat them as one tool |
+| Target quarter for Nifty expansion | Not published | We won't publish a date we can't commit to; the panel says "in progress" |
 | Filing-to-score latency as a number | Stated as a process | No measured SLA yet; a number would be an unbacked claim |
-| Non-English versions of the new copy | Pending | 16 other languages currently show the corrected English text until translated |
+| Non-English versions of the new copy | Pending translation | The 16 other languages show the corrected English text for renamed or rewritten strings until translated |
 
 ---
 
-## 7. How this was verified
+## 8. How this was verified
 
 - **Automated tests:**
-  - backend: 317 passed (unit + API)
+  - backend: 319 passed. Includes new checks:
+    - the Infosys citation trail (two SEC sources per row, guidance date before actual date, FY22 = 12–14%)
+    - score consistency across list, snapshot and PIT vs dossier
+    - Public Snapshot citeable counts
   - frontend: 12 of 12 unit tests passed
-  - end-to-end: 126 of 126 browser tests passed, including new checks that the page leads with the cited worked example and the honest coverage lines, and that the `/api/meta` link is gone
-- **The only failing checks** are four source-verification tests that re-download company PDFs (IndusInd, Axis Bank, Tech Mahindra, Sun Pharma). The quoted passages are no longer found at those URLs, so those rows are queued for analyst re-verification. No values were changed or guessed.
-- **Live checks on citealpha.com** after each deploy:
-  - the static HTML contains the new H1 and the Infosys lines, and no `/api/meta` or "OS" wording
-  - the production API reports `gci_scoring_v4`
-  - the Infosys FY22 row shows 60.4 points
-  - the PIT API and the dossier agree on citeable counts
+  - end-to-end: 129 of 129 browser tests passed. New ones cover:
+    - the worked-example trail
+    - the single hero CTA scrolling to the pilot form
+    - function and stage labels on all five surfaces
+    - the footer pilot link
+    - Public Snapshot with no login and no recommendation language
+    - the Workbench walkthrough opening once on first visit and not again after being skipped
+- **Known failing checks (unchanged from round 1):** four source-verification tests that re-download company PDFs (IndusInd, Axis Bank, Tech Mahindra, Sun Pharma). Those URLs have moved or now block automated downloads. The rows are queued for analyst re-verification; no values were changed or guessed.
+- **Filing verification:** all ten Infosys SEC links were downloaded. Every quoted sentence and every date was found verbatim (20 of 20).
+- **Live checks on citealpha.com after deploy:**
+  - the static homepage has the brand kicker, the single pilot CTA, the new names and the SEC-cited Infosys lines, and no "10–12%"
+  - the API returns both sources on every Infosys row
+  - screener list = dossier = Public Snapshot for all audit-flagged names checked (Infosys 48.2 on all three)
+  - every Public Snapshot row has a non-zero citeable count
   - all key routes return 200
 
 ---
 
-## 8. Where to look
+## 9. Where to look
 
 - **Live homepage:** [citealpha.com](https://citealpha.com)
 - **Worked-example dossier:** [citealpha.com/companies/infy](https://citealpha.com/companies/infy)
+- **Public Snapshot:** [citealpha.com/rankings](https://citealpha.com/rankings)
 - **Methodology:** [citealpha.com/about#how](https://citealpha.com/about#how)
 - **Trust Center:** [citealpha.com/trust](https://citealpha.com/trust)
-- **Code (for technical reviewers):** the changes are in commits `169917a` (homepage revision), `cf78062` (scorer v4) and the follow-up commits after them on `main`.
+- **Code (for technical reviewers):**
+  - round 1: `169917a` (homepage revision) and `36abcb3` (scorer v4)
+  - round 2: `58bd6fe` (citation trail, renames, single CTA, Workbench first run) and `9a1d7a6` (audited score on every surface, Public Snapshot citeable counts)
 
 *CiteAlpha is a factual research product of Ocotillo Innovation Private Limited. Not investment advice. No Buy / Hold / Sell.*
