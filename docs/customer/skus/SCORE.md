@@ -28,7 +28,7 @@ Every score links to period, metric, guided band, actual, label, and source.
 
 - Sensex → Nifty expansion per coverage roadmap
 - Honest `data_quality` badges (`hand_labeled` / `demo_structured` / `market_scaffold`)
-- Deterministic scorer (v3 default)
+- Deterministic scorer (v4 default)
 
 ## Non-goals
 

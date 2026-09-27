@@ -189,9 +189,9 @@ export default function ArchitecturePage() {
       <article className="arch-section" id="scoring">
         <h2>Scoring design</h2>
         <p className="muted">
-          Default engine <strong>v3</strong> (<code>INTELLENS_GCI_VERSION=v3</code>): band δ →
-          exponential score, miss asymmetry γ, exponential recency. Deterministic; never invent
-          actuals.
+          Default engine <strong>v4</strong> (<code>INTELLENS_GCI_VERSION=v4</code>): band δ →
+          exponential score, miss asymmetry γ, beats floored at 60, exponential recency.
+          Deterministic; never invent actuals.
         </p>
         <ScoringDiagram />
         <ul className="about-list">
@@ -200,7 +200,7 @@ export default function ArchitecturePage() {
             <code>market_scaffold</code>
           </li>
           <li>
-            Same inputs → same score. Rebuild listing cache after switching v2 ↔ v3.
+            Same inputs → same score. Rebuild listing cache after switching scorer versions.
           </li>
         </ul>
       </article>

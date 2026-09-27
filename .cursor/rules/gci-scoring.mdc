@@ -8,9 +8,9 @@ alwaysApply: false
 
 - Prefer **range bands** (`guided_low`/`guided_high`) over midpoints alone.
 - Classify every closed row: `exceeded | met | missed | dropped | pending | unmapped`.
-- Default scorer is **v3** (`INTELLENS_GCI_VERSION=v3`). Legacy heuristic: `=v2`.
-- **Beats ≠ misses**: v3 uses γ=1.4 only below band; v2 exceeded ≥85.
-- `dropped` is not a full miss — v3 excludes row and applies −15 withdrawal deduction; v2 ≈35.
+- Default scorer is **v4** (`INTELLENS_GCI_VERSION=v4`): v3 engine with beats floored at 60. `=v3` (beats decay to 0) and legacy `=v2` still selectable.
+- **Beats ≠ misses**: v3/v4 use γ=1.4 only below band; v4 beats ≥ `GCI_BEAT_FLOOR` (60); v2 exceeded ≥85.
+- `dropped` is not a full miss — v3/v4 exclude the row and apply −15 withdrawal deduction; v2 ≈35.
 - Exclude `pending` / `unmapped` from company GCI averages.
 - Every persisted outcome should carry `source_url` / `source_ref` / `quote_span` when available.
 - Keep scoring pure (no I/O). Persist via `seed.get_data()` / repository only.

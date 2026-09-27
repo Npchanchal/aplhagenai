@@ -115,7 +115,7 @@ export default function LandingPage() {
             <li key={s.titleKey}>
               <strong>{t(s.titleKey)}</strong>
               <span className="muted">
-                {t(s.textKey, { algo: meta?.gci_algorithm ?? "gci_scoring_v3" })}
+                {t(s.textKey, { algo: meta?.gci_algorithm ?? "gci_scoring_v4" })}
               </span>
             </li>
           ))}

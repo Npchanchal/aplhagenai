@@ -8,27 +8,35 @@ Company GCI = scored closed outcomes aggregated to **0–100**. Higher = better 
 
 | Flag | Algorithm |
 |---|---|
-| `INTELLENS_GCI_VERSION=v3` (**default**) | Spec engine: band δ → exp(−α δ^β), γ miss asymmetry, exp recency λ, φ metric weights, audit deductions |
+| `INTELLENS_GCI_VERSION=v4` (**default**) | v3 engine with beats floored: beat = `60 + 40·exp(−α δ^β)`. In-band and misses identical to v3 |
+| `INTELLENS_GCI_VERSION=v3` | Spec engine: band δ → exp(−α δ^β), γ miss asymmetry, exp recency λ, φ metric weights, audit deductions. Beats decay toward 0 |
 | `INTELLENS_GCI_VERSION=v2` | Legacy confidence-weighted heuristic (beats floored ≥85; dropped → 35) |
 
-`GET /api/meta` → `gci_algorithm` / `feature_flags.INTELLENS_GCI_VERSION`. Rebuild listing cache after switching versions.
+`GET /api/meta` → `gci_algorithm` / `feature_flags.INTELLENS_GCI_VERSION`. Rebuild listing cache after switching versions (`python -m app.jobs.score_india_universe`).
+
+### Methodology changelog
+
+| Effective | Version | Change |
+|---|---|---|
+| 2026-09-27 | v4 | Beats floored at `GCI_BEAT_FLOOR = 60`. A beat far above the band still means the guidance was off, so it decays with distance, but no longer toward 0. Misses, in-band, dropped, recency, audit deductions unchanged. Cohort impact at switch: 15 of 49 scored names rose (e.g. INFY 65.7 → 73.1, AXISBANK 59.6 → 83.8); none fell. INFY FY22 row (band 10–12%, actual 19.7%) 1.1 → 60.4 pts. |
+| before 2026-09-27 | v3 | Default exp-δ engine; beats decayed toward 0 (INFY FY22 ≈ 1 pt). |
 
 ### Labels
 
-| Label | Meaning | v3 score | v2 score |
-|---|---|---|---|
-| `met` | Actual in band | 100 | 100 |
-| `exceeded` | Beat above band | exp(−α δ^β), γ=1.0 | ≥85 |
-| `missed` | Below band | exp + γ=1.4 | linear shortfall → 0 at ≥50% |
-| `dropped` | Stopped reiterating | excluded + company **−15** | ≈ **35** |
-| `pending` | Period open | **Excluded** | **Excluded** |
-| `unmapped` | Qualitative / NLP fail | **Excluded** | **Excluded** |
+| Label | Meaning | v4 score | v3 score | v2 score |
+|---|---|---|---|---|
+| `met` | Actual in band | 100 | 100 | 100 |
+| `exceeded` | Beat above band | 60 + 40·exp(−α δ^β) | exp(−α δ^β), γ=1.0 | ≥85 |
+| `missed` | Below band | exp + γ=1.4 | exp + γ=1.4 | linear shortfall → 0 at ≥50% |
+| `dropped` | Stopped reiterating | excluded + company **−15** | excluded + company **−15** | ≈ **35** |
+| `pending` | Period open | **Excluded** | **Excluded** | **Excluded** |
+| `unmapped` | Qualitative / NLP fail | **Excluded** | **Excluded** | **Excluded** |
 
-### v3 highlights
+### v3 / v4 highlights
 
 - Point guidance → synthetic ±2% band (`W = 0.02 · \|G_mid\|`).
 - Miss below band: γ = 1.4; beat / in-band: γ = 1.0.
-- v3 scores **forecast accuracy**, so a beat far above the band decays like distance does (e.g. INFY FY22: band 10–12%, actual 19.7% → δ≈7.7 → ~1 pt). A miss the same distance below scores lower still (γ). Public copy must explain this wherever per-row points are shown.
+- v4 still scores **closeness to guidance**: a small beat scores near 100, a large beat decays toward 60. A beat always outscores a miss of equal distance (beat − miss = 100 − S ≥ 0). Public copy must explain the floor wherever per-row points are shown.
 - Recency: `w_t = e^{-0.15(t-1)}` (t=1 most recent).
 - Optional `definition_shift` audit flag → **−10**.
 - `N < 4` periods → `low_confidence`; optional linear shrinkage toward `sector_mean`.
@@ -47,11 +55,11 @@ Prefer `guided_low`–`guided_high`. Midpoint-only guidance is weaker; vague tex
 
 ## Tests
 
-Edge cases in `backend/tests/test_gci_scoring.py` (v2 golden) and `test_gci_scoring_v3.py` (v3). Gap tests `test_g06`… in `test_gaps.py`.
+Edge cases in `backend/tests/test_gci_scoring.py` (v2 golden), `test_gci_scoring_v3.py` (v3) and `test_gci_scoring_v4.py` (v4 floor, v3 parity for misses). Gap tests `test_g06`… in `test_gaps.py`.
 
 ## Do not
 
-- Treat beats as misses: v2 floors beats ≥85; v3 scores beats via exp δ without γ=1.4, so a beat always outscores a miss of equal distance — but large beats can still score low.
+- Treat beats as misses: v2 floors beats ≥85; v4 floors beats ≥60; v3 lets large beats decay toward 0. All versions apply γ=1.4 only to misses.
 - Score pending / unmapped into the average.
 - Invent actuals to “fill” a demo.
 
@@ -64,7 +72,7 @@ Edge cases in `backend/tests/test_gci_scoring.py` (v2 golden) and `test_gci_scor
 
 ## Red alerts & revision trail
 
-- `services/guidance_flags.py` — audit flags (`guidance_withdrawal`, `restatement`, `definition_shift`) → GCI v3 deductions + UI badges.
+- `services/guidance_flags.py` — audit flags (`guidance_withdrawal`, `restatement`, `definition_shift`) → GCI v3/v4 deductions + UI badges.
 - Tracker `/api/alerts` includes audit kinds, misses, drops, revisions, drift, stale threads.
 - Dossier: `audit_badges`, `red_alerts`, `revision_timeline` on `CompanyGCIDetail`.
 - Not a Beneish / forensic shenanigans engine — evidence-linked guidance events only.

@@ -1,4 +1,4 @@
-/** Red audit chips for GCI v3 deductions (withdrawal / restatement / definition shift). */
+/** Red audit chips for GCI v3/v4 deductions (withdrawal / restatement / definition shift). */
 export type AuditBadge = {
   flag: string;
   label: string;

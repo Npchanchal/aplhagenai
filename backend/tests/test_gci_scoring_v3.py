@@ -53,10 +53,10 @@ def _o(
     )
 
 
-def test_version_flag_defaults_v3(monkeypatch):
+def test_version_flag_defaults_v4(monkeypatch):
     monkeypatch.delenv("INTELLENS_GCI_VERSION", raising=False)
-    assert scorer_version() == "v3"
-    assert algorithm_id() == "gci_scoring_v3"
+    assert scorer_version() == "v4"
+    assert algorithm_id() == "gci_scoring_v4"
 
 
 def test_version_flag_v2_legacy(monkeypatch):

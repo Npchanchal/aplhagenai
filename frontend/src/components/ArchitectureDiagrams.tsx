@@ -238,7 +238,7 @@ export function PipelineDiagram() {
 
 export function ScoringDiagram() {
   return (
-    <Fig title="Scoring design" caption="v3 default. Pending / unmapped excluded from the average.">
+    <Fig title="Scoring design" caption="v4 default (beats floored at 60). Pending / unmapped excluded from the average.">
       <svg viewBox="0 0 720 280" className="arch-svg" xmlns="http://www.w3.org/2000/svg">
         <rect width="720" height="280" fill={paper} />
         <rect x="40" y="40" width="140" height="50" fill="#fff" stroke={ink} strokeWidth="1.5" />
@@ -278,7 +278,7 @@ export function ScoringDiagram() {
           pending · unmapped — excluded
         </text>
         <text x="360" y="250" textAnchor="middle" fill={muted} fontSize="11" fontFamily="IBM Plex Sans,sans-serif">
-          Audit (v3): withdrawal −15 · definition shift −10
+          Audit (v3/v4): withdrawal −15 · definition shift −10
         </text>
       </svg>
     </Fig>

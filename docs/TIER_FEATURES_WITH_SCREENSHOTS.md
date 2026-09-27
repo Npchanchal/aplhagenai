@@ -9,7 +9,7 @@
 
 Honest reading: Tier 1–3 are **shipped as product surfaces**. Citability + auto IR crawl are real for Sensex hand_labeled names; Tier 3 runs on a PIT warehouse that may include `demo_pit_extension` scaffolding (UI labels it non-citeable). No Buy/Hold.
 
-**GCI math:** default scorer is **v3** (band δ → exp decay, asymmetric miss γ, recency weights) — see [`docs/kb/03-scoring.md`](./kb/03-scoring.md). Set `INTELLENS_GCI_VERSION=v2` for the legacy heuristic.
+**GCI math:** default scorer is **v4** (band δ → exp decay, asymmetric miss γ, beats floored at 60, recency weights) — see [`docs/kb/03-scoring.md`](./kb/03-scoring.md). Set `INTELLENS_GCI_VERSION=v2` for the legacy heuristic.
 
 ![Tracker overview](./screenshots/tiers/00-tracker-overview.png)
 

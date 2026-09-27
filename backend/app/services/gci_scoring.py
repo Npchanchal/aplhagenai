@@ -1,6 +1,6 @@
-"""GCI scorers — v3 (exp δ / γ / recency engine) and v2 (legacy heuristic).
+"""GCI scorers — v4 (v3 engine + beat floor), v3 (exp δ / γ / recency), v2 (legacy heuristic).
 
-Toggle with ``INTELLENS_GCI_VERSION=v2|v3`` (default ``v3``).
+Toggle with ``INTELLENS_GCI_VERSION=v2|v3|v4`` (default ``v4``).
 """
 
 from __future__ import annotations
@@ -20,6 +20,9 @@ GCI_GAMMA_MISS = 1.4
 GCI_EPS = 1e-6
 POINT_BAND_FRAC = 0.02
 MIN_PERIODS_FULL_CONF = 4
+
+# --- v4: beats decay from 100 toward this floor instead of toward 0 ---
+GCI_BEAT_FLOOR = 60.0
 
 AUDIT_PENALTY_PTS: Dict[str, float] = {
     "guidance_withdrawal": 15.0,
@@ -71,14 +74,16 @@ class GciComputeResult:
 
 
 def scorer_version(override: Optional[str] = None) -> str:
-    raw = (override or os.environ.get("INTELLENS_GCI_VERSION") or "v3").strip().lower()
+    raw = (override or os.environ.get("INTELLENS_GCI_VERSION") or "v4").strip().lower()
     if raw in ("v2", "2", "gci_v2", "gci_scoring_v2", "legacy"):
         return "v2"
-    return "v3"
+    if raw in ("v3", "3", "gci_v3", "gci_scoring_v3"):
+        return "v3"
+    return "v4"
 
 
 def algorithm_id(override: Optional[str] = None) -> str:
-    return "gci_scoring_v3" if scorer_version(override) == "v3" else "gci_scoring_v2"
+    return f"gci_scoring_{scorer_version(override)}"
 
 
 def _band(outcome: GuidanceOutcome) -> Tuple[float, float]:
@@ -187,21 +192,33 @@ def normalized_deviation(outcome: GuidanceOutcome) -> Optional[float]:
     return (abs(actual - gmid) - w) / (w + GCI_EPS)
 
 
-def outcome_score_v3(outcome: GuidanceOutcome) -> Optional[float]:
-    """Adjusted single-period score S̃_{m,t} (0–100). Excludes pending/unmapped/dropped."""
+def _outcome_score_exp(outcome: GuidanceOutcome, beat_floor: float) -> Optional[float]:
     if outcome.unmapped or outcome.dropped or outcome.actual_value is None:
         return None
     gmin, gmax, gmid, w = effective_band(outcome)
     actual = float(outcome.actual_value)
     if gmin <= actual <= gmax:
-        s = 100.0
-    else:
-        delta = (abs(actual - gmid) - w) / (w + GCI_EPS)
-        # Guard negative base for fractional β on tiny float noise
-        delta = max(0.0, delta)
-        s = 100.0 * math.exp(-GCI_ALPHA * (delta**GCI_BETA))
-    gamma = GCI_GAMMA_MISS if actual < gmin else 1.0
-    return max(0.0, 100.0 - gamma * (100.0 - s))
+        return 100.0
+    delta = (abs(actual - gmid) - w) / (w + GCI_EPS)
+    # Guard negative base for fractional β on tiny float noise
+    delta = max(0.0, delta)
+    decay = math.exp(-GCI_ALPHA * (delta**GCI_BETA))
+    if actual > gmax:
+        return beat_floor + (100.0 - beat_floor) * decay
+    return max(0.0, 100.0 - GCI_GAMMA_MISS * (100.0 - 100.0 * decay))
+
+
+def outcome_score_v3(outcome: GuidanceOutcome) -> Optional[float]:
+    """Adjusted single-period score S̃_{m,t} (0–100). Excludes pending/unmapped/dropped."""
+    return _outcome_score_exp(outcome, 0.0)
+
+
+def outcome_score_v4(outcome: GuidanceOutcome) -> Optional[float]:
+    """v3 with beats floored at GCI_BEAT_FLOOR; in-band and misses are identical to v3."""
+    return _outcome_score_exp(outcome, GCI_BEAT_FLOOR)
+
+
+_EXP_SCORERS = {"v3": outcome_score_v3, "v4": outcome_score_v4}
 
 
 def audit_deduction(
@@ -230,13 +247,14 @@ def _periods_newest_first(outcomes: Sequence[GuidanceOutcome]) -> List[str]:
 def _metric_score_v3(
     rows: List[GuidanceOutcome],
     period_rank: Dict[str, int],
+    score_fn=outcome_score_v3,
 ) -> Optional[float]:
     """Recency-weighted multi-period S_m."""
     # One score per period (average if multiple rows in same period)
     by_period: Dict[str, List[float]] = {}
     conf_by_period: Dict[str, List[float]] = {}
     for o in rows:
-        s = outcome_score_v3(o)
+        s = score_fn(o)
         if s is None:
             continue
         by_period.setdefault(o.period, []).append(s)
@@ -265,14 +283,32 @@ def compute_company_gci_v3(
     sector_mean: Optional[float] = None,
     metric_weights: Optional[Dict[str, float]] = None,
     audit_flags: Optional[Sequence[str]] = None,
+    version: str = "v3",
 ) -> Optional[float]:
     result = compute_gci_v3_detail(
         outcomes,
         sector_mean=sector_mean,
         metric_weights=metric_weights,
         audit_flags=audit_flags,
+        version=version,
     )
     return result.gci
+
+
+def compute_company_gci_v4(
+    outcomes: List[GuidanceOutcome],
+    *,
+    sector_mean: Optional[float] = None,
+    metric_weights: Optional[Dict[str, float]] = None,
+    audit_flags: Optional[Sequence[str]] = None,
+) -> Optional[float]:
+    return compute_company_gci_v3(
+        outcomes,
+        sector_mean=sector_mean,
+        metric_weights=metric_weights,
+        audit_flags=audit_flags,
+        version="v4",
+    )
 
 
 def compute_gci_v3_detail(
@@ -281,12 +317,14 @@ def compute_gci_v3_detail(
     sector_mean: Optional[float] = None,
     metric_weights: Optional[Dict[str, float]] = None,
     audit_flags: Optional[Sequence[str]] = None,
+    version: str = "v3",
 ) -> GciComputeResult:
-    """Full v3 composite: φ-weighted metrics − D_shenanigans, optional sector shrinkage."""
+    """Full v3/v4 composite: φ-weighted metrics − D_shenanigans, optional sector shrinkage."""
+    score_fn = _EXP_SCORERS.get(version, outcome_score_v3)
     scored_outcomes = [
         o
         for o in outcomes
-        if not o.unmapped and outcome_score_v3(o) is not None
+        if not o.unmapped and score_fn(o) is not None
     ]
     periods = _periods_newest_first(scored_outcomes)
     period_rank = {p: i + 1 for i, p in enumerate(periods)}
@@ -299,13 +337,13 @@ def compute_gci_v3_detail(
 
     s_by_metric: Dict[str, float] = {}
     for metric, rows in by_metric_rows.items():
-        sm = _metric_score_v3(rows, period_rank)
+        sm = _metric_score_v3(rows, period_rank, score_fn)
         if sm is not None:
             s_by_metric[metric] = sm
 
     if not s_by_metric:
         # Only audit / dropped with no scored delivery — still no GCI
-        return GciComputeResult(gci=None, version="v3", by_metric={})
+        return GciComputeResult(gci=None, version=version, by_metric={})
 
     weights = metric_weights or {}
     v_sum = 0.0
@@ -317,7 +355,7 @@ def compute_gci_v3_detail(
         v_sum += v
         weighted += v * sm
     if v_sum <= 0:
-        return GciComputeResult(gci=None, version="v3", by_metric=s_by_metric)
+        return GciComputeResult(gci=None, version=version, by_metric=s_by_metric)
 
     gci_raw = weighted / v_sum
     d_shen = audit_deduction(outcomes, audit_flags)
@@ -332,7 +370,7 @@ def compute_gci_v3_detail(
 
     return GciComputeResult(
         gci=round(gci, 1),
-        version="v3",
+        version=version,
         low_confidence=low_conf,
         periods_used=n_periods,
         shenanigans_deduction=d_shen,
@@ -341,7 +379,7 @@ def compute_gci_v3_detail(
 
 
 # ---------------------------------------------------------------------------
-# Version-routed public API (default v3)
+# Version-routed public API (default v4)
 # ---------------------------------------------------------------------------
 
 
@@ -350,9 +388,10 @@ def outcome_score(
     *,
     version: Optional[str] = None,
 ) -> Optional[float]:
-    if scorer_version(version) == "v2":
+    ver = scorer_version(version)
+    if ver == "v2":
         return outcome_score_v2(outcome)
-    return outcome_score_v3(outcome)
+    return _EXP_SCORERS[ver](outcome)
 
 
 def compute_company_gci(
@@ -363,13 +402,15 @@ def compute_company_gci(
     metric_weights: Optional[Dict[str, float]] = None,
     audit_flags: Optional[Sequence[str]] = None,
 ) -> Optional[float]:
-    if scorer_version(version) == "v2":
+    ver = scorer_version(version)
+    if ver == "v2":
         return compute_company_gci_v2(outcomes)
     return compute_company_gci_v3(
         outcomes,
         sector_mean=sector_mean,
         metric_weights=metric_weights,
         audit_flags=audit_flags,
+        version=ver,
     )
 
 

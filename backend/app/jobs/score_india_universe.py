@@ -1,4 +1,4 @@
-"""Score full India NSE/BSE universe with active gci_scoring (default v3).
+"""Score full India NSE/BSE universe with active gci_scoring (default v4).
 
   python -m app.jobs.score_india_universe
   python -m app.jobs.score_india_universe --limit 100
@@ -15,7 +15,7 @@ from app.data.gci_score_cache import build_india_gci_cache
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    p = argparse.ArgumentParser(description="Score NSE+BSE listings with GCI v2")
+    p = argparse.ArgumentParser(description="Score NSE+BSE listings with the active GCI scorer")
     p.add_argument("--limit", type=int, default=None)
     args = p.parse_args(argv)
     report = build_india_gci_cache(limit=args.limit)

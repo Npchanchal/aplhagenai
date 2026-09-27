@@ -219,6 +219,20 @@ ACCOUNT_ID="$(terraform output -raw account_id)"
 CLUSTER="$(terraform output -raw ecs_cluster_name)"
 SERVICE="$(terraform output -raw ecs_service_name)"
 
+# Isolated Docker config: the Desktop credential helper can block on a hidden
+# macOS Keychain prompt. Set DEPLOY_USE_HOST_DOCKER_CONFIG=1 to opt out.
+if [[ "${DEPLOY_USE_HOST_DOCKER_CONFIG:-0}" != "1" ]]; then
+  HOST_DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}"
+  DEPLOY_DOCKER_CONFIG="$(mktemp -d)"
+  trap 'rm -rf "$DEPLOY_DOCKER_CONFIG"' EXIT
+  echo '{}' > "$DEPLOY_DOCKER_CONFIG/config.json"
+  [[ -d "$HOST_DOCKER_CONFIG/cli-plugins" ]] && ln -s "$HOST_DOCKER_CONFIG/cli-plugins" "$DEPLOY_DOCKER_CONFIG/cli-plugins"
+  if [[ -z "${DOCKER_HOST:-}" && -S "$HOME/.docker/run/docker.sock" ]]; then
+    export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
+  fi
+  export DOCKER_CONFIG="$DEPLOY_DOCKER_CONFIG"
+fi
+
 echo "== ECR login =="
 aws ecr get-login-password --region "$REGION" \
   | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"

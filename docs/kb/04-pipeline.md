@@ -7,7 +7,7 @@
 3. **Review** — Accept / Edit / Reject; corrections append to `reviews[]` (moat)
 4. **Commit** — `POST /api/extract/commit` accepted indices → outcomes
 5. **Match** — key `(company_id, period, metric)` only
-6. **Score** — pure GCI (`INTELLENS_GCI_VERSION=v3` default; set `v2` for legacy)
+6. **Score** — pure GCI (`INTELLENS_GCI_VERSION=v4` default; `v3` or legacy `v2` selectable)
 7. **Import paths** — AlphaHunter JSON, actuals import, consensus import (flags)
 
 ## Sensex IR crawl (keep pages fresh)
@@ -31,7 +31,7 @@ Mutations require `X-API-Key` (demo: `intellens-demo`).
 
 **In:** transcripts, filings/PDF text, IR HTML/PPT text, ASR→transcript, reported actuals.  
 **Out of score:** raw A/V scoring, technicals, forensic shenanigans engines, sentiment-only (wordmap is context stub).  
-**Audit deductions (v3 only):** guidance withdrawal / dropped → −15; mid-horizon definition shift flag → −10 — not a Beneish/M-score engine.
+**Audit deductions (v3/v4):** guidance withdrawal / dropped → −15; mid-horizon definition shift flag → −10 — not a Beneish/M-score engine.
 
 ## Desk UI
 

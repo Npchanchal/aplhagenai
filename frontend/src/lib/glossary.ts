@@ -59,7 +59,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   exceeded: {
     id: "exceeded",
     term: "Exceeded",
-    tip: "Actual beat above the band. Default scorer v3 measures forecast accuracy: a small beat scores high, but a beat far above the band means the guidance was far off, so points decay with distance. A miss the same distance below always scores lower (γ=1.4). Legacy v2 floors beats ≥85.",
+    tip: "Actual beat above the band. Default scorer v4: a small beat scores close to 100; a beat far above the band still means the guidance was off, so points decay with distance but never below 60. A miss the same distance below always scores lower (γ=1.4). v3 let beats decay toward 0; legacy v2 floors beats ≥85.",
   },
   missed: {
     id: "missed",
@@ -69,7 +69,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   dropped: {
     id: "dropped",
     term: "Dropped",
-    tip: "Management stopped reiterating guidance. Default scorer v3 excludes the row from the average and applies a company −15 withdrawal deduction. Legacy v2 scored dropped ≈35. Distinct from a miss.",
+    tip: "Management stopped reiterating guidance. Default scorer v4 (as in v3) excludes the row from the average and applies a company −15 withdrawal deduction. Legacy v2 scored dropped ≈35. Distinct from a miss.",
   },
   pending: {
     id: "pending",
@@ -134,12 +134,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   nse_bse: {
     id: "nse_bse",
     term: "NSE_ALL / BSE_ALL",
-    tip: "Full India equity masters. Default scorer is v3 (legacy v2 available). Hand-labeled Sensex is citeable; Provisional = deterministic demo outcomes until IR-labeled.",
+    tip: "Full India equity masters. Default scorer is v4 (v3 and legacy v2 available). Hand-labeled Sensex is citeable; Provisional = deterministic demo outcomes until IR-labeled.",
   },
   listing_provisional: {
     id: "listing_provisional",
     term: "Provisional GCI",
-    tip: "Same gci_scoring algorithm as Sensex (default v3), fed by deterministic provisional guidance/actuals for coverage. Not hand-audited — do not cite externally.",
+    tip: "Same gci_scoring algorithm as Sensex (default v4), fed by deterministic provisional guidance/actuals for coverage. Not hand-audited — do not cite externally.",
   },
   source: {
     id: "source",

@@ -11,11 +11,12 @@ describe("glossary", () => {
     expect(blob).not.toMatch(/alphasense/);
   });
 
-  it("describes scorer v3 for dropped and listings", () => {
-    expect(GLOSSARY.dropped.tip).toMatch(/v3/i);
+  it("describes scorer v4 for dropped and listings", () => {
+    expect(GLOSSARY.dropped.tip).toMatch(/v4/i);
     expect(GLOSSARY.dropped.tip).toMatch(/−15|-15/);
-    expect(GLOSSARY.nse_bse.tip).toMatch(/v3/);
-    expect(GLOSSARY.exceeded.tip).toMatch(/v3/);
+    expect(GLOSSARY.nse_bse.tip).toMatch(/v4/);
+    expect(GLOSSARY.exceeded.tip).toMatch(/v4/);
+    expect(GLOSSARY.exceeded.tip).toMatch(/60/);
   });
 
   it("includes Sights, SKUs, rankings, and Trust Center", () => {

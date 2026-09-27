@@ -252,7 +252,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
         <li>FY23 — guided 13–15%, actual 15.4% — <strong>exceeded</strong> (reported 2023-04-13)</li>
         <li>FY24 — guided 4.0–7.0%, actual 1.4% — <strong>missed</strong> (reported 2024-04-18)</li>
       </ul>
-      <p>Why does a big beat score low? GCI scores forecast accuracy. Guidance of 10–12% against an actual of 19.7% was far off, so FY22 earns few points. A miss the same distance below the band scores lower still. <a href="${SITE}/companies/infy">Open the full Infosys evidence trail</a>.</p>
+      <p>Why doesn't a big beat score 100? GCI scores how close results came to guidance. Guidance of 10–12% against an actual of 19.7% was well off, so FY22 scores about 60, not 100. Beats never drop below 60; a miss the same distance below the band scores far lower. <a href="${SITE}/companies/infy">Open the full Infosys evidence trail</a>.</p>
       <h2>What is a Guidance Credibility Index?</h2>
       <p>GCI is a 0–100 score of how closely a company's reported results matched its own quantified guidance — revenue bands, margins, volumes, capex. It tracks delivery, not sentiment or share price. Each guided number gets one outcome once the period closes: met, exceeded, missed, dropped, or pending.</p>
       <h2>How we build a score</h2>

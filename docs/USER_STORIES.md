@@ -37,7 +37,7 @@
 
 **Acceptance**
 - Given fixed outcome fixtures  
-- When `compute_company_gci` runs (default **v3**; legacy via `INTELLENS_GCI_VERSION=v2`)  
+- When `compute_company_gci` runs (default **v4**; `INTELLENS_GCI_VERSION=v3` or legacy `v2`)  
 - Then the score matches the golden expected value in unit tests (`test_gci_scoring*.py`)
 
 ## US-005 — Health / deploy readiness

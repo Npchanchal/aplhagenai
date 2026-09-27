@@ -37,6 +37,6 @@ Closes items from the pending backlog after G01–G23 / Tier E1–E10 / GCI v3.
 | `INTELLENS_EMBEDDINGS` | `true` when key present | Prefer API embeddings |
 | `INTELLENS_EMBED_MODEL` | `text-embedding-3-small` | Embed model |
 | `RESEARCH_LLM` | `false` | Optional LLM rewrite of cite-only answers (still refuse without cites) |
-| `INTELLENS_GCI_VERSION` | `v3` | Scorer |
+| `INTELLENS_GCI_VERSION` | `v4` | Scorer |
 | `SSO` + `OIDC_*` | — | Production SSO |
 | `FORCE_HTTPS` | — | Redirect + HSTS with `ENABLE_HSTS` |

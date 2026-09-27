@@ -43,7 +43,7 @@ def test_score_universe_cache_subset():
     clear_memory_cache()
     report = build_india_gci_cache(limit=80)
     assert report["scored_count"] >= 40
-    assert report["algorithm"] == "gci_scoring_v3"
+    assert report["algorithm"] == "gci_scoring_v4"
     # A non-seed listing in the first 80 should be cached
     listing = next(
         r

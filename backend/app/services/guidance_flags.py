@@ -87,7 +87,7 @@ def audit_summary(outcomes: Sequence[GuidanceOutcome]) -> Dict[str, Any]:
         "deduction": round(float(deduction), 1),
         "badges": badges,
         "note": (
-            "Audit deductions applied in GCI v3 (withdrawal / restatement / definition shift). "
+            "Audit deductions applied in GCI v3/v4 (withdrawal / restatement / definition shift). "
             "Not a forensic accruals or Beneish engine."
         ),
     }
