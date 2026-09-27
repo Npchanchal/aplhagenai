@@ -3,6 +3,9 @@ import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 
 const SHOT = "/screenshots/tiers";
+/** Bump when recapturing: /screenshots is cached 30 days under unchanged file names. */
+const SHOT_VERSION = "2026-09-27";
+const shotSrc = (src: string) => `${src}?v=${SHOT_VERSION}`;
 
 type StatusRow = { label: string; status: string };
 
@@ -208,8 +211,8 @@ function FeatureBlock({ feature }: { feature: Feature }) {
       <div className={`tier-shots ${feature.images.length > 1 ? "multi" : ""}`}>
         {feature.images.map((img) => (
           <figure key={img.src} className="tier-shot">
-            <a href={img.src} target="_blank" rel="noreferrer">
-              <img src={img.src} alt={img.alt} loading="lazy" />
+            <a href={shotSrc(img.src)} target="_blank" rel="noreferrer">
+              <img src={shotSrc(img.src)} alt={img.alt} loading="lazy" />
             </a>
             <figcaption>{img.alt}</figcaption>
           </figure>
@@ -265,7 +268,7 @@ export default function TierFeaturesPage() {
       <div className="panel tier-hero-shots">
         <figure className="tier-shot">
           <img
-            src={`${SHOT}/00-tracker-overview.png`}
+            src={shotSrc(`${SHOT}/00-tracker-overview.png`)}
             alt="Guidance Credibility Index tracker overview"
             loading="eager"
           />
@@ -273,7 +276,7 @@ export default function TierFeaturesPage() {
         </figure>
         <figure className="tier-shot">
           <img
-            src={`${SHOT}/00-about-tiers.png`}
+            src={shotSrc(`${SHOT}/00-about-tiers.png`)}
             alt="About page tiers summary"
             loading="eager"
           />
