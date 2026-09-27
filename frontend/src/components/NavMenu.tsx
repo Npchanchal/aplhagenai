@@ -55,7 +55,7 @@ export const NAV_ENTRIES: NavEntry[] = [
     labelKey: "nav.sights",
     matchPrefixes: ["/sights"],
     children: [
-      { to: "/sights", end: true, labelKey: "nav.sights_hub", tipId: "research_terminal" },
+      { to: "/sights", end: true, labelKey: "nav.sights_hub", tipId: "sights" },
       { to: "/sights/search", labelKey: "nav.sights_search" },
       { to: "/sights/ask", labelKey: "nav.sights_ask" },
       { to: "/sights/boards", labelKey: "nav.sights_boards" },
@@ -137,6 +137,7 @@ function NavDropdown({ group }: { group: NavGroup }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverOpened = useRef(false);
   const menuId = useId();
   const active = groupActive(location.pathname, group);
 
@@ -190,10 +191,16 @@ function NavDropdown({ group }: { group: NavGroup }) {
       ref={ref}
       data-testid={`nav-dropdown-${group.id}`}
       onMouseEnter={() => {
-        if (finePointerHover()) openMenu();
+        if (finePointerHover() && !open) {
+          hoverOpened.current = true;
+          openMenu();
+        }
       }}
       onMouseLeave={() => {
-        if (finePointerHover()) scheduleClose();
+        if (finePointerHover()) {
+          hoverOpened.current = false;
+          scheduleClose();
+        }
       }}
     >
       <button
@@ -204,6 +211,11 @@ function NavDropdown({ group }: { group: NavGroup }) {
         aria-controls={menuId}
         onClick={() => {
           clearCloseTimer();
+          if (hoverOpened.current) {
+            hoverOpened.current = false;
+            setOpen(true);
+            return;
+          }
           setOpen((v) => !v);
         }}
       >

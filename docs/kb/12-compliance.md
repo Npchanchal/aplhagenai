@@ -2,9 +2,11 @@
 
 ## Product stance
 
-CiteAlpha is a **factual research / data product** on guidance delivery. It is **not** investment advice.
+CiteAlpha is positioned as a **factual research / data product** on guidance delivery. It is **not** marketed as investment advice or a SEBI-registered Research Analyst product unless counsel + registration (or another approved pathway) say otherwise.
 
 **Legal entity:** Ocotillo Innovation Private Limited owns and operates CiteAlpha.
+
+> Naming hygiene (no Buy/Hold/tips) is **necessary but not sufficient**. Whether Score / Rankings / GCI is a “research report” under the SEBI RA Regulations, 2014 (incl. 2024–2025 amendments) is a **counsel determination**. See `docs/customer/COMPLIANCE.md` → *Open regulatory question*.
 
 ## UI requirements
 
@@ -21,7 +23,12 @@ CiteAlpha is a **factual research / data product** on guidance delivery. It is *
 - `hand_labeled` vs `demo_structured` must remain visible.
 - Do not present scaffold markets as deep GCI coverage.
 
+## Nomenclature
+
+Approved nav / SKU / UI names: `docs/customer/COMPLIANCE.md` → **Approved nomenclature**.
+Keep CiteAlpha / GCI / Score / Cite / Radar / Ledger / Data / Sights / Tracker / Desk / Research. Avoid Buy/Hold/Sell, tips, signals, alpha-finder, and competitor product names in chrome.
+
 ## Customer pack
 
 `docs/customer/COMPLIANCE.md`, FAQ, coverage/SLA — keep aligned when changing claims.
-Production checklist: `docs/PRODUCTION_B2B_B2C.md`.
+Production checklist: `docs/PRODUCTION_B2B_B2C.md` (counsel attest gates).

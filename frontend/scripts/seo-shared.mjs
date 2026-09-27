@@ -240,19 +240,43 @@ export function marketingBodyHtml(routePath, opts = {}) {
   const { glossaryPath, structuredData, esc } = opts;
   const bodies = {
     "/": `<main>
-      <h1 class="seo-speakable">CiteAlpha — Guidance Credibility Index for Indian Equity Desks</h1>
-      <p class="seo-speakable">CiteAlpha publishes an evidence-linked Guidance Credibility Index (GCI): did Indian listed management deliver on quantified guidance? Factual research for institutional desks — not investment advice.</p>
-      <h2>What is a Guidance Credibility Index?</h2>
-      <p>A GCI measures whether management met, exceeded, missed, dropped, or has pending quantified guidance against later reported actuals, with NSE, BSE, and IR sources attached. It tracks delivery, not sentiment.</p>
-      <h2>Product surfaces</h2>
+      <p>Guidance Credibility Index · Indian listed companies</p>
+      <h1 class="seo-speakable">Did management deliver on what they promised? We check.</h1>
+      <p class="seo-speakable">CiteAlpha's Guidance Credibility Index (GCI) compares what Indian listed management guided to what they later reported. Every score opens to the exchange filing, IR deck, or transcript behind it.</p>
+      <p><a href="${SITE}/companies/infy"><strong>See a scored company</strong></a> · <a href="${SITE}/pilot">Request a pilot</a></p>
+      <p>Built for: <a href="${SITE}/products#desk-buy-side">Buy-side</a> · <a href="${SITE}/products#desk-sell-side">Sell-side research</a> · <a href="${SITE}/products#desk-quant">Quant / data</a> · <a href="${SITE}/products#desk-ir-compliance">IR &amp; compliance</a></p>
+      <h2>Worked example: Infosys revenue growth guidance vs actuals</h2>
+      <p>Each April, management guided full-year revenue growth in constant currency. Source: <a href="https://www.infosys.com/investors/reports-filings/financials/guidance-vs-actuals-usd.html">Infosys guidance vs actuals</a>.</p>
       <ul>
-        <li><a href="${SITE}/tracker"><strong>GCI Tracker</strong></a> — screen Sensex and Nifty by guidance credibility.</li>
-        <li><a href="${SITE}/desk"><strong>Desk</strong></a> — review queue, corpus, PIT/API workflows.</li>
-        <li><a href="${SITE}/research"><strong>Research</strong></a> — cite-only filings search.</li>
-        <li><a href="${SITE}/sights"><strong>Sights</strong></a> — India disclosure research OS.</li>
-        <li><a href="${SITE}/rankings"><strong>Rankings</strong></a> — public GCI snapshots without recommendation chrome.</li>
+        <li>FY22 — guided 10–12%, actual 19.7% — <strong>exceeded</strong> (reported 2022-04-13)</li>
+        <li>FY23 — guided 13–15%, actual 15.4% — <strong>exceeded</strong> (reported 2023-04-13)</li>
+        <li>FY24 — guided 4.0–7.0%, actual 1.4% — <strong>missed</strong> (reported 2024-04-18)</li>
       </ul>
-      <p><a href="${SITE}/answers">FAQ answers</a> · <a href="${SITE}/package">Packages</a> · <a href="${SITE}/pilot">Request a pilot</a> · <a href="${SITE}/api/meta">Live cohort meta</a></p>
+      <p>Why does a big beat score low? GCI scores forecast accuracy. Guidance of 10–12% against an actual of 19.7% was far off, so FY22 earns few points. A miss the same distance below the band scores lower still. <a href="${SITE}/companies/infy">Open the full Infosys evidence trail</a>.</p>
+      <h2>What is a Guidance Credibility Index?</h2>
+      <p>GCI is a 0–100 score of how closely a company's reported results matched its own quantified guidance — revenue bands, margins, volumes, capex. It tracks delivery, not sentiment or share price. Each guided number gets one outcome once the period closes: met, exceeded, missed, dropped, or pending.</p>
+      <h2>How we build a score</h2>
+      <ol>
+        <li><strong>Sources</strong> — NSE and BSE filings, company IR decks and guidance tables, earnings-call transcripts.</li>
+        <li><strong>What counts as guidance</strong> — a number or range for a named metric and period. Qualitative commentary is marked unmapped and left out of the score.</li>
+        <li><strong>Verification</strong> — an analyst reviews every extracted row. Each row keeps the quote, document link, and date.</li>
+        <li><strong>Scoring</strong> — versioned, unit-tested scorer. Open periods stay pending and are excluded. Scores change after a new filing is reviewed, not automatically.</li>
+      </ol>
+      <h2>Coverage today</h2>
+      <ul>
+        <li>Sensex-depth companies hand-labeled with cited evidence — the rows meant for citation.</li>
+        <li>A smaller set of demo-structured companies (including early Nifty names) — for walkthroughs, not citation.</li>
+        <li>Other NSE/BSE listings are browsable with provisional scores built from placeholder outcomes — not for citation.</li>
+        <li>Point-in-time API (pit.v1) for design partners; every point is as-of stamped and flagged citeable or not.</li>
+      </ul>
+      <h2>Explore the product</h2>
+      <ul>
+        <li><a href="${SITE}/tracker"><strong>GCI Tracker</strong></a> — screen covered companies by GCI score and change, with quality badges on every row.</li>
+        <li><a href="${SITE}/research"><strong>Research</strong></a> — search one company's filings and transcripts; answers only when a source can be cited.</li>
+        <li><a href="${SITE}/sights"><strong>Sights</strong></a> — compare disclosures across companies with cite-only answers.</li>
+        <li><a href="${SITE}/rankings"><strong>Rankings</strong></a> — public GCI snapshot by sector; no recommendation labels.</li>
+      </ul>
+      <p><a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/package">Packages</a> · <a href="${SITE}/pilot">Request a pilot</a> · <a href="${SITE}/trust">Trust Center</a></p>
     </main>`,
     "/pilot": `<main>
       <h1>Request a CiteAlpha GCI Pilot</h1>
@@ -301,7 +325,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <ul>
         <li><strong>Score</strong> — company GCI with evidence trail and PIT history.</li>
         <li><strong>Cite</strong> — citation ids that reopen to NSE/BSE/IR documents.</li>
-        <li><strong>Sights</strong> — India disclosure research OS with cite-only Ask.</li>
+        <li><strong>Sights</strong> — compare disclosures across Indian companies with cite-only Ask.</li>
         <li><strong>Radar, Ledger, Data</strong> — alerts, audit, and API series for desks and quants.</li>
       </ul>
       <p><a href="${SITE}/package">Packages</a> · <a href="${SITE}/about/tiers">Tier map</a> · <a href="${SITE}/pilot">Request a pilot</a></p>
@@ -319,7 +343,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p><a href="${SITE}/package">Packages</a> · <a href="${SITE}/about#how">How GCI is built</a> · <a href="${SITE}/trust">Trust Center</a></p>
     </main>`,
     "/sights": `<main>
-      <h1>CiteAlpha Sights — India Disclosure Research OS</h1>
+      <h1>CiteAlpha Sights — Compare Indian Company Disclosures</h1>
       <p class="seo-speakable">Search, cite-only Ask, Compare Grid, and Desk Agents over public IR and CiteAlpha evidence for Indian listed companies. Not investment advice.</p>
       <ul>
         <li><a href="${SITE}/sights/search"><strong>Search</strong></a> — IR decks, filings, transcripts with Business Lexicon expand.</li>
@@ -357,8 +381,8 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p><a href="${SITE}/tracker">Open Tracker</a> · <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a></p>
     </main>`,
     "/tracker": `<main>
-      <h1>GCI Tracker: Sensex &amp; Nifty Guidance Credibility</h1>
-      <p class="seo-speakable">Screen Sensex and Nifty names by Guidance Credibility Index. Every score links to guidance, actuals, and sources. Not investment advice.</p>
+      <h1>GCI Tracker: Sensex Guidance Credibility Scores</h1>
+      <p class="seo-speakable">Screen Sensex companies by Guidance Credibility Index, with hand-labeled evidence behind every citeable score. Other NSE/BSE listings show provisional scores that are not for citation.</p>
       <ul>
         <li>Company GCI with trend and coverage context.</li>
         <li>Evidence trail: guidance → actual → label → source.</li>

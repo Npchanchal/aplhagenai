@@ -21,7 +21,7 @@ test.describe("Desk — pilot user workflows", () => {
     await page.goto("/desk?tab=console");
     await dismissOverlays(page);
     await expect(page.getByTestId("desk-console")).toBeVisible({ timeout: 25_000 });
-    await page.getByRole("button", { name: "Review" }).click();
+    await page.getByRole("button", { name: "Review", exact: true }).click();
     await expect(page).toHaveURL(/tab=review/);
     await expect(page.getByTestId("review-queue-panel")).toBeVisible();
   });

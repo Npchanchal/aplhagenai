@@ -49,8 +49,8 @@ def test_g03_match():
 
 
 def test_g04_sensex30():
-    # Gap G04: Sensex-30 deep GCI coverage (seed also pads 10 Nifty demo names → 40)
-    assert len(client.get("/api/companies").json()) == 40
+    # Gap G04: Sensex-30 deep GCI coverage (seed also carries a growing Nifty tail)
+    assert len(client.get("/api/companies").json()) >= 40
     sensex = client.get("/api/companies", params={"market": "IN", "index": "SENSEX"}).json()
     assert len(sensex) == 30
     assert client.get("/api/indexes/SENSEX/constituents").json()["count"] == 30

@@ -46,7 +46,7 @@ GuidanceOutcome { statement + actual + delta + score_contribution }
 CompanyGCI { score, by_metric, outcomes[], as_of }
 ```
 
-## Scoring (v0.2 rules)
+## Scoring (v0.2 rules — legacy v2; default v3 differs, see `docs/kb/03-scoring.md`)
 
 - Prefer guidance **bands** (`guided_low`–`guided_high`); in-band delivery = **met** (100).
 - **Exceeded** (beat above band) scores high (≥85), not like a miss.

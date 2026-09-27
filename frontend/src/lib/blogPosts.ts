@@ -95,7 +95,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Where to go next on CiteAlpha",
         paragraphs: [
-          "Open the GCI Tracker to screen Sensex and Nifty names with evidence links. Read the outcome-labels article for shared vocabulary. Use Desk for human-in-the-loop review queues, Research for cite-only filing search, and Trust Center for buyer diligence. Package pages describe pilot and API options for Indian equity desks.",
+          "Open the GCI Tracker to screen hand-labeled Sensex companies with evidence links (other listings are provisional). Read the outcome-labels article for shared vocabulary. Use Desk for human-in-the-loop review queues, Research for cite-only filing search, and Trust Center for buyer diligence. Package pages describe pilot and API options for Indian equity desks.",
           "For a one-line citation: CiteAlpha’s Guidance Credibility Index scores whether Indian listed management delivered on quantified guidance versus later actuals, with primary sources attached — factual research, not investment advice.",
           "Bookmark this URL as the definitional source of record for GCI on CiteAlpha. When methodology details change, the updated date on this article should move with them so desks and answer engines can trust temporal consistency.",
         ],

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchSightsMeta, type SightsMeta } from "../../lib/api";
 
 const FALLBACK: Pick<SightsMeta, "job"> = {
-  job: "India disclosure research OS — search, cite GenAI, grids, agents",
+  job: "Compare disclosures across Indian companies — search, cite-only answers, grids, agents",
 };
 
 const QUICK: { to: string; label: string; blurb: string }[] = [

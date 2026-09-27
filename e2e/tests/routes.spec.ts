@@ -14,7 +14,7 @@ test("404 page shows recovery link to Tracker", async ({ page }) => {
   await page.goto("/this-route-does-not-exist");
   await dismissOverlays(page);
   await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
-  await page.locator("#main").getByRole("link", { name: "Tracker" }).click();
+  await page.locator("#main").getByRole("link", { name: "Tracker" }).first().click();
   await expect(page).toHaveURL(/\/tracker$/);
 });
 
@@ -34,7 +34,7 @@ test("landing surface cards link to product routes", async ({ browser }) => {
   await dismissOverlays(page);
   await expect(page.getByTestId("landing-page")).toBeVisible();
 
-  for (const target of ["/tracker", "/desk", "/research", "/sights"]) {
+  for (const target of ["/tracker", "/research", "/sights", "/rankings"]) {
     await page.goto("/");
     await dismissOverlays(page);
     await page.locator(`.landing-card[href="${target}"]`).click();

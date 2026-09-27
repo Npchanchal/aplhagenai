@@ -18,13 +18,13 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   desk_sku: {
     id: "desk_sku",
-    term: "Desk (One-Stop console)",
-    tip: "Analyst ops console: Tracker jump, evidence, PIT/API, AlphaHunter import, GCI parameter catalog, Wordmap, vernacular, and CSM — without leaving /desk.",
+    term: "Desk (review & export workspace)",
+    tip: "Review workspace for pilot and paid desks: approve extracted guidance, check evidence, export point-in-time data, and build reports. Requires a pilot or paid seat.",
   },
   research_terminal: {
     id: "research_terminal",
     term: "Research Terminal",
-    tip: "Search + cite-only chat over filings/transcripts, desk snapshot with MoM/QoQ/YoY, street vs guidance estimates, news, and watchlist. Complements GCI — demo tape is not live prices.",
+    tip: "One company at a time: search its filings and transcripts, ask cite-only questions, and see a snapshot of guidance vs reported numbers. Complements GCI — demo tape is not live prices.",
   },
   guidance: {
     id: "guidance",
@@ -59,7 +59,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   exceeded: {
     id: "exceeded",
     term: "Exceeded",
-    tip: "Actual beat above the band. Default scorer v3 uses an exponential distance function (γ=1.0); legacy v2 floors beats ≥85. Beats are not treated like misses.",
+    tip: "Actual beat above the band. Default scorer v3 measures forecast accuracy: a small beat scores high, but a beat far above the band means the guidance was far off, so points decay with distance. A miss the same distance below always scores lower (γ=1.4). Legacy v2 floors beats ≥85.",
   },
   missed: {
     id: "missed",
@@ -254,7 +254,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   sights: {
     id: "sights",
     term: "CiteAlpha Sights",
-    tip: "India disclosure research OS: search, cite-only Ask, boards, compare grid, and desk agents over public IR and labeled evidence. Complements GCI — not a price terminal.",
+    tip: "Compare disclosures across Indian companies: search, cite-only Ask, boards, compare grid, and desk agents over public IR and labeled evidence. Complements GCI — not a price terminal.",
   },
   score_sku: {
     id: "score_sku",

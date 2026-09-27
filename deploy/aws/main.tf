@@ -376,7 +376,7 @@ resource "aws_acm_certificate_validation" "app" {
   validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
 
   timeouts {
-    create = "10m"
+    create = "45m"
   }
 }
 

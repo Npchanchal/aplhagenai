@@ -24,7 +24,37 @@ test.describe("Guest user journey", () => {
     await page.goto("/");
     await dismissOverlays(page);
     await expect(page.getByTestId("landing-page")).toBeVisible();
-    await expect(page.getByTestId("landing-cta-tracker")).toBeVisible();
+    await expect(page.getByTestId("landing-cta-example")).toBeVisible();
+    await expect(page.getByTestId("landing-cta-pilot")).toBeVisible();
+  });
+
+  test("landing leads with a cited worked example and honest coverage", async ({ page }) => {
+    await page.goto("/");
+    await dismissOverlays(page);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /Did management deliver/ }),
+    ).toBeVisible();
+
+    const example = page.getByTestId("landing-worked-example");
+    await expect(example.getByTestId("example-label-FY22")).toHaveText("exceeded", {
+      timeout: 15_000,
+    });
+    await expect(example.getByTestId("example-label-FY24")).toHaveText("missed");
+    await expect(example.locator('a[href*="infosys.com"]').first()).toBeVisible();
+
+    const exampleBox = await example.boundingBox();
+    const defineBox = await page.getByTestId("landing-explain").boundingBox();
+    expect(exampleBox!.y).toBeLessThan(defineBox!.y);
+
+    await expect(page.getByTestId("landing-outcome-chips").locator(".pill")).toHaveCount(5);
+    await expect(page.getByTestId("landing-method")).toContainText("What counts as guidance");
+    await expect(page.getByTestId("coverage-listings")).toContainText("Not for citation");
+    await expect(page.getByTestId("coverage-pit")).toContainText("design partners");
+    await expect(page.locator('a[href="/api/meta"]')).toHaveCount(0);
+    await expect(page.getByTestId("landing-page")).not.toContainText("Nifty names by guidance");
+
+    await page.getByTestId("landing-cta-example").click();
+    await expect(page).toHaveURL(/\/companies\/infy$/);
   });
 
   test("guest session reaches tracker with banner", async ({ page }) => {

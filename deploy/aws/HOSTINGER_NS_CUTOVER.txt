@@ -1,0 +1,24 @@
+CiteAlpha → OcotilloInnovation (884686184601) Route53 cutover
+============================================================
+At Hostinger → Domains → citealpha.com → Nameservers → Change nameservers
+Replace the current AWS NS (old account) with these four:
+
+ns-1337.awsdns-39.org
+ns-2040.awsdns-63.co.uk
+ns-454.awsdns-56.com
+ns-802.awsdns-36.net
+
+Zone ID: Z02357723BV5SHKJM147J
+ACM cert: arn:aws:acm:ap-south-1:884686184601:certificate/09923864-b435-4d1c-bc98-c34b0948113a (PENDING_VALIDATION)
+
+After NS propagate (~minutes to 48h):
+  - ACM validates via CNAMEs already in this zone
+  - terraform TF_FULL_APPLY enables HTTPS listener + apex/www ALIAS
+
+ALB HTTP now: http://intellens-gci-aws-alb-1856066055.ap-south-1.elb.amazonaws.com/health
+
+Current live NS (must change at Hostinger):
+  NS-1455.AWSDNS-53.ORG
+  NS-2044.AWSDNS-63.CO.UK
+  NS-424.AWSDNS-53.COM
+  NS-718.AWSDNS-25.NET

@@ -26,6 +26,7 @@ import {
   type RadarFeedItem,
 } from "../lib/api";
 import { DESK_GUIDES } from "../lib/deskPaths";
+import { severityLabel } from "../lib/severity";
 
 export default function ProductsPage() {
   const { t } = useI18n();
@@ -245,7 +246,7 @@ export default function ProductsPage() {
               <Link to={`/companies/${item.company_id}`}>
                 <strong>{item.ticker}</strong>
               </Link>{" "}
-              <span className={`sev sev-${item.severity}`}>{item.severity}</span>{" "}
+              <span className={`sev sev-${item.severity}`}>{severityLabel(item.severity)}</span>{" "}
               <span>{item.message}</span>
             </li>
           ))}

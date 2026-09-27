@@ -149,6 +149,17 @@ def test_p12_changes_series_kind():
     assert "citeable" in ch
 
 
+def test_pit_contract_citeable_matches_company_outcomes():
+    gci = client.get("/api/companies/infy/gci").json()
+    expected = sum(1 for o in gci["outcomes"] if o.get("citeable") is True)
+    assert expected > 0
+    hist = client.get("/api/v1/pit/companies/infy/history").json()
+    assert hist["citeable_outcomes"] == expected
+    assert hist["citeable"] is True
+    bulk = client.get("/api/v1/pit/bulk?ids=infy").json()
+    assert bulk["companies"][0]["citeable_outcomes"] == expected
+
+
 def test_hybrid_or_citeable_analytics_series():
     from app.services.pit_warehouse import analytics_series_for, _citeable_points
 

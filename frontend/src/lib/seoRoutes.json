@@ -2,13 +2,13 @@
   {
     "path": "/",
     "title": "CiteAlpha — Guidance Credibility Index for Indian Equity Desks",
-    "description": "Evidence-linked Guidance Credibility Index (GCI): did Indian listed management deliver on quantified guidance? Tracker, Desk, Research. Not investment advice.",
+    "description": "Guidance Credibility Index (GCI): did Indian listed management deliver on quantified guidance? Evidence-linked scores with the filing behind every point. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "1.0" }
   },
   {
     "path": "/tracker",
-    "title": "GCI Tracker: Sensex & Nifty Guidance Credibility — CiteAlpha",
-    "description": "Screen Sensex and Nifty names by Guidance Credibility Index. Every score links to guidance, actuals, and sources. Not investment advice.",
+    "title": "GCI Tracker: Sensex Guidance Credibility Scores — CiteAlpha",
+    "description": "Screen Sensex companies by Guidance Credibility Index with hand-labeled evidence. Other NSE/BSE listings are provisional and not for citation. Not investment advice.",
     "sitemap": { "changefreq": "daily", "priority": "0.9" }
   },
   {
@@ -25,7 +25,7 @@
   },
   {
     "path": "/sights",
-    "title": "CiteAlpha Sights — India Disclosure Research OS",
+    "title": "CiteAlpha Sights — Compare Indian Company Disclosures",
     "description": "Search, cite-only Ask, Compare Grid, and Desk Agents over public IR and CiteAlpha evidence. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "0.85" }
   },

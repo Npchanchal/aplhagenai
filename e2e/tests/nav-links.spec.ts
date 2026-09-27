@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { dismissOverlays, ensurePrimaryNav } from "../helpers";
 
-const NAV_TARGETS: { label: RegExp; url: RegExp }[] = [
+const NAV_TARGETS: { label: RegExp; url: RegExp; menu?: RegExp }[] = [
   { label: /^Tracker$/i, url: /\/tracker$/ },
   { label: /^Desk$/i, url: /\/desk/ },
   { label: /^Research$/i, url: /\/research/ },
-  { label: /^Sights$/i, url: /\/sights/ },
+  { label: /^Hub$/i, url: /\/sights/, menu: /^Sights$/i },
 ];
 
 const FOOTER_TARGETS: { label: RegExp; url: RegExp }[] = [
@@ -23,8 +23,13 @@ test.describe("Navigation & footer links", () => {
   });
 
   for (const target of NAV_TARGETS) {
-    test(`primary nav → ${target.label}`, async ({ page }) => {
-      await page.getByRole("link", { name: target.label }).first().click();
+    test(`primary nav → ${target.menu ?? target.label}`, async ({ page }) => {
+      if (target.menu) {
+        await page.getByRole("button", { name: target.menu }).first().click();
+        await page.getByRole("menuitem", { name: target.label }).first().click();
+      } else {
+        await page.getByRole("link", { name: target.label }).first().click();
+      }
       await expect(page).toHaveURL(target.url);
     });
   }

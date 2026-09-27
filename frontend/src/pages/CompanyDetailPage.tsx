@@ -47,6 +47,7 @@ import {
 } from "../lib/api";
 import { tipForLabel } from "../lib/glossary";
 import { scoreClass } from "../lib/score";
+import { severityLabel } from "../lib/severity";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
 import { trackEvent } from "../lib/analytics";
@@ -359,13 +360,13 @@ export default function CompanyDetailPage() {
       {(detail.red_alerts?.length ?? 0) > 0 && (
         <details className="panel dossier-red-alerts" data-testid="dossier-red-alerts">
           <summary className="panel-head">
-            <h2>Red alerts ({detail.red_alerts!.length})</h2>
+            <h2>Guidance flags ({detail.red_alerts!.length})</h2>
           </summary>
           <ul className="alert-list">
             {detail.red_alerts!.map((a) => (
               <li key={`${a.kind}-${a.message}`}>
                 <strong>{a.kind.replace(/_/g, " ")}</strong> — {a.message}
-                <span className={`pill ${a.severity}`}>{a.severity}</span>
+                <span className={`pill ${a.severity}`}>{severityLabel(a.severity)}</span>
               </li>
             ))}
           </ul>

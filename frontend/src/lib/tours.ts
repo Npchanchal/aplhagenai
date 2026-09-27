@@ -222,14 +222,14 @@ export const TOURS: TourDef[] = [
   {
     id: "sights",
     title: "CiteAlpha Sights",
-    blurb: "India disclosure research OS — hub, search, cite-only Ask, boards.",
+    blurb: "Compare disclosures across companies — hub, search, cite-only Ask, boards.",
     group: "workbench",
     startRoute: "/sights",
     steps: [
       {
         selector: '[data-testid="sights-hub"]',
         title: "Sights hub",
-        body: "India IR research OS: search, cite-only Ask, boards, grid, and agents. Own brands only — no competitor chrome.",
+        body: "Cross-company disclosure research: search, cite-only Ask, boards, grid, and agents. Own brands only — no competitor chrome.",
         route: "/sights",
       },
       {

@@ -14,8 +14,7 @@ def series_meta_for(company_id: str) -> Dict[str, Any]:
     detail = repository.get_company_gci(company_id)
     quality = (detail.data_quality or "").lower()
     pit = repository.pit_history(company_id)
-    outs = repository.get_outcomes(company_id)
-    cite_n = sum(1 for o in outs if getattr(o, "citeable", None) is True)
+    cite_n = sum(1 for o in detail.outcomes if getattr(o, "citeable", None) is True)
 
     from app.services.pit_warehouse import get_pit_series
 

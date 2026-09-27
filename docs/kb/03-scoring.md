@@ -28,6 +28,7 @@ Company GCI = scored closed outcomes aggregated to **0–100**. Higher = better 
 
 - Point guidance → synthetic ±2% band (`W = 0.02 · \|G_mid\|`).
 - Miss below band: γ = 1.4; beat / in-band: γ = 1.0.
+- v3 scores **forecast accuracy**, so a beat far above the band decays like distance does (e.g. INFY FY22: band 10–12%, actual 19.7% → δ≈7.7 → ~1 pt). A miss the same distance below scores lower still (γ). Public copy must explain this wherever per-row points are shown.
 - Recency: `w_t = e^{-0.15(t-1)}` (t=1 most recent).
 - Optional `definition_shift` audit flag → **−10**.
 - `N < 4` periods → `low_confidence`; optional linear shrinkage toward `sector_mean`.
@@ -50,7 +51,7 @@ Edge cases in `backend/tests/test_gci_scoring.py` (v2 golden) and `test_gci_scor
 
 ## Do not
 
-- Treat beats as misses (v2 floors beats ≥85; v3 still scores beats via exp δ without γ=1.4).
+- Treat beats as misses: v2 floors beats ≥85; v3 scores beats via exp δ without γ=1.4, so a beat always outscores a miss of equal distance — but large beats can still score low.
 - Score pending / unmapped into the average.
 - Invent actuals to “fill” a demo.
 

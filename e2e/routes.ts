@@ -102,7 +102,7 @@ export function loadSeoPaths(): string[] {
 }
 
 export function allCrawlRoutes(): RouteSpec[] {
-  const seo = loadSeoPaths().map((p) => {
+  const seo = loadSeoPaths().filter((p) => p !== "/404").map((p) => {
     const hit = CORE_ROUTES.find((r) => r.path === p);
     return hit ?? { path: p };
   });

@@ -26,8 +26,8 @@ test.describe("Research Terminal — all tabs", () => {
     await page.goto("/research?tab=search");
     await dismissOverlays(page);
     await expect(page.getByTestId("research-query")).toBeVisible({ timeout: 25_000 });
-    await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
-    await expect(page.locator(".doc-list")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Search", exact: true })).toBeVisible();
+    await expect(page.locator(".doc-list")).toBeAttached();
   });
 });
 

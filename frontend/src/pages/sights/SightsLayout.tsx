@@ -24,7 +24,7 @@ function linkClass(isActive: boolean) {
   return isActive ? "sights-nav-link active" : "sights-nav-link";
 }
 
-/** CiteAlpha Sights shell — India disclosure research OS. */
+/** CiteAlpha Sights shell — cross-company disclosure research. */
 export default function SightsLayout() {
   const { pathname } = useLocation();
   const moreActive = MORE.some((l) => pathname === l.to || pathname.startsWith(`${l.to}/`));

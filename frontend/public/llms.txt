@@ -11,7 +11,8 @@ Full definition and methodology: https://citealpha.com/blog/what-is-guidance-cre
 
 ## Primary
 - [Home](https://citealpha.com/): Product overview
-- [GCI Tracker](https://citealpha.com/tracker): Screen Sensex/Nifty by guidance credibility
+- [GCI Tracker](https://citealpha.com/tracker): Screen Sensex companies by guidance credibility (hand-labeled); other NSE/BSE listings are provisional, not for citation
+- [Worked example](https://citealpha.com/companies/infy): Infosys revenue growth guidance vs actuals, FY22–FY24, with sources
 - [About](https://citealpha.com/about): How GCI is built (ingest → extract → match → score → cite)
 - [FAQ Answers](https://citealpha.com/answers): Short GCI Q&A for answer engines
 - [Research Blog](https://citealpha.com/blog): Definitional and workflow articles
@@ -21,7 +22,7 @@ Full definition and methodology: https://citealpha.com/blog/what-is-guidance-cre
 - [What is GCI?](https://citealpha.com/blog/what-is-guidance-credibility-index): Canonical definition
 
 ## Optional
-- [Sights](https://citealpha.com/sights): India disclosure research OS
+- [Sights](https://citealpha.com/sights): Compare disclosures across Indian companies with cite-only answers
 - [Sights Ask](https://citealpha.com/sights/ask): Cite-only disclosure Q&A — refuses without evidence
 - [Research Terminal](https://citealpha.com/research): Cite-only filings search and chat
 - [Help & Glossary](https://citealpha.com/help): GCI vocabulary for desks
@@ -33,7 +34,7 @@ Full definition and methodology: https://citealpha.com/blog/what-is-guidance-cre
 - [RSS feed](https://citealpha.com/rss.xml)
 
 ## Machine-readable
-- Live cohort meta: https://citealpha.com/api/meta
+- Coverage counts (JSON): https://citealpha.com/api/meta
 - Sitemap: https://citealpha.com/sitemap.xml
 - Image sitemap: https://citealpha.com/sitemap-images.xml
 - RSS: https://citealpha.com/rss.xml

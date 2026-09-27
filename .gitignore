@@ -33,6 +33,10 @@ backend/app/data/crawl_state.json
 deploy/aws/.terraform/
 deploy/aws/*.tfstate*
 deploy/aws/*.tfvars
+deploy/aws/*.tfvars.*
+deploy/aws/*.bak
+deploy/aws/ns-cutover-wait.log
+deploy/aws/ns-cutover-READY
 deploy/aws/.terraform.lock.hcl
 !deploy/aws/terraform.tfvars.example
 

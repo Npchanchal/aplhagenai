@@ -26,6 +26,7 @@ import {
   type MarketIndex,
 } from "../lib/api";
 import { formatScore, scoreClass } from "../lib/score";
+import { severityLabel } from "../lib/severity";
 
 const GCI_DEEP = new Set(["IN"]);
 const PAGE_SIZE = 100;
@@ -595,7 +596,7 @@ export default function HomePage() {
                       <span className="alert-kind">{a.kind.replace(/_/g, " ")}</span>
                       <strong>{a.ticker}</strong> — {a.message}
                     </Link>
-                    <span className={`pill ${a.severity}`}>{a.severity}</span>
+                    <span className={`pill ${a.severity}`}>{severityLabel(a.severity)}</span>
                   </li>
                 ))}
               </ul>
