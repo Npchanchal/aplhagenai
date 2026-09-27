@@ -86,6 +86,26 @@ def test_companies_api_nse_all_has_scores():
     assert all(row["gci_score"] is not None for row in body)
 
 
+def test_nifty_bank_index_is_not_empty():
+    rows = list_constituents("NIFTYBANK")
+    tickers = {r["ticker"] for r in rows}
+    assert {"HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK"} <= tickers
+    count = next(i["constituent_count"] for i in list_indexes("IN") if i["id"] == "NIFTYBANK")
+    assert count == len(rows)
+    r = client.get("/api/companies", params={"market": "IN", "index": "NIFTYBANK", "limit": 50})
+    assert r.status_code == 200
+    assert {row["ticker"] for row in r.json()} == tickers
+
+
+def test_index_quality_tags_match_company_records():
+    reset_data()
+    seeded = {c["id"]: c["data_quality"] for c in get_data()["companies"]}
+    for ix in ("SENSEX", "NIFTY50", "NIFTYBANK", "NSE_ALL", "BSE_ALL", "IN1000"):
+        for row in list_constituents(ix):
+            if row["id"] in seeded:
+                assert row["data_quality"] == seeded[row["id"]], (ix, row["id"])
+
+
 def test_find_listing_by_ticker_numeric_symbol():
     row = find_listing_by_ticker("20MICRONS")
     assert row is not None

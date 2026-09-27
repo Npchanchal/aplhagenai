@@ -12,7 +12,12 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.data.universe import NIFTY50_BEYOND_SENSEX, OFFICIAL_NIFTY50_TICKERS, SENSEX_30
+from app.data.universe import (
+    NIFTY50_BEYOND_SENSEX,
+    OFFICIAL_NIFTY50_TICKERS,
+    SENSEX_30,
+    deep_data_quality,
+)
 
 _LISTINGS = Path(__file__).with_name("listings")
 
@@ -78,10 +83,8 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             continue
         cid, name, ticker, sector = _resolve_id_name_sector(symbol, row.get("name") or symbol)
         quality = (
-            "hand_labeled"
-            if cid in {x[0] for x in SENSEX_30}
-            else "demo_structured"
-            if cid in {x[0] for x in NIFTY50_BEYOND_SENSEX}
+            deep_data_quality(cid)
+            if cid in {x[0] for x in SENSEX_30} or cid in {x[0] for x in NIFTY50_BEYOND_SENSEX}
             else "listing_master"
         )
         isin = (row.get("isin") or "").strip().upper()

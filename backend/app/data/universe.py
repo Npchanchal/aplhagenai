@@ -73,6 +73,13 @@ NIFTY50_REMAINING: List[CompanyRow] = [
 
 NIFTY50_BEYOND_SENSEX: List[CompanyRow] = NIFTY_EXTRA + NIFTY50_REMAINING
 
+
+def deep_data_quality(company_id: str) -> str:
+    """Same rule as the seeded company record, so index lists match the dossier."""
+    from app.data.hand_labeled import HAND_LABELED_COMPANY_IDS
+
+    return "hand_labeled" if company_id in HAND_LABELED_COMPANY_IDS else "demo_structured"
+
 # Official NSE Nifty-50 membership (Aug 2026 — not all Sensex / legacy extras)
 OFFICIAL_NIFTY50_TICKERS: frozenset[str] = frozenset(
     {

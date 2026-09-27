@@ -9,7 +9,12 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.data.universe import NIFTY50_BEYOND_SENSEX, OFFICIAL_NIFTY50_TICKERS, SENSEX_30
+from app.data.universe import (
+    NIFTY50_BEYOND_SENSEX,
+    OFFICIAL_NIFTY50_TICKERS,
+    SENSEX_30,
+    deep_data_quality,
+)
 
 StockRow = Dict[str, Any]
 
@@ -251,7 +256,7 @@ def _india_deep_rows() -> List[StockRow]:
                 "name": name,
                 "ticker": ticker,
                 "sector": sector,
-                "data_quality": "hand_labeled",
+                "data_quality": deep_data_quality(cid),
             }
         )
     for cid, name, ticker, sector in NIFTY50_BEYOND_SENSEX:
@@ -266,7 +271,7 @@ def _india_deep_rows() -> List[StockRow]:
                 "name": name,
                 "ticker": ticker,
                 "sector": sector,
-                "data_quality": "demo_structured",
+                "data_quality": deep_data_quality(cid),
             }
         )
     return rows
@@ -418,7 +423,7 @@ def _constituents_cached(index_id: str) -> Tuple[StockRow, ...]:
     if iid == "NIFTY50":
         return tuple(r for r in _india_deep_rows() if "NIFTY50" in r["index_ids"])
     if iid == "NIFTYBANK":
-        return tuple(r for r in _india_deep_rows() if "NIFTYBANK" in r["index_ids"])
+        return tuple(r for r in _market_universe(mid) if "NIFTYBANK" in r.get("index_ids", []))
 
     if iid in {"NSE_ALL", "BSE_ALL"}:
         return tuple(r for r in _market_universe(mid) if iid in r.get("index_ids", []))
