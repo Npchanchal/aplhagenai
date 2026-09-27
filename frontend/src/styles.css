@@ -4050,6 +4050,10 @@ h2 .info-tip {
   gap: 16px;
 }
 
+.landing-grid > .panel + .panel {
+  margin-top: 0;
+}
+
 .landing-card {
   display: block;
   padding: 20px;
