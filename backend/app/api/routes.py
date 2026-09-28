@@ -619,7 +619,7 @@ def reviews(_auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
 
 
 @router.post("/api/admin/reset-demo")
-def reset_demo(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def reset_demo(_auth=Depends(admin_portal_svc.require_platform_perm("system.ops"))) -> Dict[str, Any]:
     data = reset_data()
     return {"ok": True, "companies": len(data["companies"])}
 

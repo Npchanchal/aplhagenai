@@ -81,6 +81,12 @@ CREATE TABLE IF NOT EXISTS intellens_label_drafts (
   payload JSONB NOT NULL DEFAULT '{}',
   updated_at TIMESTAMPTZ
 );
+
+CREATE TABLE IF NOT EXISTS intellens_tenant_state (
+  key TEXT PRIMARY KEY,
+  payload JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ
+);
 """
 
 

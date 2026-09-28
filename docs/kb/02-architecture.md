@@ -44,6 +44,8 @@ IR / transcript / import
 
 Demo/MVP store: JSON under `backend/app/data/` (`store.json`). After hand-label edits, delete `store.json` and rebuild via app/tests.
 
+`store.json` is rebuilt on every container start. With SQL auth (`USE_DB_AUTH` / Postgres), customer collections listed in `seed.TENANT_KEYS` (orgs, org API keys, labeling queue, notes, pilot data, …) are mirrored to `intellens_tenant_state` on each `save_data()` and restored on load. GCI data (companies, outcomes, reviews, pending extracts) is not mirrored. On startup `orgs.restore_missing_orgs()` recreates orgs for users whose org record was lost (B2B → pilot, retail → retail).
+
 ## Feature flags
 
 See `services/feature_flags.py` — research LLM, consensus import, SSO stubs.

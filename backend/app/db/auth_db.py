@@ -130,6 +130,11 @@ def apply_schema() -> Dict[str, Any]:
                   payload TEXT NOT NULL DEFAULT '{}',
                   updated_at TEXT
                 );
+                CREATE TABLE IF NOT EXISTS intellens_tenant_state (
+                  key TEXT PRIMARY KEY,
+                  payload TEXT NOT NULL DEFAULT '{}',
+                  updated_at TEXT
+                );
                 """
             )
     return {"ok": True, "backend": backend_name()}
@@ -403,6 +408,42 @@ def latest_attestation(kind: str) -> Optional[Dict[str, Any]]:
         )
         row = cur.fetchone()
     return dict(row) if row else None
+
+
+_TENANT_SCHEMA_READY = False
+
+
+def _ensure_tenant_schema() -> None:
+    global _TENANT_SCHEMA_READY
+    if not _TENANT_SCHEMA_READY:
+        apply_schema()
+        _TENANT_SCHEMA_READY = True
+
+
+def load_tenant_state() -> Dict[str, Any]:
+    """All persisted tenant collections, keyed by data-store key."""
+    _ensure_tenant_schema()
+    with connect() as conn:
+        rows = _exec(conn, "SELECT key, payload FROM intellens_tenant_state").fetchall()
+    out: Dict[str, Any] = {}
+    for row in rows:
+        payload = row[1]
+        out[row[0]] = json.loads(payload) if isinstance(payload, str) else payload
+    return out
+
+
+def put_tenant_state(key: str, value: Any, updated_at: str) -> None:
+    _ensure_tenant_schema()
+    with connect() as conn:
+        _exec(
+            conn,
+            """
+            INSERT INTO intellens_tenant_state (key, payload, updated_at)
+            VALUES (%s,%s,%s)
+            ON CONFLICT(key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at
+            """,
+            (key, json.dumps(value, default=str), updated_at),
+        )
 
 
 def wipe_all() -> None:

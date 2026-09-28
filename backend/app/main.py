@@ -25,3 +25,13 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(GuestWriteMiddleware)
 
 app.include_router(router)
+
+
+@app.on_event("startup")
+def _restore_missing_orgs() -> None:
+    from app.db.auth_db import use_db_auth
+
+    if use_db_auth():
+        from app.services import orgs
+
+        orgs.restore_missing_orgs()

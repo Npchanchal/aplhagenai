@@ -241,7 +241,7 @@ See also: `docs/PRODUCTION_B2B_B2C.md`, `docs/INFRA_PRODUCTION.md`, `.env.produc
 
 - Platform permissions are **not** unioned with org entitlements — separate concern.
 - Feedback and legal actions do **not** mutate GCI scores; they route to ops/legal workflows only.
-- `POST /api/admin/reset-demo` remains a separate legacy endpoint (API key); super `system.ops` section documents it but does not auto-expose destructive actions in UI.
+- `POST /api/admin/reset-demo` requires platform `system.ops` (super). It wipes the JSON store and persisted tenant state (all customer orgs) — never run it on production; not exposed in UI.
 - Do not grant `super` to customer org users; platform roles are for Ocotillo operators only.
 
 ---

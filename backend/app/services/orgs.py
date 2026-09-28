@@ -6,7 +6,7 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 
@@ -221,6 +221,43 @@ def create_org(
     }
     save_data()
     return org_snapshot(oid)
+
+
+def restore_missing_orgs() -> List[str]:
+    """Recreate orgs for registered users whose org record was lost before tenant state was persisted.
+
+    Plan upgrades from before the loss cannot be recovered: B2B orgs come back on pilot, retail on retail.
+    """
+    from app.services import session_auth
+
+    orgs = get_data().setdefault("orgs", {})
+    orphans: Dict[str, List[Dict[str, Any]]] = {}
+    for user in session_auth._load_users()["users"]:
+        oid = user.get("org_id")
+        if oid and user.get("kind") != "guest" and oid not in orgs:
+            orphans.setdefault(str(oid), []).append(user)
+    for oid, members in orphans.items():
+        owner = next((u for u in members if u.get("role") == "owner"), members[0])
+        retail = owner.get("account_type") == "retail"
+        plan = "retail" if retail else "pilot"
+        display = (owner.get("name") or (owner.get("email") or "").split("@")[0] or "Restored").strip()
+        orgs[oid] = {
+            "name": f"{display} (Retail)" if retail else f"{display} Desk",
+            "plan": plan,
+            "account_type": "retail" if retail else "b2b",
+            "seats": max(seat_limit_for(plan), len(members)),
+            "seats_used": len(members),
+            "csm": "Self-serve" if retail else "Assigned at convert",
+            "owner_email": owner.get("email"),
+            "legal_entity": LEGAL_ENTITY,
+            "api_key_hint": None,
+            "design_partner": plan == "pilot",
+            "labeling_granted": False,
+            "restored": True,
+        }
+    if orphans:
+        save_data()
+    return sorted(orphans)
 
 
 def ensure_builtin_orgs() -> None:

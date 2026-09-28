@@ -406,14 +406,76 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
 _DATA: Optional[Dict[str, Any]] = None
 _PATH = Path(__file__).with_name("store.json")
 
+# Customer-generated collections. store.json lives in the container and is rebuilt on every
+# deploy, so with SQL auth these are mirrored to intellens_tenant_state (EFS/Postgres).
+# GCI data (companies/outcomes/reviews/pending_extracts) is intentionally not mirrored.
+TENANT_KEYS = (
+    "orgs",
+    "api_keys",
+    "labeling_queue",
+    "notes",
+    "org_activity",
+    "csm_tickets",
+    "partner_feedback",
+    "pilot_checklists",
+    "pilot_requests",
+    "radar_webhooks",
+    "legal_attestations",
+    "label_drafts",
+)
+_TENANT_SAVED: Dict[str, str] = {}
+
+
+def _tenant_store_enabled() -> bool:
+    from app.db.auth_db import use_db_auth
+
+    return use_db_auth()
+
+
+def _tenant_blob(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, default=str)
+
+
+def _restore_tenant_state(data: Dict[str, Any]) -> None:
+    if not _tenant_store_enabled():
+        return
+    from app.db import auth_db
+
+    for key, value in auth_db.load_tenant_state().items():
+        if key not in TENANT_KEYS:
+            continue
+        _TENANT_SAVED[key] = _tenant_blob(value)
+        if key == "api_keys":
+            have = {row.get("key") for row in value}
+            value = list(value) + [r for r in data.get("api_keys") or [] if r.get("key") not in have]
+        data[key] = value
+
+
+def _persist_tenant_state(data: Dict[str, Any]) -> None:
+    if not _tenant_store_enabled():
+        return
+    from datetime import datetime, timezone
+
+    from app.db import auth_db
+
+    now = datetime.now(timezone.utc).isoformat()
+    for key in TENANT_KEYS:
+        if key not in data:
+            continue
+        blob = _tenant_blob(data[key])
+        if _TENANT_SAVED.get(key) == blob:
+            continue
+        auth_db.put_tenant_state(key, data[key], now)
+        _TENANT_SAVED[key] = blob
+
 
 def get_data() -> Dict[str, Any]:
     global _DATA
     if _DATA is None:
-        if _PATH.exists():
-            _DATA = json.loads(_PATH.read_text())
-        else:
-            _DATA = build_dataset()
+        fresh = not _PATH.exists()
+        _DATA = build_dataset() if fresh else json.loads(_PATH.read_text())
+        _restore_tenant_state(_DATA)
+        if fresh:
             save_data()
         _ensure_nifty_seed_rows(_DATA)
     return _DATA
@@ -440,6 +502,7 @@ def _ensure_nifty_seed_rows(data: Dict[str, Any]) -> None:
 def save_data() -> None:
     data = get_data()
     _PATH.write_text(json.dumps(data, indent=2))
+    _persist_tenant_state(data)
 
 
 def reset_data() -> Dict[str, Any]:

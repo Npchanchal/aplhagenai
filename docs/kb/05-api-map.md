@@ -69,7 +69,7 @@ Writes are gated by **plan × role intersection**. Guest Bearer cannot piggyback
 | POST | `/api/ingest/crawl` · GET `/api/ingest/crawl/status` |
 | POST | `/api/ingest/refresh` | live 6h job: crawl + extract queue + FMP warm |
 | POST | `/api/actuals/import`, `/api/consensus/import` |
-| POST | `/api/admin/reset-demo` |
+| POST | `/api/admin/reset-demo` | platform `system.ops` only — wipes JSON store **and** persisted tenant state |
 
 ## Platform admin portal
 
