@@ -286,6 +286,17 @@ variable "fargate_spot_weight" {
   description = "Fargate Spot weight when on_demand_base >= 1 (0 = on-demand only)"
 }
 
+variable "cpu_architecture" {
+  type        = string
+  default     = "X86_64"
+  description = "Task CPU architecture. ARM64 (Graviton) is ~44% cheaper in ap-south-1 but cannot use Fargate Spot."
+
+  validation {
+    condition     = contains(["X86_64", "ARM64"], var.cpu_architecture)
+    error_message = "cpu_architecture must be X86_64 or ARM64."
+  }
+}
+
 variable "intellens_api_key" {
   type        = string
   default     = ""

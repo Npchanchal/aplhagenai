@@ -10,7 +10,8 @@ curl -sf http://127.0.0.1:8000/health
 
 ## AWS
 
-- Stack: `deploy/aws/` (ECS Fargate Spot + ECR + **ALB**).
+- Stack: `deploy/aws/` (ECS Fargate **ARM64 on-demand**, 1 task + ECR + **ALB** + EFS). ~$40/mo — see `docs/AWS_COST.md`.
+- `cpu_architecture` in `terraform.tfvars` drives the image platform; the deploy script pushes images before `terraform apply`.
 - Scripts: `aws-deploy.sh`, `aws-app-url.sh`, `aws-idle.sh`, `aws-wake.sh`.
 - Region default historically `ap-south-1`.
 - **Static review URL:** ALB DNS via `./scripts/aws-app-url.sh`.

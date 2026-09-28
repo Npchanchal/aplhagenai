@@ -178,9 +178,61 @@ fi
 echo "== AWS identity =="
 aws sts get-caller-identity --region "$REGION"
 
-echo "== Terraform init/apply (ECS task env — skip ACM wait) =="
+echo "== Terraform init =="
 cd "$AWS_DIR"
 terraform init -input=false
+
+# Images are pushed before apply so the task definition never references an
+# architecture (cpu_architecture) whose image is not in ECR yet.
+ECR_API="$(terraform output -raw ecr_api_url)"
+ECR_WEB="$(terraform output -raw ecr_web_url)"
+ACCOUNT_ID="$(terraform output -raw account_id)"
+CLUSTER="$(terraform output -raw ecs_cluster_name)"
+SERVICE="$(terraform output -raw ecs_service_name)"
+
+# Isolated Docker config: the Desktop credential helper can block on a hidden
+# macOS Keychain prompt. Set DEPLOY_USE_HOST_DOCKER_CONFIG=1 to opt out.
+if [[ "${DEPLOY_USE_HOST_DOCKER_CONFIG:-0}" != "1" ]]; then
+  HOST_DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}"
+  DEPLOY_DOCKER_CONFIG="$(mktemp -d)"
+  trap 'rm -rf "$DEPLOY_DOCKER_CONFIG"' EXIT
+  echo '{}' > "$DEPLOY_DOCKER_CONFIG/config.json"
+  [[ -d "$HOST_DOCKER_CONFIG/cli-plugins" ]] && ln -s "$HOST_DOCKER_CONFIG/cli-plugins" "$DEPLOY_DOCKER_CONFIG/cli-plugins"
+  if [[ -z "${DOCKER_HOST:-}" && -S "$HOME/.docker/run/docker.sock" ]]; then
+    export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
+  fi
+  export DOCKER_CONFIG="$DEPLOY_DOCKER_CONFIG"
+fi
+
+echo "== ECR login =="
+aws ecr get-login-password --region "$REGION" \
+  | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
+
+# Must match cpu_architecture in terraform.tfvars (ARM64 = Graviton, cheaper; X86_64 default).
+CPU_ARCH="$(sed -nE 's/^[[:space:]]*cpu_architecture[[:space:]]*=[[:space:]]*"([A-Z0-9_]+)".*/\1/p' "$AWS_DIR/terraform.tfvars" 2>/dev/null | head -1)"
+case "${CPU_ARCH:-X86_64}" in
+  ARM64) DOCKER_PLATFORM=linux/arm64 ;;
+  *) DOCKER_PLATFORM=linux/amd64 ;;
+esac
+echo "== Image platform: ${DOCKER_PLATFORM} =="
+BUILD_OPTS=(--platform "$DOCKER_PLATFORM" --provenance=false --sbom=false)
+
+echo "== Build & push API image =="
+docker build "${BUILD_OPTS[@]}" -t "${ECR_API}:${TAG}" "$ROOT/backend"
+docker push "${ECR_API}:${TAG}"
+
+echo "== Build & push Web image (nginx -> localhost:8000) =="
+WEB_BUILD_ARGS=()
+[[ -n "${VITE_PLAUSIBLE_DOMAIN:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}")
+[[ -n "${VITE_GA_MEASUREMENT_ID:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}")
+[[ -n "${VITE_GSC_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GSC_VERIFICATION=${VITE_GSC_VERIFICATION}")
+[[ -n "${VITE_BING_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_BING_VERIFICATION=${VITE_BING_VERIFICATION}")
+[[ -n "${VITE_TWITTER_SITE:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_TWITTER_SITE=${VITE_TWITTER_SITE}")
+docker build "${BUILD_OPTS[@]}" "${WEB_BUILD_ARGS[@]}" -f "$ROOT/frontend/Dockerfile.aws" -t "${ECR_WEB}:${TAG}" "$ROOT/frontend"
+docker push "${ECR_WEB}:${TAG}"
+
+echo "== Terraform apply (ECS task env — skip ACM wait) =="
+cd "$AWS_DIR"
 # Full apply can block 10m+ on ACM DNS validation until Hostinger NS cutover.
 # Default deploy only refreshes the task definition (and service when safe).
 if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
@@ -213,45 +265,6 @@ else
   echo "== Tip: TF_FULL_APPLY=1 for ALB/HTTPS/ACM; needs Route53 NS live =="
 fi
 
-ECR_API="$(terraform output -raw ecr_api_url)"
-ECR_WEB="$(terraform output -raw ecr_web_url)"
-ACCOUNT_ID="$(terraform output -raw account_id)"
-CLUSTER="$(terraform output -raw ecs_cluster_name)"
-SERVICE="$(terraform output -raw ecs_service_name)"
-
-# Isolated Docker config: the Desktop credential helper can block on a hidden
-# macOS Keychain prompt. Set DEPLOY_USE_HOST_DOCKER_CONFIG=1 to opt out.
-if [[ "${DEPLOY_USE_HOST_DOCKER_CONFIG:-0}" != "1" ]]; then
-  HOST_DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}"
-  DEPLOY_DOCKER_CONFIG="$(mktemp -d)"
-  trap 'rm -rf "$DEPLOY_DOCKER_CONFIG"' EXIT
-  echo '{}' > "$DEPLOY_DOCKER_CONFIG/config.json"
-  [[ -d "$HOST_DOCKER_CONFIG/cli-plugins" ]] && ln -s "$HOST_DOCKER_CONFIG/cli-plugins" "$DEPLOY_DOCKER_CONFIG/cli-plugins"
-  if [[ -z "${DOCKER_HOST:-}" && -S "$HOME/.docker/run/docker.sock" ]]; then
-    export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
-  fi
-  export DOCKER_CONFIG="$DEPLOY_DOCKER_CONFIG"
-fi
-
-echo "== ECR login =="
-aws ecr get-login-password --region "$REGION" \
-  | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
-
-BUILD_OPTS=(--platform linux/amd64 --provenance=false --sbom=false)
-
-echo "== Build & push API image =="
-docker build "${BUILD_OPTS[@]}" -t "${ECR_API}:${TAG}" "$ROOT/backend"
-docker push "${ECR_API}:${TAG}"
-
-echo "== Build & push Web image (nginx -> localhost:8000) =="
-WEB_BUILD_ARGS=()
-[[ -n "${VITE_PLAUSIBLE_DOMAIN:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}")
-[[ -n "${VITE_GA_MEASUREMENT_ID:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}")
-[[ -n "${VITE_GSC_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_GSC_VERIFICATION=${VITE_GSC_VERIFICATION}")
-[[ -n "${VITE_BING_VERIFICATION:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_BING_VERIFICATION=${VITE_BING_VERIFICATION}")
-[[ -n "${VITE_TWITTER_SITE:-}" ]] && WEB_BUILD_ARGS+=(--build-arg "VITE_TWITTER_SITE=${VITE_TWITTER_SITE}")
-docker build "${BUILD_OPTS[@]}" "${WEB_BUILD_ARGS[@]}" -f "$ROOT/frontend/Dockerfile.aws" -t "${ECR_WEB}:${TAG}" "$ROOT/frontend"
-docker push "${ECR_WEB}:${TAG}"
 
 echo "== Force ECS redeploy =="
 aws ecs update-service --region "$REGION" --cluster "$CLUSTER" \

@@ -601,6 +601,11 @@ resource "aws_ecs_task_definition" "app" {
   execution_role_arn       = aws_iam_role.ecs_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
 
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = var.cpu_architecture
+  }
+
   dynamic "volume" {
     for_each = var.enable_auth_efs && var.use_db_auth ? [1] : []
     content {
@@ -768,7 +773,7 @@ resource "aws_ecs_service" "app" {
   }
 
   dynamic "capacity_provider_strategy" {
-    for_each = var.fargate_spot_weight > 0 ? [1] : []
+    for_each = var.fargate_spot_weight > 0 && var.cpu_architecture == "X86_64" ? [1] : []
     content {
       capacity_provider = "FARGATE_SPOT"
       weight            = var.fargate_spot_weight

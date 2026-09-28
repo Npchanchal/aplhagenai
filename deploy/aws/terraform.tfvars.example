@@ -49,6 +49,8 @@ app_desired_count  = 1
 # alarm_email = "ops@citealpha.com"
 # fargate_on_demand_base = 1
 # fargate_spot_weight = 0
+# ARM64 (Graviton) is ~44% cheaper than X86_64 in ap-south-1; Fargate Spot is x86-only.
+# cpu_architecture = "ARM64"
 # intellens_api_key / intellens_abuse_secret via .env → TF_VAR_* (Secrets Manager)
 # pilot_request_to = "sales@citealpha.com"
 
