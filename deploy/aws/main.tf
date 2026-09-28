@@ -166,19 +166,12 @@ resource "aws_security_group" "ecs" {
   description = "Public HTTP to combined API+web Fargate task"
   vpc_id      = var.vpc_id
 
+  # ALB only: direct task-IP access would bypass HTTPS and per-client rate limits.
   ingress {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
-  }
-
-  # Keep direct task-IP access for ops when ALB is warming.
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -229,7 +222,7 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   dynamic "default_action" {
-    for_each = local.https_on && var.https_redirect ? [1] : []
+    for_each = (local.https_on || local.managed_https_on) && var.https_redirect ? [1] : []
     content {
       type = "redirect"
       redirect {
@@ -241,7 +234,7 @@ resource "aws_lb_listener" "http" {
   }
 
   dynamic "default_action" {
-    for_each = local.https_on && var.https_redirect ? [] : [1]
+    for_each = (local.https_on || local.managed_https_on) && var.https_redirect ? [] : [1]
     content {
       type             = "forward"
       target_group_arn = aws_lb_target_group.app.arn

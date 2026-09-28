@@ -19,6 +19,9 @@ Audited 2026-09-28 (account `884686184601`, ap-south-1). Cost Explorer is not en
 
 No NAT gateway, EC2, EBS, snapshots, VPC endpoints or Container Insights; nothing in other regions.
 
+Network: the task security group accepts port 80 **only from the ALB** (the task public IP exists
+for image pulls/egress, not ingress). ALB port 80 returns 301 → HTTPS.
+
 Before 2026-09-28 the task ran on x86 on-demand (~$18.90/mo, total ~$49). ARM64 Fargate in
 ap-south-1 is $0.02383/vCPU-h + $0.00261/GB-h vs $0.04256 + $0.004655 for x86 (−44%).
 

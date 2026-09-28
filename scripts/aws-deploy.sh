@@ -240,6 +240,8 @@ if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
 else
   # Task def + service + persistent auth EFS + secrets + alarms when enabled
   TF_TARGETS=(
+    -target=aws_security_group.ecs
+    -target=aws_lb_listener.http
     -target=aws_security_group.efs
     -target=aws_efs_file_system.auth
     -target=aws_efs_mount_target.auth
