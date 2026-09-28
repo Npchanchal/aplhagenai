@@ -41,7 +41,7 @@ Base: `/api/admin/portal/*` · Auth: session Bearer **or** `X-API-Key` with `pla
 
 ## Bootstrap
 
-Demo super admin: `X-API-Key: intellens-admin` (seed `platform_admin_role: super`).
+Demo super admin: `X-API-Key: intellens-admin` (seed `platform_admin_role: super`) — local only. When `INTELLENS_API_KEY` is set (production), seeded platform-admin keys are rejected; the rotated key resolves as `super`.
 
 Grant a user:
 ```bash

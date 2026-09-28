@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { dismissOverlays, seedGuestSession, waitForCompanyTable, waitForDossier } from "../helpers";
+import {
+  dismissOverlays,
+  registerViaApi,
+  seedGuestSession,
+  waitForCompanyTable,
+  waitForDossier,
+} from "../helpers";
 
 const GUEST_ORIGIN = {
   cookies: [] as [],
@@ -115,6 +121,16 @@ test.describe("Guest user journey", () => {
     await page.goto("/desk");
     await dismissOverlays(page);
     await expect(page.getByTestId("desk-access-gate")).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("password login works without touching the guest challenge", async ({ page }) => {
+    const { email, password } = await registerViaApi();
+    await page.goto("/login");
+    await dismissOverlays(page);
+    await page.getByTestId("login-email").fill(email);
+    await page.getByTestId("login-password").fill(password);
+    await page.getByTestId("login-submit").click();
+    await expect(page).toHaveURL(/\/tracker$/, { timeout: 15_000 });
   });
 
   test("register page loads for guest", async ({ page }) => {

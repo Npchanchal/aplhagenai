@@ -5,6 +5,8 @@ type Props = {
   loadError?: string | null;
   id?: string;
   testId?: string;
+  /** Must be false when the field shares a <form> with a submit it doesn't gate (e.g. password login). */
+  required?: boolean;
 };
 
 /** Arithmetic verification shown before register / guest submit. */
@@ -15,6 +17,7 @@ export default function AbuseChallengeField({
   loadError,
   id = "abuse-challenge",
   testId = "abuse-challenge",
+  required = true,
 }: Props) {
   if (loadError) {
     return <p className="error">{loadError}</p>;
@@ -28,7 +31,7 @@ export default function AbuseChallengeField({
         id={id}
         type="text"
         inputMode="numeric"
-        required
+        required={required}
         value={answer}
         onChange={(e) => onAnswerChange(e.target.value)}
         data-testid={testId}

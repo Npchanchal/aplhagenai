@@ -195,6 +195,10 @@ X-API-Key: intellens-admin
 
 (`backend/app/data/seed.py` — `platform_admin_role: super`)
 
+When `INTELLENS_API_KEY` is set (production), seeded platform-admin keys such as
+`intellens-admin` are rejected everywhere; use `X-API-Key: $INTELLENS_API_KEY` instead
+(it resolves as platform `super`).
+
 ### Grant platform access to a user
 
 1. Register or identify the user (`GET /api/admin/portal/users` as super).
@@ -223,7 +227,7 @@ curl -X PATCH "$API/api/admin/portal/users/{USER_ID}/platform-role" \
 
 ### Production checklist
 
-- [ ] Rotate `intellens-admin` — set `INTELLENS_API_KEY` to a non-demo value; remove demo key from production seed/deploy.
+- [x] Rotate `intellens-admin` — setting `INTELLENS_API_KEY` disables seeded platform-admin keys.
 - [ ] Grant `super` to at most 1–2 break-glass operator accounts (not shared mailboxes).
 - [ ] Use least-privilege roles (`compliance`, `billing`, `support`) for day-to-day work.
 - [ ] Legal attest changes are logged in `legal_attestations` (SQL) and seed `legal_attestations` (JSON fallback).

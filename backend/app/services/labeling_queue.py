@@ -58,13 +58,14 @@ def enqueue(
     return item
 
 
-def update_status(item_id: str, status: str) -> Dict[str, Any]:
+def update_status(item_id: str, status: str, *, org_id: Optional[str] = None) -> Dict[str, Any]:
+    """Set item status. When ``org_id`` is given, items owned by other orgs are treated as missing."""
     allowed = {"queued", "in_progress", "done", "cancelled"}
     if status not in allowed:
         raise HTTPException(status_code=400, detail=f"status must be one of {sorted(allowed)}")
     data = get_data()
     for row in data.get("labeling_queue") or []:
-        if row.get("id") == item_id:
+        if row.get("id") == item_id and (org_id is None or row.get("org_id") == org_id):
             row["status"] = status
             row["updated_at"] = _now()
             save_data()

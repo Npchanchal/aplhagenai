@@ -52,6 +52,31 @@ export async function seedGuestSession(page: Page): Promise<void> {
   await dismissOverlays(page);
 }
 
+/** Register a B2B user via API and return its credentials. */
+export async function registerViaApi(): Promise<{ email: string; password: string }> {
+  const challengeRes = await fetch(`${API_URL}/api/auth/abuse-challenge`);
+  if (!challengeRes.ok) throw new Error(`Abuse challenge failed (${challengeRes.status})`);
+  const challenge = (await challengeRes.json()) as { challenge_id: string; prompt: string };
+  const email = `e2e-login-${Date.now()}@ocotillo.test`;
+  const password = "secret99";
+  const res = await fetch(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      password,
+      name: "E2E Login",
+      accept_terms: true,
+      account_type: "b2b",
+      org_name: "E2E Login Desk",
+      challenge_id: challenge.challenge_id,
+      challenge_answer: abuseAnswer(challenge.prompt),
+    }),
+  });
+  if (!res.ok) throw new Error(`Register failed (${res.status})`);
+  return { email, password };
+}
+
 /** Complete guest login from `/login` UI (terms + abuse challenge). */
 export async function continueAsGuestFromLogin(page: Page): Promise<void> {
   await page.goto("/login");

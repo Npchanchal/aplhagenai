@@ -117,6 +117,82 @@ def test_invite_revoke_and_api_key():
     assert blocked.status_code == 403
 
 
+def _register_owner(email: str, org_name: str) -> dict:
+    return client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "secret99",
+            "name": org_name,
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_name": org_name,
+        },
+    ).json()
+
+
+def test_public_register_cannot_join_existing_org():
+    owner = _register_owner("owner-join@desk.test", "Desk Join")
+    r = client.post(
+        "/api/auth/register",
+        json={
+            "email": "intruder@desk.test",
+            "password": "secret99",
+            "name": "Intruder",
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_id": owner["user"]["org_id"],
+        },
+    )
+    assert r.status_code == 403
+    for org in (owner["user"]["org_id"], "demo"):
+        r = client.post(
+            "/api/auth/register",
+            json={
+                "email": f"intruder-{org}@desk.test",
+                "password": "secret99",
+                "name": "Intruder",
+                "accept_terms": True,
+                "org_id": org,
+            },
+        )
+        assert r.status_code == 403
+
+
+def test_labeling_queue_is_scoped_to_caller_org():
+    a = _register_owner("owner-a@desk.test", "Desk A")
+    b = _register_owner("owner-b@desk.test", "Desk B")
+    ha = {"Authorization": f"Bearer {a['token']}"}
+    hb = {"Authorization": f"Bearer {b['token']}"}
+
+    item = client.post(
+        "/api/labeling/queue", headers=ha, json={"company_id": "infy", "note": "A only"}
+    ).json()["item"]
+    assert item["org_id"] == a["user"]["org_id"]
+
+    assert client.get("/api/labeling/queue", headers=hb).json()["count"] == 0
+    peek = client.get(
+        "/api/labeling/queue", headers=hb, params={"org_id": a["user"]["org_id"]}
+    )
+    assert peek.status_code == 403
+    spoof = client.post(
+        "/api/labeling/queue",
+        headers=hb,
+        json={"company_id": "infy", "org_id": a["user"]["org_id"]},
+    )
+    assert spoof.status_code == 403
+    patch = client.patch(
+        f"/api/labeling/queue/{item['id']}", headers=hb, json={"status": "cancelled"}
+    )
+    assert patch.status_code == 404
+
+    own = client.get("/api/labeling/queue", headers=ha).json()
+    assert [r["id"] for r in own["items"]] == [item["id"]]
+
+    admin = client.get("/api/labeling/queue", headers={"X-API-Key": "intellens-admin"}).json()
+    assert item["id"] in [r["id"] for r in admin["items"]]
+
+
 def test_legal_counsel_and_infra_meta():
     legal = client.get("/api/legal/meta").json()
     assert legal["counsel_status"]

@@ -185,11 +185,11 @@ def resolve_actor(
     if user:
         return resolve_from_user(user)
     if x_api_key:
-        from app.data.seed import get_data
+        from app.services.auth import lookup_api_key
 
-        for row in get_data().get("api_keys", []):
-            if row.get("key") == x_api_key:
-                return resolve_from_key(row)
+        row = lookup_api_key(x_api_key)
+        if row:
+            return resolve_from_key(row)
         raise HTTPException(status_code=403, detail="Invalid API key")
     return guest_entitlements()
 

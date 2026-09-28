@@ -1946,26 +1946,56 @@ window.location.replace('{safe_front}');
     return HTMLResponse(html)
 
 
+def _labeling_queue_scope(
+    auth: Dict[str, Any],
+    requested_org: Optional[str],
+    authorization: Optional[str],
+    x_api_key: Optional[str],
+) -> Optional[str]:
+    """Org the caller may act on; None means all orgs (platform admins only)."""
+    from app.services import admin_portal
+
+    if admin_portal.platform_actor_or_none(authorization, x_api_key):
+        return requested_org or None
+    own = str(auth.get("org_id") or auth.get("org") or "")
+    if not own:
+        raise HTTPException(status_code=403, detail="Organization required")
+    if requested_org and requested_org != own:
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    return own
+
+
 @router.get("/api/labeling/queue")
 def labeling_queue_list(
-    org_id: Optional[str] = None, _auth=Depends(require_feature("desk"))
+    org_id: Optional[str] = None,
+    auth=Depends(require_feature("desk")),
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
 ) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
-    items = lq.list_queue(org_id=org_id)
+    scope = _labeling_queue_scope(auth, org_id, authorization, x_api_key)
+    items = lq.list_queue(org_id=scope)
     return {"items": items, "count": len(items)}
 
 
 @router.post("/api/labeling/queue")
-def labeling_queue_enqueue(body: Dict[str, Any], auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
+def labeling_queue_enqueue(
+    body: Dict[str, Any],
+    auth=Depends(require_feature("desk")),
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
     company_id = body.get("company_id")
     if not company_id:
         raise HTTPException(status_code=400, detail="company_id required")
+    requested = str(body["org_id"]) if body.get("org_id") else None
+    scope = _labeling_queue_scope(auth, requested, authorization, x_api_key)
     item = lq.enqueue(
         company_id=str(company_id),
-        org_id=str(body.get("org_id") or auth.get("org") or "demo"),
+        org_id=scope or str(auth.get("org_id") or auth.get("org") or "demo"),
         priority=str(body.get("priority") or "normal"),
         note=str(body.get("note") or ""),
         requested_by=str(auth.get("org") or "api"),
@@ -1975,14 +2005,19 @@ def labeling_queue_enqueue(body: Dict[str, Any], auth=Depends(require_feature("d
 
 @router.patch("/api/labeling/queue/{item_id}")
 def labeling_queue_patch(
-    item_id: str, body: Dict[str, Any], _auth=Depends(require_feature("desk"))
+    item_id: str,
+    body: Dict[str, Any],
+    auth=Depends(require_feature("desk")),
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
 ) -> Dict[str, Any]:
     from app.services import labeling_queue as lq
 
     status = body.get("status")
     if not status:
         raise HTTPException(status_code=400, detail="status required")
-    return {"ok": True, "item": lq.update_status(item_id, str(status))}
+    scope = _labeling_queue_scope(auth, None, authorization, x_api_key)
+    return {"ok": True, "item": lq.update_status(item_id, str(status), org_id=scope)}
 
 
 @router.get("/api/labeling/companies")
@@ -2128,6 +2163,11 @@ def auth_register(body: AuthRegisterRequest) -> Dict[str, Any]:
     from app.services import abuse
     from app.services import session_auth
 
+    if body.org_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Joining an existing organization requires an invite link",
+        )
     abuse.verify_challenge(body.challenge_id or "", body.challenge_answer or "")
     return session_auth.register(
         body.email,
@@ -2138,7 +2178,6 @@ def auth_register(body: AuthRegisterRequest) -> Dict[str, Any]:
         accept_terms=body.accept_terms,
         account_type=body.account_type,
         org_name=body.org_name,
-        org_id=body.org_id,
     )
 
 

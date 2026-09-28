@@ -1998,7 +1998,7 @@ export function fetchLabelingQueue(orgId?: string): Promise<{
   count: number;
 }> {
   const qs = orgId ? `?org_id=${encodeURIComponent(orgId)}` : "";
-  return getJson(`/api/labeling/queue${qs}`, { headers: { "X-API-Key": API_KEY } });
+  return getJson(`/api/labeling/queue${qs}`, { headers: authHeaders() });
 }
 
 export function postLabelingQueue(body: {

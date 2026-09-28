@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.data.seed import reset_data
@@ -71,32 +72,30 @@ def test_p21_org_seats_and_entitlements():
 
 
 def test_p21_seat_limit_on_register():
-    # Fill pilot seats on shared demo tenant (5)
+    from fastapi import HTTPException
+
+    from app.services import session_auth
+
+    # Fill pilot seats on shared demo tenant (5) via the invite-join path
     for i in range(5):
-        r = client.post(
-            "/api/auth/register",
-            json={
-                "email": f"seat{i}@example.com",
-                "password": "secret1",
-                "name": f"Seat {i}",
-                "accept_terms": True,
-                "account_type": "b2b",
-                "org_id": "demo",
-            },
+        session_auth.register(
+            f"seat{i}@example.com",
+            "secret1",
+            f"Seat {i}",
+            accept_terms=True,
+            account_type="b2b",
+            org_id="demo",
         )
-        assert r.status_code == 200, r.text
-    over = client.post(
-        "/api/auth/register",
-        json={
-            "email": "overflow@example.com",
-            "password": "secret1",
-            "name": "Over",
-            "accept_terms": True,
-            "account_type": "b2b",
-            "org_id": "demo",
-        },
-    )
-    assert over.status_code == 403
+    with pytest.raises(HTTPException) as exc:
+        session_auth.register(
+            "overflow@example.com",
+            "secret1",
+            "Over",
+            accept_terms=True,
+            account_type="b2b",
+            org_id="demo",
+        )
+    assert exc.value.status_code == 403
 
 
 def test_p22_rate_limit_header():

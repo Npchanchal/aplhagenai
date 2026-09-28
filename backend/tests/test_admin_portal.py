@@ -117,3 +117,17 @@ def test_super_assigns_support_role():
         json={"name": "Should Fail"},
     )
     assert pilot.status_code == 403
+
+
+def test_rotated_admin_key_disables_seeded_super_key(monkeypatch) -> None:
+    monkeypatch.setenv("INTELLENS_API_KEY", "rotated-ops-key")
+    rotated = {"X-API-Key": "rotated-ops-key"}
+
+    assert client.get("/api/admin/portal/me", headers=ADMIN).status_code == 403
+    assert client.get("/api/labeling/queue", headers=ADMIN).status_code == 403
+
+    me = client.get("/api/admin/portal/me", headers=rotated)
+    assert me.status_code == 200
+    assert me.json()["platform_admin_role"] == "super"
+    assert client.get("/api/labeling/queue", headers=rotated).status_code == 200
+    assert client.get("/api/labeling/queue", headers={"X-API-Key": "intellens-demo"}).status_code == 200

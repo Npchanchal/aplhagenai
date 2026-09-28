@@ -9,6 +9,7 @@ from fastapi import Depends, Header, HTTPException
 from app.data.seed import get_data
 from app.services import feedback as feedback_svc
 from app.services import session_auth
+from app.services.auth import lookup_api_key
 
 PLATFORM_ADMIN_ROLES = frozenset({"super", "ops", "compliance", "billing", "support"})
 
@@ -123,14 +124,28 @@ def resolve_platform_admin(
             return actor
         raise HTTPException(status_code=403, detail="Platform admin access required")
     if x_api_key:
-        for row in get_data().get("api_keys", []):
-            if row.get("key") == x_api_key:
-                actor = _actor_from_api_key(row)
-                if actor:
-                    return actor
-                raise HTTPException(status_code=403, detail="Platform admin access required")
-        raise HTTPException(status_code=403, detail="Invalid API key")
+        row = lookup_api_key(x_api_key)
+        if row is None:
+            raise HTTPException(status_code=403, detail="Invalid API key")
+        actor = _actor_from_api_key(row)
+        if actor:
+            return actor
+        raise HTTPException(status_code=403, detail="Platform admin access required")
     raise HTTPException(status_code=401, detail="Authentication required")
+
+
+def platform_actor_or_none(
+    authorization: Optional[str], x_api_key: Optional[str]
+) -> Optional[Dict[str, Any]]:
+    """Like ``resolve_platform_admin`` but returns None instead of raising."""
+    user = session_auth.resolve_token(session_auth.extract_bearer(authorization))
+    if user:
+        return _actor_from_user(user)
+    if x_api_key:
+        row = lookup_api_key(x_api_key)
+        if row:
+            return _actor_from_api_key(row)
+    return None
 
 
 def require_platform_perm(perm: str):

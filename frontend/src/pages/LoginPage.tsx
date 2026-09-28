@@ -168,6 +168,7 @@ export default function LoginPage() {
           loadError={abuse.loadError}
           id="guest-abuse-challenge"
           testId="guest-abuse-challenge"
+          required={false}
         />
         <button
           type="button"

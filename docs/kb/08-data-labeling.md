@@ -14,7 +14,7 @@ Desk `?tab=labeling` (feature `labeling`): draft → submit → second reviewer 
 
 Quality partner feedback (`wrong_band` / `wrong_period` / `wrong_label` / `missing_source`) enqueues a high-priority labeling-queue item. **GCI is not mutated** by feedback.
 
-Priority enqueue `POST /api/labeling/queue` remains ops SLA (Desk), not HL promotion.
+Priority enqueue `POST /api/labeling/queue` remains ops SLA (Desk), not HL promotion. The queue (GET/POST/PATCH) is scoped to the caller's org; only platform admins (e.g. `X-API-Key: $INTELLENS_API_KEY`) see or act across orgs via `?org_id=`.
 
 CSV import uses `docs/labeling/outcome_row_template.csv` columns and still creates drafts.
 
