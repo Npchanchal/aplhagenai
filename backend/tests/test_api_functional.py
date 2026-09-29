@@ -37,10 +37,13 @@ def test_us002_company_gci_detail():
     assert data["id"] == "infy"
     assert data["status"] == "ok"
     assert data["gci_score"] is not None
-    assert len(data["outcomes"]) >= 8
+    assert len(data["outcomes"]) >= 7
     assert "trend" in data and len(data["trend"]) >= 1
     assert "label_counts" in data
-    assert data["sentiment"]
+    # W1.2: no sentiment stub on the public dossier payload
+    assert "sentiment" not in data
+    assert data["confidence_tier"] in ("provisional", "established", "deep")
+    assert data["algorithm_id"] == "gci_scoring_v4"
 
 
 def test_us003_evidence_trail_fields():

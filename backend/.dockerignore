@@ -1,0 +1,10 @@
+.venv/
+**/__pycache__/
+.pytest_cache/
+tests/
+
+# Runtime state written by local runs and tests (git-ignored) — must not ship in images.
+app/data/store.json
+app/data/users.json
+app/data/sessions.json
+app/data/crawl_state.json

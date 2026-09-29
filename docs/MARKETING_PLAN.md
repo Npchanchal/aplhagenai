@@ -174,6 +174,7 @@ North star near-term: **weekly habit inside pilot desks**, not vanity traffic.
 ## Related
 
 - [BUSINESS_PLAN.md](BUSINESS_PLAN.md)  
+- [SOCIAL_MEDIA_KIT.md](SOCIAL_MEDIA_KIT.md) — account setup, bios, launch posts  
 - [customer/ONE_PAGER.md](customer/ONE_PAGER.md)  
 - [PRODUCT_DEFINITION.md](PRODUCT_DEFINITION.md)  
 - Live blog: `/blog` on citealpha.com  

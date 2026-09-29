@@ -12,18 +12,28 @@ export default function LandingProofPanel({ meta }: { meta: ProductMeta | null }
       <p className="muted">{t("landing.coverage.lede")}</p>
       {meta ? (
         <ul className="about-list landing-proof-stats">
+          {meta.sensex_scored_count != null && meta.sensex_count ? (
+            <li data-testid="coverage-sensex">
+              <strong>
+                {t("landing.coverage.sensex", {
+                  count: meta.sensex_scored_count,
+                  total: meta.sensex_count,
+                })}
+              </strong>
+            </li>
+          ) : null}
           <li data-testid="coverage-hand-labeled">
-            <strong>
-              {t("landing.coverage.handLabeled", { count: meta.hand_labeled_count })}
-            </strong>
+            {t("landing.coverage.handLabeled", { count: meta.gci_scored_count })}
           </li>
           <li data-testid="coverage-demo">
             {t("landing.coverage.demo", { count: meta.demo_structured_count })}
           </li>
           <li data-testid="coverage-listings">
-            {t("landing.coverage.listings", { count: meta.gci_listing_scored_count })}
+            {t("landing.coverage.listings", {
+              count: meta.gci_listing_unscored_count ?? meta.gci_listing_scored_count,
+            })}
           </li>
-          <li>{t("landing.coverage.next")}</li>
+          <li data-testid="coverage-commitments">{t("landing.coverage.next")}</li>
           <li data-testid="coverage-pit">{t("landing.coverage.pit")}</li>
         </ul>
       ) : (

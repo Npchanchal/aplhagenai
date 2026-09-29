@@ -28,12 +28,14 @@ services:
       INTELLENS_REFRESH_HOURS: "6"
       INTELLENS_AUTO_EXTRACT_ON_REFRESH: "1"
       INTELLENS_GCI_VERSION: ${INTELLENS_GCI_VERSION:-v4}
-      AUTH_RATE_LIMIT_RPM: "20"
+      AUTH_RATE_LIMIT_RPM: ${AUTH_RATE_LIMIT_RPM:-20}
+      RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-300}
       INTELLENS_AUTH_DEV_TOKENS: ${INTELLENS_AUTH_DEV_TOKENS:-1}
       USE_DB_AUTH: "1"
       AUTH_SQLITE_PATH: /app/app/data/auth.db
       FORCE_HTTPS: ${FORCE_HTTPS:-0}
       ENABLE_HSTS: ${ENABLE_HSTS:-0}
+      INTELLENS_VERIFY_SOURCES: ${INTELLENS_VERIFY_SOURCES:-1}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 5s
@@ -81,6 +83,8 @@ services:
       INTELLENS_WARM_FMP_ON_REFRESH: "1"
       INTELLENS_GCI_VERSION: ${INTELLENS_GCI_VERSION:-v4}
       INTELLENS_API_KEY: ${INTELLENS_API_KEY:-intellens-demo}
+      INTELLENS_VERIFY_SOURCES: "1"
+      INTELLENS_LEDGER_DIGEST: "1"
     depends_on:
       api:
         condition: service_healthy

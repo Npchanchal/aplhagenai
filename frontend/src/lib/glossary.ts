@@ -24,7 +24,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   research_terminal: {
     id: "research_terminal",
     term: "Filing Search",
-    tip: "One company at a time: search its filings and transcripts, ask cite-only questions, and see a snapshot of guidance vs reported numbers. Complements GCI — demo tape is not live prices.",
+    tip: "One company at a time: search its filings and transcripts, ask cite-only questions, and see a snapshot of guidance vs reported numbers. Complements GCI. Not a price feed.",
   },
   guidance: {
     id: "guidance",
@@ -76,6 +76,11 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
     term: "Pending",
     tip: "Period still open or no actual yet. Excluded from company GCI until closed.",
   },
+  pending_guidance_cite: {
+    id: "pending_guidance_cite",
+    term: "Pending guidance cite",
+    tip: "The reported actual is cited, but the original guidance filing (URL, quote, date) is not yet on the row. Excluded from the company GCI until both sides are cited.",
+  },
   confidence: {
     id: "confidence",
     term: "Confidence",
@@ -99,7 +104,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   sector_avg: {
     id: "sector_avg",
     term: "Sector avg",
-    tip: "Average GCI across companies in the same sector.",
+    tip: "Average of company GCI scores in the sector. Each company is scored on its own guidance. The average is not a sector adjustment.",
   },
   trend: {
     id: "trend",
@@ -124,7 +129,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   data_quality: {
     id: "data_quality",
     term: "Data quality",
-    tip: "Hand-labeled = curated IR (cite). Demo = structured seed. Listing = NSE/BSE master with no GCI yet. Scaffold = synthetic pad.",
+    tip: "Hand-labeled = analyst-reviewed guidance with filing links; the only rows that carry a GCI. Demo = sample data for walkthroughs, not scored. Listing = NSE/BSE master, not yet scored.",
   },
   listing_master: {
     id: "listing_master",
@@ -134,12 +139,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   nse_bse: {
     id: "nse_bse",
     term: "NSE_ALL / BSE_ALL",
-    tip: "Full India equity masters. Default scorer is v4 (v3 and legacy v2 available). Hand-labeled Sensex is citeable; Provisional = deterministic demo outcomes until IR-labeled.",
+    tip: "Full India equity masters for navigation. Only hand-labeled companies carry a GCI; every other listing shows Not yet scored until an analyst reviews its guidance.",
   },
   listing_provisional: {
     id: "listing_provisional",
-    term: "Provisional GCI",
-    tip: "Same gci_scoring algorithm as Sensex (default v4), fed by deterministic provisional guidance/actuals for coverage. Not hand-audited — do not cite externally.",
+    term: "Not yet scored",
+    tip: "Listed company without analyst-reviewed guidance and cited filings. No GCI is shown until that review is done.",
   },
   source: {
     id: "source",
@@ -174,7 +179,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   metric: {
     id: "metric",
     term: "Metric",
-    tip: "Catalog id for the guided measure (e.g. revenue_growth_pct). Unknown metrics are rejected on import.",
+    tip: "Catalog name for the guided measure (for example revenue growth). Unknown metrics are rejected on import.",
   },
   gci_parameter: {
     id: "gci_parameter",
@@ -188,23 +193,23 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   alphahunter: {
     id: "alphahunter",
-    term: "Facts / AlphaHunter JSON import",
-    tip: "Paste catalog-aligned facts JSON (AlphaHunter-compatible shape) and merge into a company trail. Not a live vendor connector.",
+    term: "Facts import",
+    tip: "Paste catalog-aligned facts JSON and merge into a company trail. Not a live vendor connector.",
   },
   labeling_queue: {
     id: "labeling_queue",
     term: "Labeling priority queue",
-    tip: "One-Stop backlog for hand-label priority. Queues a company for analyst labeling — does not invent actuals.",
+    tip: "Enterprise backlog for hand-label priority. Queues a company for analyst labeling — does not invent actuals.",
   },
   one_stop: {
     id: "one_stop",
-    term: "One-Stop Platform",
-    tip: "Single contract for Tracker + evidence + API/PIT + facts import + Wordmap + vernacular + CSM. Guidance accountability only — keep your market terminal for prices.",
+    term: "Enterprise platform",
+    tip: "Single contract for GCI Screener + evidence + API + facts import + Wordmap + vernacular + customer success. Guidance accountability only — keep your market terminal for prices.",
   },
   csm: {
     id: "csm",
-    term: "CSM",
-    tip: "Named customer success manager and QBRs — included on Enterprise / One-Stop. Desk shows your pilot org stub.",
+    term: "Customer success",
+    tip: "Named customer-success contact and quarterly reviews — included on Enterprise. The Workbench shows your pilot organisation.",
   },
   charts: {
     id: "charts",
@@ -224,7 +229,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   market: {
     id: "market",
     term: "Market",
-    tip: "Exchange region (IN, US, JP, …). India remains the deep GCI path; other markets ship index constituent scaffolding with honest quality badges.",
+    tip: "Exchange region (IN, US, JP, …). India remains the deep GCI path; other markets ship index constituent lists with honest quality badges.",
   },
   index: {
     id: "index",
@@ -234,7 +239,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   tier1: {
     id: "tier1",
     term: "Tier 1 foundation",
-    tip: "Ingest → structure → search → cite. Auto IR corpus, period doc types (transcript/results/IR), and citeable citation_ids. Without this, analytics are scaffolding only.",
+    tip: "Ingest → structure → search → cite. Auto IR corpus, period doc types (transcript/results/IR), and citeable citation ids. Without this, analytics stay experimental.",
   },
   citability: {
     id: "citability",
@@ -327,7 +332,7 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
   },
   {
     title: "Outcome labels",
-    ids: ["met", "exceeded", "missed", "dropped", "pending"],
+    ids: ["met", "exceeded", "missed", "dropped", "pending", "pending_guidance_cite"],
   },
   {
     title: "How the score is built",
@@ -361,6 +366,11 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
 export function tipForLabel(label: string): string {
   const key = label.toLowerCase();
   return GLOSSARY[key]?.tip ?? GLOSSARY.label.tip;
+}
+
+export function formatOutcomeLabel(label: string): string {
+  const key = label.toLowerCase();
+  return GLOSSARY[key]?.term ?? label.replace(/_/g, " ");
 }
 
 export function tipText(termId: string): string {

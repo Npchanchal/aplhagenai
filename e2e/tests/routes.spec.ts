@@ -18,11 +18,11 @@ test("404 page shows recovery link to GCI Screener", async ({ page }) => {
   await expect(page).toHaveURL(/\/tracker$/);
 });
 
-test("/about/architecture redirects to /about in production build", async ({ page }) => {
+test("/about/architecture is not a site page", async ({ page }) => {
   await page.goto("/about/architecture");
   await dismissOverlays(page);
-  await expect(page).toHaveURL(/\/about$/);
-  await expect(page.getByTestId("about-page")).toBeVisible();
+  await expect(page.getByTestId("not-found-page")).toBeVisible();
+  await expect(page.locator('a[href="/about/architecture"]')).toHaveCount(0);
 });
 
 test("landing surface cards link to product routes", async ({ browser }) => {

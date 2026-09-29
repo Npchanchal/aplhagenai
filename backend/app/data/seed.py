@@ -327,6 +327,7 @@ def build_dataset() -> Dict[str, Any]:
         "sample_transcripts": sample_transcripts,
         "reviews": [],
         "pending_extracts": [],
+        "company_audit_flags": {},
         "api_keys": [
             {"key": "intellens-demo", "org": "demo", "role": "analyst"},
             {"key": "intellens-admin", "org": "demo", "role": "admin", "platform_admin_role": "super"},
@@ -400,6 +401,13 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         guidance_source_ref=d.get("guidance_source_ref"),
         guidance_quote=d.get("guidance_quote"),
         guidance_as_of=d.get("guidance_as_of"),
+        revisions=tuple(dict(r) for r in (d.get("revisions") or [])),
+        reviewed_by=d.get("reviewed_by"),
+        reviewed_at=d.get("reviewed_at"),
+        citeable=None if d.get("citeable") is None else bool(d.get("citeable")),
+        source_verified=None
+        if d.get("source_verified") is None
+        else bool(d.get("source_verified")),
     )
 
 

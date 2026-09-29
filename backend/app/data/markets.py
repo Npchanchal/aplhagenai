@@ -486,12 +486,10 @@ def markets_meta() -> Dict[str, Any]:
         "market_universe_size": MARKET_TOP_N,
         "india_listings": counts,
         "scaffold_note": (
-            f"Non-India markets ship a deterministic top-{MARKET_TOP_N} scaffold "
-            f"(data_quality=market_scaffold). India uses NSE ({counts['nse']}) + BSE "
-            f"({counts['bse']}) equity masters (merged {counts['merged']}). "
-            "GCI scores use production gci_scoring (default v4; INTELLENS_GCI_VERSION=v3 or v2 for earlier versions) "
-            "for every NSE/BSE name: "
-            "Sensex hand_labeled / Nifty demo_structured / else listing_provisional "
-            "(deterministic demo outcomes — cite hand_labeled only)."
+            f"Coverage is India-first. Other markets are constituent lists for navigation, "
+            f"not scored delivery records. India listings: NSE {counts['nse']}, "
+            f"BSE {counts['bse']} (merged {counts['merged']}). "
+            "A published GCI requires analyst-reviewed guidance and the later filing. "
+            "Cite only companies with a hand-reviewed record."
         ),
     }

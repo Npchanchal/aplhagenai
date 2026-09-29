@@ -43,7 +43,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email,
-      password: "secret99",
+      password: "secret99pass!",
       name: "E2E Pilot",
       accept_terms: true,
       account_type: "b2b",

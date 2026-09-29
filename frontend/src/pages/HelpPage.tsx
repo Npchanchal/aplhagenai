@@ -139,6 +139,16 @@ export default function HelpPage() {
         </div>
       </div>
 
+      <div className="panel" id="product-walkthrough" data-testid="help-walkthrough">
+        <h2 style={{ marginTop: 0 }}>{t("help.walkthrough.title")}</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {t("help.walkthrough.lede")}
+        </p>
+        <p>
+          <Link to="/about/tiers">{t("help.walkthrough.link")}</Link>
+        </p>
+      </div>
+
       <div className="panel" id="tours" data-testid="tours-hub">
         <h2 style={{ marginTop: 0 }}>{t("help.tours.title")}</h2>
         <p className="muted" style={{ marginTop: 0 }}>

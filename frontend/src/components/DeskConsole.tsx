@@ -23,7 +23,8 @@ import {
   type LabelingQueueItem,
   type PendingExtractBatch,
 } from "../lib/api";
-import { formatScore } from "../lib/score";
+import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
+import { useI18n } from "../i18n";
 
 type Props = {
   companyId: string;
@@ -46,6 +47,7 @@ function severityClass(sev: string): string {
 }
 
 export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: Props) {
+  const { t } = useI18n();
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<CompanySummary[]>([]);
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
@@ -61,8 +63,8 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = window.setInterval(() => setClock(new Date()), 1000);
-    return () => clearInterval(t);
+    const timer = window.setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
         setPending((ext.batches || []).slice(0, 12));
         setLabelQ((lq.items || []).slice(0, 12));
       } catch (e) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : "Console load failed");
+        if (!cancelled) setErr(e instanceof Error ? e.message : t("ui.DeskConsole.loadFailed"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -175,9 +177,9 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
   return (
     <div className="il-console" data-testid="desk-console">
       <header className="ilc-top">
-        <div className="ilc-brand" aria-label="CiteAlpha Console">
+        <div className="ilc-brand" aria-label={t("ui.DeskConsole.brandAria")}>
           <BrandLogo variant="header" link={false} className="ilc-logo-wordmark" />
-          <span className="ilc-product">GCI Console</span>
+          <span className="ilc-product">{t("ui.DeskConsole.product")}</span>
         </div>
         <form
           className="ilc-cmd"
@@ -192,65 +194,65 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search ticker / name · or /review /evidence /pit"
-            aria-label="Console command"
+            placeholder={t("ui.DeskConsole.cmdPlaceholder")}
+            aria-label={t("ui.DeskConsole.cmdAria")}
             data-testid="desk-console-cmd"
           />
         </form>
         <div className="ilc-top-meta">
-          <span className="ilc-pill">Sensex · {scored}/{rows.length}</span>
-          <span className="ilc-pill ilc-pill-ok">HL {hlCount}</span>
+          <span className="ilc-pill">{t("ui.DeskConsole.sensexPill", { scored, total: rows.length })}</span>
+          <span className="ilc-pill ilc-pill-ok">{t("ui.DeskConsole.hlPill", { n: hlCount })}</span>
           <time dateTime={clock.toISOString()}>
             {clock.toLocaleTimeString("en-IN", { hour12: false })}
           </time>
         </div>
       </header>
 
-      <nav className="ilc-nav" aria-label="Console jumps">
+      <nav className="ilc-nav" aria-label={t("ui.DeskConsole.navAria")}>
         <Link className="ilc-nav-btn" to="/tracker">
-          Monitor
+          {t("ui.DeskConsole.nav.monitor")}
         </Link>
         <Link className="ilc-nav-btn" to={`/companies/${companyId}`}>
-          Evidence
+          {t("ui.DeskConsole.nav.evidence")}
         </Link>
         <button type="button" className="ilc-nav-btn" onClick={() => onJumpTab?.("review")}>
-          Review
+          {t("ui.DeskConsole.nav.review")}
         </button>
         <button type="button" className="ilc-nav-btn" onClick={() => onJumpTab?.("corpus")}>
-          Corpus
+          {t("ui.DeskConsole.nav.corpus")}
         </button>
         <button type="button" className="ilc-nav-btn" onClick={() => onJumpTab?.("pit")}>
           PIT
         </button>
         <Link className="ilc-nav-btn" to="/tracker?tab=sectors">
-          Sectors
+          {t("ui.DeskConsole.nav.sectors")}
         </Link>
         <Link className="ilc-nav-btn" to={`/companies/${companyId}`}>
-          Dossier
+          {t("ui.DeskConsole.nav.dossier")}
         </Link>
         <Link className="ilc-nav-btn" to="/research">
-          Research
+          {t("ui.DeskConsole.nav.research")}
         </Link>
       </nav>
 
       {err && <p className="ilc-error">{err}</p>}
-      {loading && <p className="ilc-muted">Loading console panels…</p>}
+      {loading && <p className="ilc-muted">{t("ui.DeskConsole.loading")}</p>}
 
       <div className="ilc-grid">
         {/* GCI Monitor */}
-        <section className="ilc-panel ilc-span-monitor" aria-label="GCI monitor">
+        <section className="ilc-panel ilc-span-monitor" aria-label={t("ui.DeskConsole.monitor.aria")}>
           <header className="ilc-panel-h">
-            <h3>GCI Monitor</h3>
-            <span className="ilc-muted">Sensex · live seed</span>
+            <h3>{t("ui.DeskConsole.monitor.title")}</h3>
+            <span className="ilc-muted">{t("ui.DeskConsole.monitor.sub")}</span>
           </header>
           <div className="ilc-table-wrap">
             <table className="ilc-table">
               <thead>
                 <tr>
-                  <th>Ticker</th>
+                  <th>{t("ui.DeskConsole.col.ticker")}</th>
                   <th>GCI</th>
                   <th>Δ</th>
-                  <th>Quality</th>
+                  <th>{t("ui.DeskConsole.col.quality")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -270,7 +272,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                       <div className="ilc-sub">{r.sector}</div>
                     </td>
                     <td className={`ilc-num tone-${gciTone(r.gci_score)}`}>
-                      {formatScore(r.gci_score)}
+                      {formatCompanyScore(r.gci_score)}
                     </td>
                     <td>
                       <ChangeChip value={r.gci_change_pct} horizon={r.gci_change_horizon} />
@@ -286,14 +288,14 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
         </section>
 
         {/* Main GCI chart */}
-        <section className="ilc-panel ilc-span-chart" aria-label="GCI trend">
+        <section className="ilc-panel ilc-span-chart" aria-label={t("ui.DeskConsole.chart.aria")}>
           <header className="ilc-panel-h">
             <div>
               <h3>
-                {selected?.ticker || companyId} · Guidance Credibility
+                {t("ui.DeskConsole.chart.title", { ticker: selected?.ticker || companyId })}
               </h3>
               <p className="ilc-sub">
-                {selected?.name || detail?.name || "—"} · factual GCI (not price)
+                {t("ui.DeskConsole.chart.sub", { name: selected?.name || detail?.name || "—" })}
               </p>
             </div>
             <div className="ilc-score-block">
@@ -311,42 +313,42 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                 height={220}
                 color="#3dff9a"
                 yDomain={[0, 100]}
-                ariaLabel="GCI history"
+                ariaLabel={t("ui.DeskConsole.chart.historyAria")}
               />
             ) : (
-              <p className="ilc-muted">Not enough PIT points — open dossier for evidence.</p>
+              <p className="ilc-muted">{t("ui.DeskConsole.chart.empty")}</p>
             )}
           </div>
         </section>
 
         {/* Outcomes strip */}
-        <section className="ilc-panel ilc-span-chain" aria-label="Guidance outcomes">
+        <section className="ilc-panel ilc-span-chain" aria-label={t("ui.DeskConsole.outcomes.aria")}>
           <header className="ilc-panel-h">
-            <h3>Outcomes</h3>
-            <span className="ilc-muted">band vs actual</span>
+            <h3>{t("ui.DeskConsole.outcomes.title")}</h3>
+            <span className="ilc-muted">{t("ui.DeskConsole.outcomes.sub")}</span>
           </header>
           <div className="ilc-table-wrap">
             <table className="ilc-table ilc-compact">
               <thead>
                 <tr>
-                  <th>Period</th>
-                  <th>Metric</th>
-                  <th>Label</th>
-                  <th>Score</th>
+                  <th>{t("ui.DeskConsole.col.period")}</th>
+                  <th>{t("ui.DeskConsole.col.metric")}</th>
+                  <th>{t("ui.DeskConsole.col.label")}</th>
+                  <th>{t("ui.DeskConsole.col.score")}</th>
                 </tr>
               </thead>
               <tbody>
                 {outcomes.length === 0 && (
                   <tr>
                     <td colSpan={4} className="ilc-muted">
-                      No outcomes loaded
+                      {t("ui.DeskConsole.outcomes.empty")}
                     </td>
                   </tr>
                 )}
                 {outcomes.map((o, i) => (
                   <tr key={`${o.period}-${o.metric}-${i}`}>
                     <td>{o.period}</td>
-                    <td className="ilc-mono">{o.metric.replace(/_/g, " ")}</td>
+                    <td className="ilc-mono">{metricDisplayName(o.metric)}</td>
                     <td>
                       <span className={`ilc-tag label-${o.label}`}>{o.label}</span>
                     </td>
@@ -359,13 +361,13 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
         </section>
 
         {/* Alerts feed */}
-        <section className="ilc-panel ilc-span-news" aria-label="Alerts">
+        <section className="ilc-panel ilc-span-news" aria-label={t("ui.DeskConsole.alerts.aria")}>
           <header className="ilc-panel-h">
-            <h3>Desk alerts</h3>
-            <span className="ilc-muted">misses · drift · docs</span>
+            <h3>{t("ui.DeskConsole.alerts.title")}</h3>
+            <span className="ilc-muted">{t("ui.DeskConsole.alerts.sub")}</span>
           </header>
           <ul className="ilc-feed">
-            {alerts.length === 0 && <li className="ilc-muted">No open alerts</li>}
+            {alerts.length === 0 && <li className="ilc-muted">{t("ui.DeskConsole.alerts.empty")}</li>}
             {alerts.map((a, i) => (
               <li key={`${a.company_id}-${a.kind}-${i}`}>
                 <button
@@ -383,9 +385,9 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
         </section>
 
         {/* Peer quick view */}
-        <section className="ilc-panel ilc-span-peers" aria-label="Sector peers">
+        <section className="ilc-panel ilc-span-peers" aria-label={t("ui.DeskConsole.peers.aria")}>
           <header className="ilc-panel-h">
-            <h3>Peers · {selected?.sector || "Sector"}</h3>
+            <h3>{t("ui.DeskConsole.peers.title", { sector: selected?.sector || t("ui.DeskConsole.peers.sector") })}</h3>
           </header>
           <div className="ilc-peer-grid">
             {peers.map((p) => (
@@ -397,39 +399,39 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
               >
                 <strong>{p.ticker}</strong>
                 <span className={`ilc-num tone-${gciTone(p.gci_score)}`}>
-                  {formatScore(p.gci_score)}
+                  {formatCompanyScore(p.gci_score)}
                 </span>
                 <ChangeChip value={p.gci_change_pct} horizon={p.gci_change_horizon} />
               </button>
             ))}
-            {peers.length === 0 && <p className="ilc-muted">No peers in sector</p>}
+            {peers.length === 0 && <p className="ilc-muted">{t("ui.DeskConsole.peers.empty")}</p>}
           </div>
         </section>
 
         {/* Queue screener */}
-        <section className="ilc-panel ilc-span-screen" aria-label="Queues">
+        <section className="ilc-panel ilc-span-screen" aria-label={t("ui.DeskConsole.queues.aria")}>
           <header className="ilc-panel-h">
-            <h3>Queues</h3>
+            <h3>{t("ui.DeskConsole.queues.title")}</h3>
             <button type="button" className="ilc-linkish" onClick={() => onJumpTab?.("review")}>
-              Open review →
+              {t("ui.DeskConsole.queues.openReview")}
             </button>
           </header>
           <div className="ilc-queue-cols">
             <div>
-              <h4>Extract pending</h4>
+              <h4>{t("ui.DeskConsole.queues.extract")}</h4>
               <ul>
                 {(pending.length ? pending : []).slice(0, 5).map((b) => (
                   <li key={b.id}>
                     <button type="button" onClick={() => onSelectCompany(b.company_id)}>
-                      {b.company_id} · {b.statements?.length || 0} stmts
+                      {t("ui.DeskConsole.queues.stmts", { company: b.company_id, n: b.statements?.length || 0 })}
                     </button>
                   </li>
                 ))}
-                {!pending.length && <li className="ilc-muted">Clear</li>}
+                {!pending.length && <li className="ilc-muted">{t("ui.DeskConsole.queues.clear")}</li>}
               </ul>
             </div>
             <div>
-              <h4>Labeling</h4>
+              <h4>{t("ui.DeskConsole.queues.labeling")}</h4>
               <ul>
                 {labelQ.slice(0, 5).map((item) => (
                   <li key={item.id}>
@@ -437,21 +439,21 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                       type="button"
                       onClick={() => item.company_id && onSelectCompany(item.company_id)}
                     >
-                      {item.company_id} · {item.status || "queued"}
+                      {item.company_id} · {item.status || t("ui.DeskConsole.queues.queued")}
                     </button>
                   </li>
                 ))}
-                {!labelQ.length && <li className="ilc-muted">Empty</li>}
+                {!labelQ.length && <li className="ilc-muted">{t("ui.DeskConsole.queues.empty")}</li>}
               </ul>
             </div>
           </div>
         </section>
 
         {/* Sector heatmap */}
-        <section className="ilc-panel ilc-span-heat" aria-label="Sector GCI heatmap">
+        <section className="ilc-panel ilc-span-heat" aria-label={t("ui.DeskConsole.heat.aria")}>
           <header className="ilc-panel-h">
-            <h3>Sector GCI map</h3>
-            <span className="ilc-muted">avg credibility · box ∝ names</span>
+            <h3>{t("ui.DeskConsole.heat.title")}</h3>
+            <span className="ilc-muted">{t("ui.DeskConsole.heat.sub")}</span>
           </header>
           <div className="ilc-heat">
             {sectors.map((s) => {
@@ -463,7 +465,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                   key={s.sector}
                   className={`ilc-heat-cell tone-${tone}`}
                   style={{ flexGrow: flex, flexBasis: `${flex * 80}px` }}
-                  title={`${s.sector}: avg ${formatScore(s.avg)} · n=${s.count}`}
+                  title={t("ui.DeskConsole.heat.cellTitle", { sector: s.sector, avg: formatScore(s.avg), n: s.count })}
                 >
                   <strong>{s.sector}</strong>
                   <span>{formatScore(s.avg)}</span>
@@ -471,14 +473,14 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                 </div>
               );
             })}
-            {!sectors.length && <p className="ilc-muted">No sector data</p>}
+            {!sectors.length && <p className="ilc-muted">{t("ui.DeskConsole.heat.empty")}</p>}
           </div>
         </section>
 
         {/* Metric breakdown */}
-        <section className="ilc-panel ilc-span-metric" aria-label="Metric GCI">
+        <section className="ilc-panel ilc-span-metric" aria-label={t("ui.DeskConsole.metric.aria")}>
           <header className="ilc-panel-h">
-            <h3>By metric</h3>
+            <h3>{t("ui.DeskConsole.metric.title")}</h3>
             <span className="ilc-muted">{selected?.ticker || companyId}</span>
           </header>
           <ul className="ilc-bars">
@@ -491,21 +493,23 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                     style={{ width: `${Math.max(4, Math.min(100, score))}%` }}
                   />
                 </span>
-                <span className="ilc-num">{formatScore(score)}</span>
+                <span className="ilc-num">{formatCompanyScore(score)}</span>
               </li>
             ))}
-            {!metricBars.length && <li className="ilc-muted">Select a scored name</li>}
+            {!metricBars.length && <li className="ilc-muted">{t("ui.DeskConsole.metric.empty")}</li>}
           </ul>
         </section>
       </div>
 
       <footer className="ilc-status">
-        <span>India GCI desk · not a price terminal</span>
-        <span>NSE / BSE coverage via Sensex deep GCI</span>
-        <span>No Buy / Hold / Sell</span>
+        <span>{t("ui.DeskConsole.footer.desk")}</span>
+        <span>{t("ui.DeskConsole.footer.coverage")}</span>
+        <span>{t("ui.DeskConsole.footer.noAdvice")}</span>
         <span>
-          Peer rank {detail?.peer_rank_in_sector ?? "—"} · sector avg{" "}
-          {formatScore(detail?.sector_avg_gci)}
+          {t("ui.DeskConsole.footer.peerRank", {
+            rank: detail?.peer_rank_in_sector ?? "—",
+            avg: formatScore(detail?.sector_avg_gci),
+          })}
         </span>
       </footer>
     </div>

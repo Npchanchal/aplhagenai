@@ -16,11 +16,7 @@ def series_meta_for(company_id: str) -> Dict[str, Any]:
     pit = repository.pit_history(company_id)
     cite_n = sum(1 for o in detail.outcomes if getattr(o, "citeable", None) is True)
 
-    from app.services.pit_warehouse import get_pit_series
-
-    wh = get_pit_series(company_id) or {}
-    wh_kind = (wh.get("series_kind") or "").strip()
-
+    # Rule `index-integrity`: the partner feed carries reviewed history or nothing.
     if quality == "hand_labeled" and cite_n > 0 and len(pit) >= 4:
         kind = "citeable_pit"
         citeable = True
@@ -30,14 +26,8 @@ def series_meta_for(company_id: str) -> Dict[str, Any]:
     elif quality == "hand_labeled":
         kind = "hand_labeled_incomplete_citations"
         citeable = False
-    elif wh_kind.startswith("demo") or wh_kind == "hybrid_pit":
-        kind = wh_kind or "demo_pit_extension"
-        citeable = False
-    elif quality == "demo_structured":
-        kind = "demo_structured"
-        citeable = False
     else:
-        kind = "provisional_or_scaffold"
+        kind = "not_yet_scored"
         citeable = False
 
     return {
@@ -52,7 +42,7 @@ def series_meta_for(company_id: str) -> Dict[str, Any]:
         "asof_gci": detail.gci_score,
         "note": (
             "citeable_pit requires hand_labeled + ≥1 citeable outcome + ≥4 PIT points. "
-            "Do not backtest demo_pit_extension as production alpha."
+            "Companies without reviewed history return an empty series."
         ),
     }
 
@@ -77,17 +67,14 @@ def contract_schema() -> Dict[str, Any]:
             "prior_gci": "Previous point score when available",
             "change_pct": "Percent change vs prior",
             "change_horizon": "Horizon label when inferred",
-            "series_kind": "citeable_pit | citeable_pit_short | demo_* | provisional_*",
+            "series_kind": "citeable_pit | citeable_pit_short | hand_labeled_incomplete_citations | not_yet_scored",
             "citeable": "Boolean — safe for external IC citation",
         },
         "series_kind_enum": [
             "citeable_pit",
             "citeable_pit_short",
             "hand_labeled_incomplete_citations",
-            "demo_pit_extension",
-            "hybrid_pit",
-            "demo_structured",
-            "provisional_or_scaffold",
+            "not_yet_scored",
         ],
         "sla_notes": (
             "Design-partner feed: JSON default; CSV/Parquet require API key. "

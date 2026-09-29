@@ -51,7 +51,7 @@ export const TOURS: TourDef[] = [
       {
         selector: '[data-testid="universe-filters"]',
         title: "Market & index",
-        body: "Pick India then SENSEX for deep hand-labeled GCI. NSE_ALL / BSE_ALL list full masters with provisional scores (not for citation).",
+        body: "Pick India then SENSEX for deep hand-labeled GCI. NSE_ALL / BSE_ALL list full masters; names without hand-labeled evidence show Not yet scored.",
       },
       {
         selector: '[data-testid="entity-search"]',

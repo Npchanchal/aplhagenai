@@ -27,7 +27,7 @@ def _simulate_redeploy() -> None:
 def _register_owner(email: str, account_type: str = "b2b") -> dict:
     body = {
         "email": email,
-        "password": "secret99",
+        "password": "secret99pass!",
         "name": "Persist",
         "accept_terms": True,
         "account_type": account_type,
@@ -75,8 +75,14 @@ def test_labeling_queue_and_org_api_key_survive_redeploy():
 
 
 def test_restore_missing_orgs_recovers_orphaned_users():
+    import os
+
     b2b = _register_owner("orphan-b2b@desk.test")
-    retail = _register_owner("orphan-retail@desk.test", account_type="retail")
+    os.environ["INTELLENS_RETAIL_MARKETING"] = "true"
+    try:
+        retail = _register_owner("orphan-retail@desk.test", account_type="retail")
+    finally:
+        os.environ.pop("INTELLENS_RETAIL_MARKETING", None)
     data = get_data()
     for u in (b2b, retail):
         del data["orgs"][u["user"]["org_id"]]

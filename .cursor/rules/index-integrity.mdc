@@ -1,0 +1,33 @@
+---
+description: GCI index integrity — no synthetic numbers in public, confidence tiers, score ledger, guidance-side citations
+alwaysApply: true
+---
+
+# Index integrity (GCI as a citable index)
+
+A GCI number is a **published index level**. Treat every change to one like a data vendor would.
+
+## Never on a public or guest-visible surface
+
+- Synthetic / demo / seeded score history: `demo_pit_extension`, `demo_multi_horizon`, `hybrid_pit`, `seed_pit`, "demo tape", random-walk PIT, default anchors (e.g. `anchor = 70.0`).
+- Δ chips (WoW/MoM/QoQ/YoY) unless `series_kind == "citeable_pit"`; otherwise render `—`, never a number.
+- Price overlays, Granger / LASSO / lead-lag / "impact map", wordmap stubs, NCI beta, `sentiment` fields. These live behind a pilot seat and an *Experimental — synthetic inputs* label, or not at all.
+- A ranked leaderboard of companies below the confidence threshold.
+
+## A score may be published only when
+
+- `data_quality == "hand_labeled"` **and** every scored row has both `source_url`/`quote_span` (actual) **and** `guidance_source_url`/`guidance_quote`/`guidance_as_of` (the promise). A row without the guidance citation is `pending_guidance_cite` and is excluded.
+- The company has a **confidence tier** attached, computed from closed periods × metrics (`services/score_policy.py`). Show the tier next to every number; no rank below `established`.
+- A reviewer id + review date exists for each row (labeling governance), and the dossier shows "Reviewed …".
+
+## Every change to a published number
+
+1. Append to the **score ledger** `(company_id, as_of, algorithm_id, dataset_version, gci, confidence_tier, reason)`; never overwrite.
+2. Add a row to the methodology changelog (`docs/kb/03-scoring.md`) **and** the public `/changelog` — same day, with before/after and reason (`methodology` | `data_correction` | `new_filing` | `flag_change`).
+3. Run `tests/test_score_consistency.py` and the synthetic-leak negative tests before deploy.
+
+## Copy that goes with a number
+
+"Data as of <date>", confidence tier, reviewer stamp, and one plain sentence of the delivery record ("Met or beat revenue guidance in 5 of 6 closed years; missed FY24").
+
+Skill: `citealpha-index-integrity` · Plan: `docs/PLAN_WORLDCLASS_GCI.md`

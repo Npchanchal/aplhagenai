@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { ogLocaleFor } from "../i18n/languages";
 import { resolveSeo } from "../lib/seo";
+import { getSeoOverride, subscribeSeoOverride } from "../lib/seoOverride";
 import { SITE } from "../lib/seoJsonLd";
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
@@ -56,10 +57,16 @@ function upsertJsonLd(id: string, data: Record<string, unknown> | null) {
 export default function SeoHead() {
   const { pathname } = useLocation();
   const { lang } = useI18n();
+  const [overrideTick, setOverrideTick] = useState(0);
+
+  useEffect(() => subscribeSeoOverride(() => setOverrideTick((n) => n + 1)), []);
 
   useEffect(() => {
-    const seo = resolveSeo(pathname);
+    const base = resolveSeo(pathname);
+    const over = getSeoOverride();
+    const seo = over && over.path === pathname ? { ...base, ...over } : base;
     const url = `${SITE}${seo.path === "/" ? "/" : seo.path}`;
+    const ogImage = seo.ogImage ?? `${SITE}/og-image.png`;
 
     document.documentElement.lang = lang === "en" ? "en-IN" : lang;
 
@@ -72,13 +79,13 @@ export default function SeoHead() {
     upsertMeta("property", "og:title", seo.title);
     upsertMeta("property", "og:description", seo.description);
     upsertMeta("property", "og:url", url);
-    upsertMeta("property", "og:image", `${SITE}/og-image.png`);
+    upsertMeta("property", "og:image", ogImage);
     upsertMeta("property", "og:image:alt", seo.ogImageAlt ?? seo.title);
     upsertMeta("property", "og:locale", ogLocaleFor(lang));
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", seo.title);
     upsertMeta("name", "twitter:description", seo.description);
-    upsertMeta("name", "twitter:image", `${SITE}/og-image.png`);
+    upsertMeta("name", "twitter:image", ogImage);
 
     const twitterSite = import.meta.env.VITE_TWITTER_SITE?.trim();
     if (twitterSite) {
@@ -106,7 +113,7 @@ export default function SeoHead() {
     for (let i = extraCount; i < 8; i++) {
       upsertJsonLd(`seo-jsonld-extra-${i}`, null);
     }
-  }, [pathname, lang]);
+  }, [pathname, lang, overrideTick]);
 
   return null;
 }

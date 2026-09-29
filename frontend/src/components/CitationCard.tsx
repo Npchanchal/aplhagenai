@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useI18n } from "../i18n";
 import type { CitationRecord } from "../lib/api";
 import { recordCiteCopy } from "../lib/api";
 import { useSourceViewer } from "../lib/SourceViewerContext";
@@ -22,6 +23,7 @@ type Props = {
 };
 
 export default function CitationCard({ citation, compact = false }: Props) {
+  const { t } = useI18n();
   const { openSource } = useSourceViewer();
   const [copied, setCopied] = useState<CopyKind | null>(null);
   const n = citation.n;
@@ -78,10 +80,10 @@ export default function CitationCard({ citation, compact = false }: Props) {
           <strong>
             {url || cid || citation.doc_id ? (
               <button type="button" className="linkish" onClick={openDoc}>
-                {citation.title || citation.ticker || "Source"}
+                {citation.title || citation.ticker || t("ui.CitationCard.source")}
               </button>
             ) : (
-              citation.title || citation.ticker || "Source"
+              citation.title || citation.ticker || t("ui.CitationCard.source")
             )}
           </strong>
           <div className="muted citation-meta">
@@ -91,7 +93,7 @@ export default function CitationCard({ citation, compact = false }: Props) {
           </div>
         </div>
         {citation.citeable === false && (
-          <span className="pill muted">not citeable</span>
+          <span className="pill muted">{t("ui.CitationCard.notCiteable")}</span>
         )}
       </header>
       {quote && (
@@ -103,28 +105,28 @@ export default function CitationCard({ citation, compact = false }: Props) {
       )}
       {citation.speaker && (
         <p className="muted" style={{ margin: "4px 0 0", fontSize: 12 }}>
-          Speaker / source: {citation.speaker}
+          {t("ui.CitationCard.speaker", { speaker: citation.speaker })}
         </p>
       )}
       <div className="citation-actions">
         {(url || cid || citation.doc_id) && (
           <button type="button" className="linkish" data-testid="open-source" onClick={openDoc}>
-            Open source
+            {t("ui.CitationCard.openSource")}
           </button>
         )}
         {cid && (
-          <Link to={`/c/${encodeURIComponent(cid)}`} title="Permalink">
+          <Link to={`/c/${encodeURIComponent(cid)}`} title={t("ui.CitationCard.permalink")}>
             {cid}
           </Link>
         )}
         <button type="button" className="btn ghost small" onClick={() => void doCopy("bibliographic")}>
-          {copied === "bibliographic" ? "Copied" : "Copy cite"}
+          {copied === "bibliographic" ? t("ui.CitationCard.copied") : t("ui.CitationCard.copyCite")}
         </button>
         <button type="button" className="btn ghost small" onClick={() => void doCopy("markdown")}>
-          {copied === "markdown" ? "Copied" : "Copy MD"}
+          {copied === "markdown" ? t("ui.CitationCard.copied") : t("ui.CitationCard.copyMd")}
         </button>
         <button type="button" className="btn ghost small" onClick={() => void doCopy("ic_footnote")}>
-          {copied === "ic_footnote" ? "Copied" : "IC note"}
+          {copied === "ic_footnote" ? t("ui.CitationCard.copied") : t("ui.CitationCard.icNote")}
         </button>
       </div>
     </article>

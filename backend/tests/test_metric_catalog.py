@@ -46,10 +46,7 @@ def test_seed_and_provisional_metrics_in_catalog():
 def test_listing_pit_history_not_404():
     res = client.get("/api/companies/nse_abdl/gci/history")
     assert res.status_code == 200
-    body = res.json()
-    assert isinstance(body, list)
-    assert len(body) >= 1
-    assert body[0]["gci_score"] is not None
+    assert res.json() == []
 
 
 def test_require_metric_rejects():

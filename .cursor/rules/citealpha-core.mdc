@@ -1,5 +1,5 @@
 ---
-description: Core CiteAlpha / AlphaHunter product and engineering principles
+description: Core CiteAlpha product and engineering principles
 alwaysApply: true
 ---
 
@@ -8,8 +8,10 @@ alwaysApply: true
 - **Product:** CiteAlpha · **Legal entity:** Ocotillo Innovation Private Limited
 - Product wedge: **Guidance Credibility Index (GCI)** — management promises vs delivery. Not another sentiment dashboard.
 - Lead with factual, evidence-linked scores. Do not ship retail Buy/Hold/Sell without SEBI RA review.
-- Every score point must be traceable to a guidance statement + subsequent actual (date, metric, source).
+- Every score point must be traceable to a guidance statement **and** its subsequent actual — each with its own date, metric and source link.
 - Beachhead market: India (Sensex → Nifty). Export later via API; do not rebuild US-first.
 - Prefer small, tested changes. Keep scoring logic pure and unit-tested in `backend/app/services/`.
-- Never invent financial actuals; use seed/fixture data or explicit stubs in tests.
+- Never invent financial actuals **or score history**; use seed/fixture data or explicit stubs in tests. Public surfaces show nothing synthetic (rule `index-integrity`).
+- Public copy is written for domain experts in plain finance English (rule `public-copy-voice`).
+- Current remediation plan: `docs/PLAN_WORLDCLASS_GCI.md` (findings R3-xx).
 - Knowledge base: `docs/kb/` · Agent routing: `AGENTS.md` and `docs/kb/AGENT_ROUTING.md`.

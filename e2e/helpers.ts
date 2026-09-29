@@ -58,7 +58,7 @@ export async function registerViaApi(): Promise<{ email: string; password: strin
   if (!challengeRes.ok) throw new Error(`Abuse challenge failed (${challengeRes.status})`);
   const challenge = (await challengeRes.json()) as { challenge_id: string; prompt: string };
   const email = `e2e-login-${Date.now()}@ocotillo.test`;
-  const password = "secret99";
+  const password = "secret99pass!";
   const res = await fetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

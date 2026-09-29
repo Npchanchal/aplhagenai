@@ -1,4 +1,6 @@
-"""Terms acceptance + multi-tenant B2B/retail registration."""
+"""Terms acceptance + multi-tenant B2B registration (W8.1: retail off until counsel)."""
+
+import os
 
 from fastapi.testclient import TestClient
 
@@ -12,6 +14,20 @@ client = TestClient(app)
 def setup_function() -> None:
     reset_auth_store()
     reset_data()
+    os.environ.pop("INTELLENS_RETAIL_MARKETING", None)
+    os.environ.pop("INTELLENS_LEGAL_COUNSEL_STATUS", None)
+    # These cases exercise the JSON auth store. Restore the suite default afterwards
+    # so later modules still persist tenants in SQLite.
+    os.environ["_TEST_PREV_USE_DB_AUTH"] = os.environ.get("USE_DB_AUTH", "")
+    os.environ.pop("USE_DB_AUTH", None)
+
+
+def teardown_function() -> None:
+    prev = os.environ.pop("_TEST_PREV_USE_DB_AUTH", "")
+    if prev:
+        os.environ["USE_DB_AUTH"] = prev
+    else:
+        os.environ.pop("USE_DB_AUTH", None)
 
 
 def test_legal_documents_and_copyright():
@@ -52,7 +68,7 @@ def test_guest_and_register_require_terms():
         "/api/auth/register",
         json={
             "email": "x@ocotillo.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "X",
             "accept_terms": False,
         },
@@ -60,31 +76,72 @@ def test_guest_and_register_require_terms():
     assert no_terms.status_code == 400
 
 
-def test_retail_and_b2b_tenants_isolated():
-    retail = client.post(
+def test_retail_register_forbidden_until_sebi_attest():
+    """W8.1 / D1: individual signup stays off while counsel memo is pending."""
+    meta = client.get("/api/legal/meta").json()
+    assert meta["retail_marketing_allowed"] is False
+    assert meta["counsel_status"] != "counsel_approved"
+
+    blocked = client.post(
         "/api/auth/register",
         json={
             "email": "retail@ocotillo.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "Retail User",
             "accept_terms": True,
             "account_type": "retail",
         },
+    )
+    assert blocked.status_code == 403, blocked.text
+    detail = blocked.json().get("detail") or ""
+    assert "Individual accounts" in detail
+    assert "INTELLENS_" not in detail
+
+    # Counsel attest is the only ungate — still works for the paywall tests.
+    att = client.post(
+        "/api/legal/attest",
+        headers={"X-API-Key": "intellens-admin"},
+        json={"kind": "sebi_retail", "attested_by": "counsel@ocotillo.test"},
+    )
+    assert att.status_code == 200
+    opened = client.post(
+        "/api/auth/register",
+        json={
+            "email": "retail@ocotillo.test",
+            "password": "secret99pass!",
+            "name": "Retail User",
+            "accept_terms": True,
+            "account_type": "retail",
+        },
+    )
+    assert opened.status_code == 200, opened.text
+    assert opened.json()["user"]["account_type"] == "retail"
+    os.environ.pop("INTELLENS_RETAIL_MARKETING", None)
+
+
+def test_retail_and_b2b_tenants_isolated():
+    a = client.post(
+        "/api/auth/register",
+        json={
+            "email": "desk-a@ocotillo.test",
+            "password": "secret99pass!",
+            "name": "Desk A",
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_name": "South Star PMS",
+        },
     ).json()
-    assert retail["user"]["account_type"] == "retail"
-    assert retail["user"]["org_id"]
-    r_token = retail["token"]
-    r_org = client.get(
-        "/api/orgs/me", headers={"Authorization": f"Bearer {r_token}"}
+    assert a["user"]["account_type"] == "b2b"
+    a_org = client.get(
+        "/api/orgs/me", headers={"Authorization": f"Bearer {a['token']}"}
     ).json()
-    assert r_org["plan"] == "retail"
-    assert r_org["account_type"] == "retail"
+    assert "South Star" in a_org["name"]
 
     b2b = client.post(
         "/api/auth/register",
         json={
             "email": "desk@ocotillo.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "Desk Owner",
             "accept_terms": True,
             "account_type": "b2b",
@@ -98,7 +155,7 @@ def test_retail_and_b2b_tenants_isolated():
         "/api/orgs/me", headers={"Authorization": f"Bearer {b_token}"}
     ).json()
     assert "North Star" in b_org["name"]
-    assert b_org["id"] != r_org["id"]
+    assert b_org["id"] != a_org["id"]
     assert b_org["plan"] == "pilot"
 
     # Review stamped with org; other org key cannot list it

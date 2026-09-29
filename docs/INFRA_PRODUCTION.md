@@ -1,5 +1,28 @@
 # Infrastructure — production (Ocotillo / CiteAlpha)
 
+## Go-live profile (W8.6) — code ready, apply is operator
+
+`deploy/aws/production.overlay.tfvars` sets on-demand Fargate (Spot weight 0, desired count 1), EFS auth, daily EFS backup, CloudWatch alarms, and the index S3 bucket. Combine it with the existing stack file; do not apply the overlay alone.
+
+```bash
+# from deploy/aws, with AWS_PROFILE=ocotillo
+terraform apply -var-file=terraform.tfvars -var-file=production.overlay.tfvars
+```
+
+`scripts/aws-idle.sh` refuses unless `CITEALPHA_ALLOW_IDLE=1`. That flag is for a review stack, not citealpha.com.
+
+The task writes the ledger and index files to `INTELLENS_DATA_DIR=/data/citealpha` on the auth EFS when EFS is mounted. Postgres is opt-in (`DATABASE_URL` + `USE_POSTGRES_AUTH=1`) when an RDS instance exists; the overlay does not create one.
+
+Local backup drill (does not touch AWS):
+
+```bash
+./scripts/backup-restore-drill.sh
+```
+
+Live checklist rows for capacity, EFS, alarms, and backups stay fail until this overlay has been applied and re-verified. See `docs/PRODUCTION_GO_LIVE_CHECKLIST.md`.
+
+## SQL auth (SQLite or Postgres)
+
 ## SQL auth (SQLite or Postgres)
 
 ```bash
@@ -59,5 +82,5 @@ CSP: `SecurityHeadersMiddleware` and SPA nginx emit `Content-Security-Policy` al
 |---|---|
 | Attest Terms/Privacy | `POST /api/legal/attest` `{kind: terms_privacy}` admin key |
 | Attest SEBI retail | `POST /api/legal/attest` `{kind: sebi_retail}` |
-| Retail checkout | `POST /api/billing/retail/checkout` |
+| Retail checkout | Not offered. Paid plans are quote / order form (W8.8). `POST /api/billing/retail/checkout` returns 403. |
 | MSA invoice + e-sign | `POST /api/billing/msa` → `/sign` |

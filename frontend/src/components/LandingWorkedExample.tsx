@@ -2,15 +2,27 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { fetchCompanyGci, type CompanyGCIDetail, type OutcomeView } from "../lib/api";
-import { formatScore, scoreClass } from "../lib/score";
+import { formatCompanyScore, metricDisplayName, scoreClass } from "../lib/score";
+import ScoreCalcPanel from "./ScoreCalcPanel";
 
 export const EXAMPLE_COMPANY_ID = "infy";
-const EXAMPLE_THREAD_ID = "infy-rev-cc";
+
+const EXAMPLES = [
+  { id: "infy", tabKey: "landing.example.tab.infy", whyTitleKey: "landing.example.whyTitle", whyKey: "landing.example.why" },
+  {
+    id: "apollohosp",
+    tabKey: "landing.example.tab.apollo",
+    whyTitleKey: "landing.example.apollo.whyTitle",
+    whyKey: "landing.example.apollo.why",
+  },
+] as const;
+
+function fmtBand(low: number, high: number): string {
+  return low === high ? `${low}%` : `${low}–${high}%`;
+}
 
 function band(o: OutcomeView): string {
-  const low = o.guided_low ?? o.guided_value;
-  const high = o.guided_high ?? o.guided_value;
-  return low === high ? `${low}%` : `${low}–${high}%`;
+  return fmtBand(o.guided_low ?? o.guided_value, o.guided_high ?? o.guided_value);
 }
 
 function sourceHost(url: string): string {
@@ -21,6 +33,11 @@ function sourceHost(url: string): string {
   }
 }
 
+function latestDate(outcomes: OutcomeView[]): string | null {
+  const dates = outcomes.map((o) => o.as_of).filter((d): d is string => Boolean(d));
+  return dates.length ? dates.sort()[dates.length - 1] : null;
+}
+
 function TrailStep({
   kind,
   label,
@@ -28,7 +45,7 @@ function TrailStep({
   quote,
   url,
 }: {
-  kind: "guidance" | "actual";
+  kind: "guidance" | "actual" | "source";
   label: string;
   date?: string | null;
   quote?: string | null;
@@ -54,26 +71,99 @@ function TrailStep({
   );
 }
 
-/** One real, cited guidance thread — proof before definition. */
+function Revisions({ o }: { o: OutcomeView }) {
+  const { t } = useI18n();
+  const revs = o.revisions ?? [];
+  if (!revs.length) return null;
+  return (
+    <div className="landing-example-revisions" data-testid={`example-revisions-${o.period}`}>
+      <span className="muted">
+        {t(o.revision_direction === "cut" ? "landing.example.revisedDown" : "landing.example.revisedUp")}:
+      </span>{" "}
+      {revs.map((r, i) => (
+        <span key={r.as_of}>
+          {i > 0 ? " → " : null}
+          {r.source_url ? (
+            <a href={r.source_url} rel="noopener noreferrer" target="_blank" title={r.quote ?? undefined}>
+              {fmtBand(r.guided_low, r.guided_high)} ({r.as_of})
+            </a>
+          ) : (
+            `${fmtBand(r.guided_low, r.guided_high)} (${r.as_of})`
+          )}
+        </span>
+      ))}
+      {o.final_label ? (
+        <>
+          {" · "}
+          <span className="muted">{t("landing.example.vsFinal")}</span>{" "}
+          <span className={`pill ${o.final_label}`} data-testid={`example-final-${o.period}`}>
+            {o.final_label}
+          </span>{" "}
+          <span className="muted">{t("landing.example.notScored")}</span>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/** Real, cited guidance threads — proof before definition. */
 export default function LandingWorkedExample() {
   const { t } = useI18n();
-  const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [active, setActive] = useState<string>(EXAMPLES[0].id);
+  const [details, setDetails] = useState<Record<string, CompanyGCIDetail>>({});
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    fetchCompanyGci(EXAMPLE_COMPANY_ID)
-      .then(setDetail)
-      .catch(() => setFailed(true));
-  }, []);
+    if (details[active] || failed[active]) return;
+    fetchCompanyGci(active)
+      .then((d) => setDetails((prev) => ({ ...prev, [active]: d })))
+      .catch(() => setFailed((prev) => ({ ...prev, [active]: true })));
+  }, [active, details, failed]);
 
-  const rows = (detail?.outcomes ?? [])
-    .filter((o) => o.thread_id === EXAMPLE_THREAD_ID && o.actual_value != null)
-    .sort((a, b) => a.period.localeCompare(b.period));
+  const example = EXAMPLES.find((e) => e.id === active) ?? EXAMPLES[0];
+  const detail = details[active];
+  const closed = (detail?.outcomes ?? []).filter((o) => o.actual_value != null);
+  const metricCounts = closed.reduce<Record<string, number>>((acc, o) => {
+    acc[o.metric] = (acc[o.metric] ?? 0) + 1;
+    return acc;
+  }, {});
+  const primaryMetric = Object.entries(metricCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const rows = [...closed].sort((a, b) =>
+    a.metric === b.metric
+      ? a.period.localeCompare(b.period)
+      : a.metric === primaryMetric
+        ? -1
+        : b.metric === primaryMetric
+          ? 1
+          : a.metric.localeCompare(b.metric),
+  );
+  const asOf = detail ? latestDate(detail.outcomes) : null;
+  const record = ["exceeded", "met", "missed", "dropped"]
+    .map((label) => ({ label, n: closed.filter((o) => o.label === label).length }))
+    .filter((r) => r.n > 0);
+  const metricName = (m: string) => metricDisplayName(m);
+  const rowKey = (o: OutcomeView) =>
+    o.metric === primaryMetric ? o.period : `${o.period}-${o.metric}`;
 
   return (
     <div className="panel landing-example" data-testid="landing-worked-example">
       <p className="landing-kicker">{t("landing.example.kicker")}</p>
-      {failed ? (
+      <div className="landing-example-tabs" role="tablist" aria-label={t("landing.example.tabsLabel")}>
+        {EXAMPLES.map((e) => (
+          <button
+            key={e.id}
+            type="button"
+            role="tab"
+            aria-selected={active === e.id}
+            className={`landing-example-tab${active === e.id ? " active" : ""}`}
+            data-testid={`example-tab-${e.id}`}
+            onClick={() => setActive(e.id)}
+          >
+            {t(e.tabKey)}
+          </button>
+        ))}
+      </div>
+      {failed[active] ? (
         <p className="muted">{t("landing.example.error")}</p>
       ) : !detail ? (
         <p className="muted">{t("landing.example.loading")}</p>
@@ -81,25 +171,42 @@ export default function LandingWorkedExample() {
         <>
           <div className="landing-example-head">
             <h2>{t("landing.example.title", { name: detail.name })}</h2>
-            <span className="landing-example-gci">
-              {t("landing.example.companyGci")}{" "}
-              <strong className={`score ${scoreClass(detail.gci_score)}`}>
-                {formatScore(detail.gci_score)}
-              </strong>
-            </span>
+            <div className="landing-example-readouts">
+              <span className="landing-example-gci" data-testid="example-company-gci">
+                {t("landing.example.companyGci")}{" "}
+                <strong className={`score ${scoreClass(detail.gci_score)}`}>
+                  {formatCompanyScore(detail.gci_score)}
+                </strong>
+              </span>
+              <span className="landing-example-record" data-testid="example-delivery-record">
+                {t("landing.example.record")}{" "}
+                {record.map((r, i) => (
+                  <span key={r.label}>
+                    {i > 0 ? " · " : null}
+                    <strong>{r.n}</strong> {r.label}
+                  </span>
+                ))}
+              </span>
+            </div>
           </div>
-          <p className="muted">{t("landing.example.lede")}</p>
+          <p className="muted">{t(`landing.example.lede.${example.id}`)}</p>
+          {asOf ? (
+            <p className="muted landing-example-asof" data-testid="example-as-of">
+              {t("landing.example.asOf", { date: asOf })}
+            </p>
+          ) : null}
           <ol className="landing-example-rows">
             {rows.map((o) => (
               <li key={`${o.period}-${o.metric}`} className="landing-example-row">
                 <span className="landing-example-period">{o.period}</span>
+                <span className="landing-example-metric">{metricName(o.metric)}</span>
                 <span>
                   <span className="muted">{t("landing.example.guided")}</span> {band(o)}
                 </span>
                 <span>
                   <span className="muted">{t("landing.example.actual")}</span> {o.actual_value}%
                 </span>
-                <span className={`pill ${o.label}`} data-testid={`example-label-${o.period}`}>
+                <span className={`pill ${o.label}`} data-testid={`example-label-${rowKey(o)}`}>
                   {o.label}
                 </span>
                 <span className="muted">
@@ -107,7 +214,8 @@ export default function LandingWorkedExample() {
                     ? t("landing.example.points", { points: o.contribution_score })
                     : "—"}
                 </span>
-                <div className="landing-example-trail" data-testid={`example-trail-${o.period}`}>
+                <Revisions o={o} />
+                <div className="landing-example-trail" data-testid={`example-trail-${rowKey(o)}`}>
                   {o.guidance_source_url ? (
                     <TrailStep
                       kind="guidance"
@@ -119,8 +227,12 @@ export default function LandingWorkedExample() {
                   ) : null}
                   {o.source_url ? (
                     <TrailStep
-                      kind="actual"
-                      label={t("landing.example.trailActual")}
+                      kind={o.guidance_source_url ? "actual" : "source"}
+                      label={t(
+                        o.guidance_source_url
+                          ? "landing.example.trailActual"
+                          : "landing.example.trailSource",
+                      )}
                       date={o.as_of}
                       quote={o.quote_span}
                       url={o.source_url}
@@ -130,11 +242,13 @@ export default function LandingWorkedExample() {
               </li>
             ))}
           </ol>
+          <ScoreCalcPanel detail={detail} showMethodLink />
           <div className="landing-example-why">
-            <strong>{t("landing.example.whyTitle")}</strong> {t("landing.example.why")}
+            <strong>{t(example.whyTitleKey)}</strong> {t(example.whyKey)}{" "}
+            <Link to="/methodology">{t("landing.example.methodLink")}</Link>
           </div>
           <p>
-            <Link to={`/companies/${EXAMPLE_COMPANY_ID}`}>
+            <Link to={`/companies/${detail.id}`}>
               {t("landing.example.open", { name: detail.name })}
             </Link>
           </p>

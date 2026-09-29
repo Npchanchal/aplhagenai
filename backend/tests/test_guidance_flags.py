@@ -1,6 +1,6 @@
 """Audit flags, revision timeline, and enriched red alerts."""
 
-from app.data.seed import get_data, reset_data, save_data
+from app.data.seed import reset_data
 from app.services.guidance_flags import (
     audit_summary,
     collect_audit_flags,
@@ -18,7 +18,9 @@ def teardown_module():
     reset_data()
 
 
-def test_dropped_outcome_sets_withdrawal_flag():
+def test_dropped_outcome_suggests_withdrawal_without_deduction():
+    from app.services.guidance_flags import suggest_audit_flags
+
     outs = [
         GuidanceOutcome(
             period="FY25",
@@ -30,11 +32,11 @@ def test_dropped_outcome_sets_withdrawal_flag():
             as_of="2025-01-01",
         )
     ]
-    flags = collect_audit_flags(outs)
-    assert "guidance_withdrawal" in flags
+    assert "guidance_withdrawal" in suggest_audit_flags(outs)
+    assert collect_audit_flags(outs) == []
     summary = audit_summary(outs)
-    assert summary["deduction"] >= 15.0
-    assert any(b["flag"] == "guidance_withdrawal" for b in summary["badges"])
+    assert summary["deduction"] == 0.0
+    assert summary["badges"] == []
 
 
 def test_restatement_text_sets_flag():
@@ -49,7 +51,10 @@ def test_restatement_text_sets_flag():
             as_of="2024-06-01",
         )
     ]
-    assert "restatement" in collect_audit_flags(outs)
+    from app.services.guidance_flags import suggest_audit_flags
+
+    assert "restatement" in suggest_audit_flags(outs)
+    assert collect_audit_flags(outs) == []
 
 
 def test_revision_timeline_ordered():
@@ -88,14 +93,28 @@ def test_company_gci_includes_audit_and_timeline():
     assert hasattr(detail, "audit_flags")
     assert hasattr(detail, "revision_timeline")
     assert isinstance(detail.revision_timeline, list)
-    # asianpaints seed has a dropped restatement sample
-    assert detail.audit_deduction >= 0
+    # asianpaints: no analyst-set flags in seed
+    assert detail.audit_deduction == 0
+    assert detail.audit_flags == []
 
 
-def test_alerts_include_audit_kinds_when_dropped():
-    data = get_data()
-    # Ensure at least one dropped exists in seed path
-    alerts = list_alerts()
-    kinds = {a.kind for a in alerts}
-    # Seed has dropped + misses; audit flags should surface
-    assert "large_miss" in kinds or "guidance_dropped" in kinds or "guidance_withdrawal" in kinds
+def test_alerts_include_dropped_row_not_heuristic_withdrawal():
+    from app.services.repository import merge_matched
+
+    merge_matched(
+        "asianpaints",
+        [
+            {
+                "period": "FY99",
+                "metric": "revenue_growth_pct",
+                "guided_value": 10.0,
+                "guided_text": "withdrawn",
+                "dropped": True,
+                "actual_value": None,
+                "as_of": "2025-01-01",
+            }
+        ],
+    )
+    kinds = {a.kind for a in list_alerts()}
+    assert "guidance_dropped" in kinds
+    assert "guidance_withdrawal" not in kinds

@@ -29,6 +29,7 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
         "feedback",
         "wordmap",
         "badge",
+        "analytics_experimental",
     },
     "labeler": {
         "tracker",
@@ -54,6 +55,7 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
         "labeling",
         "wordmap",
         "badge",
+        "analytics_experimental",
     },
     "admin": set(),  # filled below — all plan features
     "owner": set(),

@@ -8,6 +8,9 @@ alwaysApply: false
 
 - Flags: `hand_labeled` | `demo_structured` | `market_scaffold` — never lie.
 - Hand-label: real sources, bands, quote_span; follow `docs/LABELING_PLAYBOOK.md`.
-- After label edits: delete `store.json`, rebuild, run pytest.
+- A scored row needs **two** citations: the promise (`guidance_source_url`, `guidance_quote`, `guidance_as_of`) and the actual (`source_url`, `quote_span`, `as_of`). "Typical framing" is not guidance.
+- Every hand_labeled row records `reviewed_by` + `reviewed_at`; promotion to hand_labeled is logged in `audit.json` (`label_accept`).
+- Editing a hand_labeled row that changes a published score → ledger + changelog (rule `index-integrity`).
+- After label edits: delete `store.json`, rebuild, run pytest (incl. `test_score_consistency.py`).
 - Do not invent actuals or overwrite hand_labeled with silent demo generators.
 - Update `docs/ACCURACY_ASSESSMENT.md` when cohort quality claims change.

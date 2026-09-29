@@ -12,3 +12,8 @@ alwaysApply: false
 - Keep `hand_labeled` vs `demo_structured` badges honest and visible.
 - Competitor names (AlphaSense, Bloomberg) only in internal docs — not product chrome.
 - Align customer claims with `docs/customer/COMPLIANCE.md` and labeled cohort reality.
+- GCI is a **Guidance Credibility Index** — never label it a "Trust Score", "Promoter … Score", "signal" or "alpha" (badge endpoint, embeds, OG tags included). "Promoter" is a legal term in India; do not attach it to a score.
+- No `sentiment`, price-correlation, Granger or lead-lag output on guest/retail surfaces; pilot-only with an *Experimental* label.
+- Retail marketing/checkout stays off until `sebi_retail` attestation; do not surface counsel or attestation status in public UI/API.
+- Privacy/Trust must name every analytics vendor actually loaded (GA4 + Plausible), the LLM processor, and a Grievance Officer.
+- Banned-term source of truth: rule `public-copy-voice` + `backend/tests/test_public_copy_hygiene.py`.

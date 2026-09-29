@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import HighlightedDocument from "./HighlightedDocument";
+import { useI18n } from "../i18n";
 import { fetchCitation, fetchDocument } from "../lib/api";
 import { withTextHighlight } from "../lib/sourceHighlight";
 import type { SourceTarget } from "../lib/SourceViewerContext";
@@ -26,10 +27,11 @@ type Resolved = {
 };
 
 export default function SourceViewer({ target, onClose }: Props) {
+  const { t } = useI18n();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(true);
   const [resolved, setResolved] = useState<Resolved>(() => ({
-    title: target.title || "Source",
+    title: target.title || t("ui.SourceViewer.defaultTitle"),
     text: target.document_text || "",
     quote: target.quote || "",
     url: target.source_url || "",
@@ -75,7 +77,7 @@ export default function SourceViewer({ target, onClose }: Props) {
           const quote = rec.quote_span || rec.quote || rec.snippet || target.quote || "";
           const url = rec.source_url || rec.url || target.source_url || "";
           setResolved({
-            title: rec.title || rec.document_title || target.title || "Source",
+            title: rec.title || rec.document_title || target.title || t("ui.SourceViewer.defaultTitle"),
             text: rec.document_text || quote || "",
             quote,
             url,
@@ -94,7 +96,7 @@ export default function SourceViewer({ target, onClose }: Props) {
           const quote = target.quote || "";
           const url = doc.url || target.source_url || "";
           setResolved({
-            title: doc.title || target.title || "Source",
+            title: doc.title || target.title || t("ui.SourceViewer.defaultTitle"),
             text: doc.text || quote,
             quote,
             url,
@@ -115,7 +117,7 @@ export default function SourceViewer({ target, onClose }: Props) {
         if (!cancelled) {
           setResolved((prev) => ({
             ...prev,
-            error: e instanceof Error ? e.message : "Could not load document",
+            error: e instanceof Error ? e.message : t("ui.SourceViewer.loadError"),
           }));
         }
       } finally {
@@ -140,7 +142,7 @@ export default function SourceViewer({ target, onClose }: Props) {
       >
         <header className="source-viewer-head">
           <div>
-            <p className="page-kicker">Source document</p>
+            <p className="page-kicker">{t("ui.SourceViewer.kicker")}</p>
             <h2 id="source-viewer-title">{resolved.title}</h2>
           </div>
           <button
@@ -150,10 +152,10 @@ export default function SourceViewer({ target, onClose }: Props) {
             onClick={onClose}
             data-testid="source-viewer-close"
           >
-            Close
+            {t("ui.SourceViewer.close")}
           </button>
         </header>
-        {busy && <p className="muted">Loading document…</p>}
+        {busy && <p className="muted">{t("ui.SourceViewer.loading")}</p>}
         {resolved.error && <p className="error">{resolved.error}</p>}
         {!busy && (
           <HighlightedDocument
@@ -173,7 +175,7 @@ export default function SourceViewer({ target, onClose }: Props) {
               rel="noreferrer"
               data-testid="open-original-source"
             >
-              Open original with highlight
+              {t("ui.SourceViewer.openHighlight")}
             </a>
           )}
           {!resolved.highlightUrl && resolved.url && (
@@ -183,14 +185,16 @@ export default function SourceViewer({ target, onClose }: Props) {
               rel="noreferrer"
               data-testid="open-related-portal"
             >
-              {resolved.indexedExcerpt ? "Open company IR portal" : "Open original source"}
+              {resolved.indexedExcerpt
+                ? t("ui.SourceViewer.openIrPortal")
+                : t("ui.SourceViewer.openOriginal")}
             </a>
           )}
           {resolved.citationId && (
-            <Link to={`/c/${encodeURIComponent(resolved.citationId)}`}>Permalink</Link>
+            <Link to={`/c/${encodeURIComponent(resolved.citationId)}`}>{t("ui.SourceViewer.permalink")}</Link>
           )}
           {resolved.companyId && (
-            <Link to={`/companies/${resolved.companyId}`}>Open GCI dossier →</Link>
+            <Link to={`/companies/${resolved.companyId}`}>{t("ui.SourceViewer.openDossier")}</Link>
           )}
         </footer>
       </div>

@@ -6,6 +6,12 @@ import os
 from typing import Any, Dict, List
 
 
+def _filing_to_score() -> Dict[str, Any]:
+    from app.services.score_sla import sla_summary
+
+    return sla_summary()
+
+
 def _https_redirect_ok() -> bool:
     redirect = (os.environ.get("OIDC_REDIRECT_URI") or "").strip().lower()
     if not redirect:
@@ -205,6 +211,7 @@ def pending_depth_report(*, bootstrap: bool = False) -> Dict[str, Any]:
         "corpus": sensex_corpus_coverage(),
         "pit": pit_honesty_summary(),
         "conversion": conversion_readiness(),
+        "filing_to_score": _filing_to_score(),
         "steps": steps,
         "bootstrap": boot,
     }

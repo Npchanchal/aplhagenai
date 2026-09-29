@@ -12,5 +12,10 @@ alwaysApply: false
 - **Beats ≠ misses**: v3/v4 use γ=1.4 only below band; v4 beats ≥ `GCI_BEAT_FLOOR` (60); v2 exceeded ≥85.
 - `dropped` is not a full miss — v3/v4 exclude the row and apply −15 withdrawal deduction; v2 ≈35.
 - Exclude `pending` / `unmapped` from company GCI averages.
-- Every persisted outcome should carry `source_url` / `source_ref` / `quote_span` when available.
+- Every persisted outcome carries `source_url` / `source_ref` / `quote_span` (actual) **and** `guidance_source_url` / `guidance_quote` / `guidance_as_of` (promise). Missing guidance cite → row excluded from the score.
+- Company composite weights metrics by evidence (closed periods), not a flat mean — one single-period metric must not move a five-year record by double digits. A metric enters the composite only with ≥ 2 closed periods (else shown as context).
+- Confidence tier is part of the score contract (`score_policy.py`): `provisional` (<3 closed periods or 1 metric) · `established` (≥3 periods, ≥2 metrics) · `deep` (≥5 periods, ≥2 metrics). No rank below `established`.
+- `low_confidence` + sector shrinkage: either wire `sector_mean` from the repository or remove it from docs and UI — never document an unwired path.
+- Audit flags (`guidance_withdrawal`, `restatement`, `definition_shift`) are analyst-set and persisted; keyword heuristics may only *suggest* to the review queue.
+- Any change that moves a published score follows the ledger + changelog protocol in rule `index-integrity` / skill `citealpha-index-integrity`.
 - Keep scoring pure (no I/O). Persist via `seed.get_data()` / repository only.

@@ -23,10 +23,9 @@ def test_provisional_outcomes_have_no_invented_quotes():
 def test_provisional_dossier_not_citeable():
     detail = get_company_gci("nse_abdl")
     assert detail.data_quality == "listing_provisional"
-    assert detail.outcomes
-    assert all(o.citeable is False for o in detail.outcomes)
-    assert all(o.cite_reason == "provisional" for o in detail.outcomes)
-    assert all(o.quote_span is None for o in detail.outcomes)
+    assert detail.status == "not_yet_scored"
+    assert detail.gci_score is None
+    assert detail.outcomes == []
 
 
 def test_hand_labeled_infy_citeable():

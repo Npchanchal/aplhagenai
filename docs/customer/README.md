@@ -19,7 +19,7 @@ Sales-ready materials for institutional pilots and paid seats. Share this folder
 
 **Live product**
 
-- Workbench UI (Guidance Tracker + evidence + help)
+- Workbench UI (GCI Screener + evidence + help)
 - Portfolio overview: `/products`
 - REST API with `X-API-Key`
 - In-app summary: `/package`

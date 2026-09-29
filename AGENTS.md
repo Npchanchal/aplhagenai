@@ -9,17 +9,24 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 ## Always
 
 1. Read `docs/kb/00-overview.md` when context is cold.
-2. Follow always-on rule `.cursor/rules/citealpha-core.mdc`.
+2. Follow always-on rules `.cursor/rules/citealpha-core.mdc` and `.cursor/rules/index-integrity.mdc`.
 3. Pick a specialist from `.cursor/agents/` using `docs/kb/AGENT_ROUTING.md`.
 4. Load the matching `.cursor/skills/*/SKILL.md` before multi-step work.
-5. Prefer small, tested changes; never invent financial actuals.
+5. Prefer small, tested changes; never invent financial actuals **or score history**.
+6. Any change that moves a published GCI follows `citealpha-index-integrity` (ledger + changelog).
+7. Public copy is for domain experts: rule `public-copy-voice`; canonical names GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · Public Snapshot.
+
+## Current programme
+
+`docs/PLAN_WORLDCLASS_GCI.md` — Round-3 review remediation (findings `R3-nn`, workstreams `W1–W9`, gates G-A…G-E). Execute with skill `citealpha-worldclass-remediation`.
 
 ## Specialist agents
 
 | Agent file | Use for |
 |---|---|
-| [gci-engineer](.cursor/agents/gci-engineer.md) | Scoring, APIs, pipeline, Tracker backend |
-| [frontend-designer](.cursor/agents/frontend-designer.md) | UI/UX, dossier, Desk/Research chrome |
+| [index-steward](.cursor/agents/index-steward.md) | Score policy, confidence tiers, ledger, changelog, labeling governance, index governance |
+| [gci-engineer](.cursor/agents/gci-engineer.md) | Scoring, APIs, pipeline, Screener/dossier backend |
+| [frontend-designer](.cursor/agents/frontend-designer.md) | Expert-grade UI/UX: homepage, dossier, Screener, Snapshot, Workbench chrome |
 | [research-terminal](.cursor/agents/research-terminal.md) | Search, cite-only chat, snapshots |
 | [labeling-analyst](.cursor/agents/labeling-analyst.md) | Hand-labeled Sensex outcomes |
 | [product-strategist](.cursor/agents/product-strategist.md) | Scope, GTM, user stories, pitch |

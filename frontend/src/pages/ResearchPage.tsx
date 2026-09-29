@@ -31,7 +31,7 @@ import {
   type ResearchSnapshot,
   type WatchlistItem,
 } from "../lib/api";
-import { formatScore, scoreClass } from "../lib/score";
+import { formatCompanyScore, scoreClass } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../i18n";
@@ -40,36 +40,36 @@ import { withTextHighlight } from "../lib/sourceHighlight";
 
 type Tab = "search" | "chat" | "desk" | "sectors" | "news" | "watch";
 
-const TABS: { id: Tab; label: string; title: string }[] = [
+const TABS: { id: Tab; labelKey: string; titleKey?: string; title?: string }[] = [
   {
     id: "search",
-    label: "Search",
-    title: "Primary-source document search over filings, transcripts, and guidance.",
+    labelKey: "ui.ResearchPage.tab.search.label",
+    titleKey: "ui.ResearchPage.tab.search.title",
   },
   {
     id: "chat",
-    label: "AI Chat",
-    title: "Cite-only answers from the document store. Refuses when evidence is missing.",
+    labelKey: "ui.ResearchPage.tab.chat.label",
+    titleKey: "ui.ResearchPage.tab.chat.title",
   },
   {
     id: "desk",
-    label: "Desk snapshot",
+    labelKey: "ui.ResearchPage.tab.desk.label",
     title: tipText("research_terminal"),
   },
   {
     id: "sectors",
-    label: "Sectors",
-    title: "Sector credibility leaderboard — average GCI by sector",
+    labelKey: "ui.ResearchPage.tab.sectors.label",
+    titleKey: "ui.ResearchPage.tab.sectors.title",
   },
   {
     id: "news",
-    label: "News & filings",
-    title: "Chronological news and filings feed for the focus name or universe.",
+    labelKey: "ui.ResearchPage.tab.news.label",
+    titleKey: "ui.ResearchPage.tab.news.title",
   },
   {
     id: "watch",
-    label: "Watchlist",
-    title: "Watchlist tape with MoM/QoQ/YoY and GCI Δ — click through to desk snapshot.",
+    labelKey: "ui.ResearchPage.tab.watch.label",
+    titleKey: "ui.ResearchPage.tab.watch.title",
   },
 ];
 
@@ -79,6 +79,11 @@ export default function ResearchPage() {
   const { preferences, token, updatePreferences } = useAuth();
   const { t } = useI18n();
   const { openSource } = useSourceViewer();
+  const tabs = TABS.map((x) => ({
+    id: x.id,
+    label: t(x.labelKey),
+    title: x.titleKey ? t(x.titleKey) : x.title,
+  }));
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: Tab = TABS.some((x) => x.id === tabParam)
@@ -192,7 +197,7 @@ export default function ResearchPage() {
       feature="research"
       title={t("research.title")}
       kicker={t("research.kicker")}
-      description={`${t("research.lede")} Pilot and retail plans unlock the full Research Terminal.`}
+      description={`${t("research.lede")}${t("ui.ResearchPage.gate.description")}`}
       returnTo="/research"
       testId="research-access-gate"
     >
@@ -202,8 +207,8 @@ export default function ResearchPage() {
         {t("research.title")} <InfoTip termId="research_terminal" />
       </h1>
       <p className="muted lede">
-        {t("research.lede")} Answers cite document snippets only — not provisional GCI
-        shells. Prefer Hand-labeled dossiers for guidance delivery claims.{" "}
+        {t("research.lede")}
+        {t("ui.ResearchPage.lede.after")}{" "}
         <InfoTip termId="citability" />
       </p>
 
@@ -216,10 +221,10 @@ export default function ResearchPage() {
           testId="research-company"
         />
         <TabBar
-          tabs={TABS}
+          tabs={tabs}
           active={tab}
           onChange={(id) => setTab(id as Tab)}
-          ariaLabel="Research modes"
+          ariaLabel={t("ui.ResearchPage.modesAria")}
         />
       </div>
 
@@ -234,9 +239,9 @@ export default function ResearchPage() {
 
       {tab === "search" && (
         <div className="panel">
-          <h2 style={{ marginTop: 0 }}>Document search</h2>
-          <p className="muted">Guidance quotes, transcripts, filings, expert notes.</p>
-          <div className="chip-row" role="group" aria-label="Document type">
+          <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.search.title")}</h2>
+          <p className="muted">{t("ui.ResearchPage.search.subtitle")}</p>
+          <div className="chip-row" role="group" aria-label={t("ui.ResearchPage.search.docTypeAria")}>
             {DOC_TYPES.map((t) => (
               <button
                 key={t}
@@ -252,14 +257,14 @@ export default function ResearchPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="e.g. margin guidance FY26"
+              placeholder={t("ui.ResearchPage.search.placeholder")}
               data-testid="research-query"
               onKeyDown={(e) => {
                 if (e.key === "Enter") void runSearch();
               }}
             />
             <button type="button" className="btn" onClick={runSearch} disabled={busy}>
-              Search
+              {t("ui.ResearchPage.search.button")}
             </button>
           </div>
           <ul className="doc-list">
@@ -288,12 +293,12 @@ export default function ResearchPage() {
                     })
                   }
                 >
-                  Open source →
+                  {t("ui.ResearchPage.openSource")}
                 </button>
               </li>
             ))}
             {results.length > 0 && filteredResults.length === 0 && (
-              <li className="muted">No documents for type “{docType}”.</li>
+              <li className="muted">{t("ui.ResearchPage.search.noDocsForType", { type: docType })}</li>
             )}
           </ul>
         </div>
@@ -303,15 +308,15 @@ export default function ResearchPage() {
         <PlanAccessGate
           feature="research_chat"
           variant="panel"
-          title="Research chat"
-          description="Cite-only answers from the document store. Refuses when evidence is missing — Pilot+ plans required."
+          title={t("ui.ResearchPage.chat.title")}
+          description={t("ui.ResearchPage.chat.gateDescription")}
           returnTo="/research?tab=chat"
           testId="research-chat-gate"
         >
         <div className="panel">
-          <h2 style={{ marginTop: 0 }}>Research chat</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.chat.title")}</h2>
           <p className="muted">
-            Cite-only answers. Refuses when no evidence is indexed for the question.
+            {t("ui.ResearchPage.chat.subtitle")}
           </p>
           <textarea
             value={question}
@@ -326,14 +331,14 @@ export default function ResearchPage() {
             disabled={busy}
             style={{ marginTop: 8 }}
           >
-            Ask
+            {t("ui.ResearchPage.chat.ask")}
           </button>
           {answer && (
             <div className="chat-answer" data-testid="research-answer">
               <CitedAnswer text={answer} citations={citations} />
               {citations.length > 0 ? (
                 <>
-                  <h3>Citations</h3>
+                  <h3>{t("ui.ResearchPage.chat.citations")}</h3>
                   <div className="citation-stack">
                     {citations.map((c, idx) => (
                       <CitationCard
@@ -344,7 +349,7 @@ export default function ResearchPage() {
                   </div>
                 </>
               ) : (
-                <p className="muted">No citations returned.</p>
+                <p className="muted">{t("ui.ResearchPage.chat.noCitations")}</p>
               )}
             </div>
           )}
@@ -356,14 +361,14 @@ export default function ResearchPage() {
         <div className="panel">
           <div className="dossier-hero" style={{ borderBottom: "1px solid var(--line)" }}>
             <div>
-              <p className="page-kicker">Desk snapshot</p>
+              <p className="page-kicker">{t("ui.ResearchPage.tab.desk.label")}</p>
               <h2 style={{ marginTop: 0 }}>
                 {snapshot.ticker} · {snapshot.name}
               </h2>
               <div className="dossier-meta">
                 <span>{snapshot.sector}</span>
                 <QualityBadge quality={snapshot.gci.data_quality} />
-                <span className="pill warn">Demo tape</span>
+                <span className="pill warn">{t("ui.ResearchPage.desk.demoTape")}</span>
               </div>
             </div>
             <div className="dossier-score-block">
@@ -378,25 +383,25 @@ export default function ResearchPage() {
             </div>
           </div>
           <p className="muted" style={{ fontSize: 13 }}>
-            Levels plus MoM / QoQ / YoY — increments are the desk primary signal.{" "}
+            {t("ui.ResearchPage.desk.levelsNote")}{" "}
             <InfoTip termId="change_trend" />
           </p>
           {snapshot.gci.trend && snapshot.gci.trend.length >= 2 && (
             <div className="chart-block">
-              <h3 className="chart-title">GCI path</h3>
+              <h3 className="chart-title">{t("ui.ResearchPage.desk.gciPath")}</h3>
               <LineChart
-                points={snapshot.gci.trend.map((t) => ({
-                  label: t.period,
-                  value: t.gci_score,
+                points={snapshot.gci.trend.map((pt) => ({
+                  label: pt.period,
+                  value: pt.gci_score,
                 }))}
                 yDomain={[0, 100]}
-                ariaLabel="Research desk GCI trend"
+                ariaLabel={t("ui.ResearchPage.desk.trendAria")}
               />
             </div>
           )}
           <div className="metrics">
             <div className="metric">
-              <div className="label">Last (demo)</div>
+              <div className="label">{t("ui.ResearchPage.desk.last")}</div>
               <div className="value">{snapshot.market.last}</div>
               <ChangeTriple
                 mom={snapshot.market.mom_pct}
@@ -406,13 +411,13 @@ export default function ResearchPage() {
               />
             </div>
             <div className="metric">
-              <div className="label">Mkt cap (Cr)</div>
+              <div className="label">{t("ui.ResearchPage.desk.mktCap")}</div>
               <div className="value" style={{ fontSize: 22 }}>
                 {snapshot.market.mkt_cap_cr}
               </div>
             </div>
             <div className="metric">
-              <div className="label">Volume</div>
+              <div className="label">{t("ui.ResearchPage.desk.volume")}</div>
               <div className="value" style={{ fontSize: 22 }}>
                 {snapshot.market.volume.toLocaleString()}
               </div>
@@ -424,7 +429,7 @@ export default function ResearchPage() {
             <div className="brief-card" data-testid="promise-brief">
               <div className="brief-head">
                 <div>
-                  <h2 style={{ margin: 0 }}>Pre-earnings promise brief</h2>
+                  <h2 style={{ margin: 0 }}>{t("ui.ResearchPage.brief.title")}</h2>
                   <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
                     {brief.note}
                   </p>
@@ -434,13 +439,12 @@ export default function ResearchPage() {
                   className="btn ghost small"
                   onClick={() => window.print()}
                 >
-                  Print brief
+                  {t("ui.ResearchPage.brief.print")}
                 </button>
               </div>
               {brief.promises.length === 0 ? (
                 <p className="muted">
-                  No open (pending) guidance for {brief.ticker} — nothing on the line
-                  this reporting cycle.
+                  {t("ui.ResearchPage.brief.noOpen", { ticker: brief.ticker })}
                 </p>
               ) : (
                 <ul className="brief-list">
@@ -456,7 +460,7 @@ export default function ResearchPage() {
                             ? `${p.guided_band[0]}–${p.guided_band[1]}`
                             : p.guided_value}
                         </span>
-                        <span className="muted">street {p.street_consensus}</span>
+                        <span className="muted">{t("ui.ResearchPage.brief.street", { value: p.street_consensus })}</span>
                       </div>
                       <p className="muted brief-quote">
                         “{p.guided_text}” — {p.speaker}
@@ -464,16 +468,21 @@ export default function ResearchPage() {
                       <p className="brief-hitrate">
                         {p.history.closed > 0 ? (
                           <>
-                            Kept this kind of promise{" "}
+                            {t("ui.ResearchPage.brief.keptBefore")}{" "}
                             <strong>
-                              {p.history.kept} of {p.history.closed}
+                              {t("ui.ResearchPage.brief.keptCount", {
+                                kept: p.history.kept,
+                                closed: p.history.closed,
+                              })}
                             </strong>{" "}
-                            times ({p.history.hit_rate_pct}%)
-                            {p.history.missed > 0 && ` · ${p.history.missed} missed`}
-                            {p.history.dropped > 0 && ` · ${p.history.dropped} dropped`}
+                            {t("ui.ResearchPage.brief.keptAfter", { pct: p.history.hit_rate_pct ?? "" })}
+                            {p.history.missed > 0 &&
+                              t("ui.ResearchPage.brief.missed", { n: p.history.missed })}
+                            {p.history.dropped > 0 &&
+                              t("ui.ResearchPage.brief.dropped", { n: p.history.dropped })}
                           </>
                         ) : (
-                          "No closed history on this metric yet."
+                          t("ui.ResearchPage.brief.noHistory")
                         )}
                       </p>
                     </li>
@@ -486,10 +495,11 @@ export default function ResearchPage() {
             </div>
           )}
 
-          <h2>Fundamentals (level + change)</h2>
+          <h2>{t("ui.ResearchPage.fundamentals.title")}</h2>
           <p className="muted">
-            Context only — reported levels with MoM/QoQ/YoY.{" "}
-            <strong>Not part of GCI</strong> (GCI is guidance vs actuals).
+            {t("ui.ResearchPage.fundamentals.before")}{" "}
+            <strong>{t("ui.ResearchPage.fundamentals.strong")}</strong>
+            {t("ui.ResearchPage.fundamentals.after")}
           </p>
           <div className="metrics">
             {Object.entries(snapshot.fundamentals_demo).map(([k, v]) => {
@@ -524,20 +534,20 @@ export default function ResearchPage() {
             })}
           </div>
 
-          <h2>Street vs guidance vs actual</h2>
+          <h2>{t("ui.ResearchPage.estimates.title")}</h2>
           <div className="table-scroll">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Period</th>
-                  <th>Metric</th>
-                  <th>Street</th>
-                  <th>Δ Street</th>
-                  <th>Guidance</th>
-                  <th>Δ Guide</th>
-                  <th>Actual</th>
-                  <th>Δ Actual</th>
-                  <th>Label</th>
+                  <th>{t("ui.ResearchPage.estimates.th.period")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.metric")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.street")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.dStreet")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.guidance")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.dGuide")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.actual")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.dActual")}</th>
+                  <th>{t("ui.ResearchPage.estimates.th.label")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -582,7 +592,7 @@ export default function ResearchPage() {
             </table>
           </div>
 
-          <h2 style={{ marginTop: 24 }}>Transcripts</h2>
+          <h2 style={{ marginTop: 24 }}>{t("ui.ResearchPage.transcripts.title")}</h2>
           <ul className="doc-list">
             {transcripts.map((t) => (
               <li key={t.id}>
@@ -607,7 +617,7 @@ export default function ResearchPage() {
               </li>
             ))}
             {transcripts.length === 0 && (
-              <li className="muted">No sample transcript for this name yet.</li>
+              <li className="muted">{t("ui.ResearchPage.transcripts.empty")}</li>
             )}
           </ul>
           <p style={{ marginTop: 12 }}>
@@ -615,7 +625,7 @@ export default function ResearchPage() {
               to={`/companies/${companyId}`}
               style={{ color: "var(--accent)", fontWeight: 600 }}
             >
-              Open GCI evidence trail →
+              {t("ui.ResearchPage.openEvidence")}
             </Link>
           </p>
           <Disclaimer />
@@ -624,7 +634,7 @@ export default function ResearchPage() {
 
       {tab === "news" && (
         <div className="panel">
-          <h2 style={{ marginTop: 0 }}>News &amp; filings feed</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.news.title")}</h2>
           <ul className="doc-list">
             {news.map((n) => (
               <li key={n.id}>
@@ -650,39 +660,39 @@ export default function ResearchPage() {
                     })
                   }
                 >
-                  Open source →
+                  {t("ui.ResearchPage.openSource")}
                 </button>
               </li>
             ))}
-            {news.length === 0 && <li className="muted">No items yet.</li>}
+            {news.length === 0 && <li className="muted">{t("ui.ResearchPage.news.empty")}</li>}
           </ul>
         </div>
       )}
 
       {tab === "watch" && (
         <div className="panel">
-          <h2 style={{ marginTop: 0 }}>Watchlist</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.tab.watch.label")}</h2>
           <p className="muted" style={{ fontSize: 13 }}>
-            Star names on the Tracker or dossier to customize this list. Empty prefs → default
-            universe slice. Last + MoM/QoQ/YoY, GCI + Δ. Click ticker for desk snapshot.
+            {t("ui.ResearchPage.watch.intro")}
           </p>
           {(!preferences?.watchlist || preferences.watchlist.length === 0) && (
             <p className="muted" style={{ fontSize: 13 }}>
-              Showing default names. Add tickers via ★ on{" "}
-              <Link to="/tracker">GCI Screener</Link>.
+              {t("ui.ResearchPage.watch.defaultBefore")}{" "}
+              <Link to="/tracker">{t("ui.ResearchPage.watch.defaultLink")}</Link>
+              {t("ui.ResearchPage.watch.defaultAfter")}
             </p>
           )}
           <div className="table-scroll">
             <table className="table" data-testid="research-watchlist">
               <thead>
                 <tr>
-                  <th aria-label="Watchlist" />
-                  <th>Ticker</th>
-                  <th>Name</th>
-                  <th>Last</th>
-                  <th>MoM/QoQ/YoY</th>
+                  <th aria-label={t("ui.ResearchPage.tab.watch.label")} />
+                  <th>{t("ui.ResearchPage.watch.th.ticker")}</th>
+                  <th>{t("ui.ResearchPage.watch.th.name")}</th>
+                  <th>{t("ui.ResearchPage.watch.th.last")}</th>
+                  <th>{t("ui.ResearchPage.watch.th.mqy")}</th>
                   <th>GCI</th>
-                  <th>Δ GCI</th>
+                  <th>{t("ui.ResearchPage.watch.th.dGci")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -714,7 +724,7 @@ export default function ResearchPage() {
                       />
                     </td>
                     <td className={`score ${scoreClass(w.gci_score)}`}>
-                      {formatScore(w.gci_score)}
+                      {formatCompanyScore(w.gci_score)}
                     </td>
                     <td>
                       <ChangeChip
@@ -734,7 +744,7 @@ export default function ResearchPage() {
                 className="btn ghost"
                 onClick={() => void updatePreferences({ watchlist: [] })}
               >
-                Reset to default list
+                {t("ui.ResearchPage.watch.reset")}
               </button>
             </p>
           )}

@@ -36,7 +36,7 @@ export default function PlanAccessGate({
   if (loading) {
     return (
       <section className={variant === "page" ? "plan-access-page" : "plan-access-panel"}>
-        <p className="muted">Loading access…</p>
+        <p className="muted">{t("ui.PlanAccessGate.loading")}</p>
       </section>
     );
   }
@@ -53,9 +53,7 @@ export default function PlanAccessGate({
       {kicker && variant === "page" && <p className="page-kicker">{kicker}</p>}
       <h2 style={variant === "panel" ? { marginTop: 0 } : undefined}>{title}</h2>
       <p className="muted lede">{description}</p>
-      <p className="muted">
-        Current access: <strong>{entitlements.plan}</strong> / {entitlements.role}
-      </p>
+      <p className="muted">{t("ui.PlanAccessGate.currentAccess")}</p>
       {guestOrSignedOut ? (
         <div className="plan-access-cta row gap">
           <Link to="/login" state={{ from: returnTo }} className="btn-primary">
@@ -83,7 +81,7 @@ export default function PlanAccessGate({
       )}
       {guestOrSignedOut && (
         <p className="muted" style={{ fontSize: 13, marginTop: "0.75rem" }}>
-          Pilot and Desk plans unlock review queue, cite-only chat, and labeling workflows.{" "}
+          {t("ui.PlanAccessGate.unlockHint")}{" "}
           <Link to="/package">{t("nav.package_plans")}</Link>
         </p>
       )}

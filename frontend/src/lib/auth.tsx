@@ -27,7 +27,7 @@ type AuthCtx = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, totpCode?: string) => Promise<void>;
   register: (
     email: string,
     password: string,
@@ -150,8 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      const res = await postLogin(email, password);
+    async (email: string, password: string, totpCode?: string) => {
+      const res = await postLogin(email, password, totpCode);
       applySession(res.token, res.user);
     },
     [applySession],
@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         name,
         accept_terms: opts?.acceptTerms ?? true,
-        account_type: opts?.accountType ?? "retail",
+        account_type: opts?.accountType ?? "b2b",
         org_name: opts?.orgName,
         guest_token: user?.kind === "guest" ? token ?? undefined : undefined,
         challenge_id: opts?.challengeId,

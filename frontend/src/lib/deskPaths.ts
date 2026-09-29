@@ -51,7 +51,7 @@ export const DESK_GUIDES: DeskGuide[] = [
     skus: ["Data", "Score"],
     primary: { to: "/products#data", label: "Data catalog" },
     links: [
-      { to: "/package", label: "API / One-Stop" },
+      { to: "/package", label: "Enterprise API" },
       { to: "/help", label: "API help" },
     ],
   },
@@ -60,7 +60,7 @@ export const DESK_GUIDES: DeskGuide[] = [
     hash: "desk-ir-compliance",
     title: "IR / compliance / credit",
     blurb:
-      "Promise ledger and IR Mirror — what was committed, status, and peer context.",
+      "Promise ledger and IR Mirror — what was committed, status, and peer context. A subscription never changes how a company is scored or when its score updates.",
     skus: ["Ledger", "Radar"],
     primary: { to: "/products#ledger", label: "Ledger" },
     links: [

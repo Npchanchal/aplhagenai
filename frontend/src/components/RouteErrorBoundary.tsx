@@ -25,7 +25,7 @@ export function reloadOnceForStaleChunk(): boolean {
   return true;
 }
 
-type Labels = { title: string; body: string; reload: string };
+type Labels = { title: string; body: string; reload: string; loading: string };
 type Props = { children: ReactNode; labels: Labels };
 type State = { error: unknown; reloading: boolean };
 
@@ -48,7 +48,7 @@ class Boundary extends Component<Props, State> {
     if (reloading) {
       return (
         <div className="route-loading" role="status" aria-live="polite">
-          Loading…
+          {this.props.labels.loading}
         </div>
       );
     }
@@ -76,6 +76,7 @@ export default function RouteErrorBoundary({ children }: { children: ReactNode }
         title: t("app.routeError.title"),
         body: t("app.routeError.body"),
         reload: t("app.routeError.reload"),
+        loading: t("common.loading"),
       }}
     >
       {children}

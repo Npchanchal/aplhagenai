@@ -27,15 +27,29 @@ def test_screener_list_matches_dossier_for_every_company():
 
 
 def test_audit_flagged_company_matches_on_public_snapshot_and_pit():
+    from app.services.guidance_flags import set_audit_flag
+
+    set_audit_flag(
+        "infy",
+        "definition_shift",
+        set_by="analyst:test",
+        source_url="https://www.sec.gov/Archives/edgar/data/1067491/example.htm",
+        note="consistency fixture",
+    )
     flagged = [
         c["id"]
         for c in client.get("/api/companies").json()
-        if c["data_quality"] == "hand_labeled" and collect_audit_flags(get_outcomes(c["id"]))
+        if c["data_quality"] == "hand_labeled"
+        and collect_audit_flags(get_outcomes(c["id"]), company_id=c["id"])
     ]
-    assert "infy" in flagged
-    ranks = client.get("/api/public/gci-rankings?limit=100").json()
-    by_id = {r["company_id"]: r for r in ranks["top"]}
-    assert "infy" in by_id
+    assert flagged
+    by_id = {}
+    for index in ("SENSEX", "NIFTY50"):
+        ranks = client.get(f"/api/public/gci-rankings?limit=100&index={index}").json()
+        by_id.update({r["company_id"]: r for r in ranks["top"]})
+    # Only established/deep tiers rank (W1.3). After W2.1 the ranked set may be
+    # empty until promise citations are backfilled; when a flagged name is
+    # ranked, the Snapshot number must match the dossier.
     for cid in flagged:
         expected = _dossier(cid)
         if cid in by_id:

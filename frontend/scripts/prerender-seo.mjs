@@ -160,8 +160,9 @@ function blogIndexHtml(posts) {
 function injectSeo(html, seo) {
   const url = seo.path === "/" ? `${SITE}/` : `${SITE}${seo.path}`;
   const robots = seo.robots ?? "index,follow";
-  const ogType = seo.type ?? "website";
+    const ogType = seo.type ?? "website";
   const ogAlt = esc(seo.ogImageAlt ?? seo.title);
+  const ogImage = seo.ogImage ?? `${SITE}/og-image.png`;
   let out = html;
   out = out.replace(/<title>[^<]*<\/title>/, `<title>${esc(seo.title)}</title>`);
   out = out.replace(
@@ -192,10 +193,20 @@ function injectSeo(html, seo) {
     /<meta\s+property="og:url"\s+content="[^"]*"\s*\/>/,
     `<meta property="og:url" content="${url}" />`,
   );
+  out = out.replace(
+    /<meta\s+property="og:image"\s+content="[^"]*"\s*\/>/,
+    `<meta property="og:image" content="${esc(ogImage)}" />`,
+  );
   if (out.includes('property="og:image:alt"')) {
     out = out.replace(
       /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/>/,
       `<meta property="og:image:alt" content="${ogAlt}" />`,
+    );
+  }
+  if (out.includes('name="twitter:image"')) {
+    out = out.replace(
+      /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/>/,
+      `<meta name="twitter:image" content="${esc(ogImage)}" />`,
     );
   }
   out = out.replace(
@@ -270,7 +281,7 @@ function blogIndexJsonLd(posts) {
   };
 }
 
-function buildSitemap(staticRoutes, posts) {
+function buildSitemap(staticRoutes, posts, dossiers = []) {
   const urls = [];
   for (const route of staticRoutes) {
     if (!route.sitemap || (route.robots ?? "index,follow").includes("noindex")) continue;
@@ -289,6 +300,14 @@ function buildSitemap(staticRoutes, posts) {
       priority: "0.7",
     });
   }
+  for (const d of dossiers) {
+    urls.push({
+      loc: `${SITE}${d.path}`,
+      lastmod: String(d.as_of || BUILD_DAY).slice(0, 10),
+      changefreq: "weekly",
+      priority: "0.8",
+    });
+  }
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
@@ -302,9 +321,48 @@ function buildSitemap(staticRoutes, posts) {
   return `${lines.join("\n")}\n`;
 }
 
+function dossierBodyHtml(d, esc) {
+  return `<main>
+      <h1>${esc(d.name)} — Guidance Credibility Index (GCI)</h1>
+      <p class="seo-speakable">${esc(d.description)}</p>
+      <p><a href="${SITE}/companies/${esc(d.id)}">Open the full evidence trail</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a></p>
+      <p>Not investment advice.</p>
+    </main>`;
+}
+
+async function loadDossiers() {
+  const bases = [process.env.PRERENDER_API_URL, "http://127.0.0.1:8000", "http://api:8000"].filter(
+    Boolean,
+  );
+  for (const base of bases) {
+    try {
+      const res = await fetch(`${base.replace(/\/$/, "")}/api/public/seo-dossiers`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (res.ok) {
+        const body = await res.json();
+        if (Array.isArray(body.dossiers) && body.dossiers.length) return body.dossiers;
+      }
+    } catch {
+      /* try next */
+    }
+  }
+  const snap = path.join(ROOT, "src/lib/seoDossiers.json");
+  if (fs.existsSync(snap)) {
+    try {
+      const body = JSON.parse(fs.readFileSync(snap, "utf8"));
+      return body.dossiers || body || [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 const baseHtml = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
 const staticRoutes = loadSeoRoutes();
 const posts = parseBlogPosts();
+const dossiers = await loadDossiers();
 let prerenderCount = 0;
 const indexNowUrls = [];
 
@@ -376,6 +434,39 @@ for (const post of posts) {
   prerenderCount += 1;
 }
 
+for (const d of dossiers) {
+  const crumbs = breadcrumbJsonLd(d.path, d.name);
+  const seo = {
+    path: d.path,
+    title: d.title,
+    description: d.description,
+    robots: "index,follow",
+    ogImage: `${SITE}/api/og/${d.id}.png`,
+    ogImageAlt: d.title,
+    bodyHtml: dossierBodyHtml(d, esc),
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      name: `${d.name} Guidance Credibility Index (GCI)`,
+      description: d.description,
+      url: `${SITE}${d.path}`,
+      creator: {
+        "@type": "Organization",
+        name: "CiteAlpha",
+        legalName: "Ocotillo Innovation Private Limited",
+      },
+      variableMeasured: "Guidance Credibility Index",
+      license: `${SITE}/terms`,
+      isAccessibleForFree: true,
+      ...(d.as_of ? { dateModified: String(d.as_of).slice(0, 10) } : {}),
+    },
+    extraJsonLd: crumbs ? [crumbs] : [],
+  };
+  writeRoute(seo, baseHtml);
+  indexNowUrls.push(`${SITE}${d.path}`);
+  prerenderCount += 1;
+}
+
 {
   let shell = injectSeo(baseHtml, {
     path: "/",
@@ -397,7 +488,7 @@ for (const post of posts) {
   prerenderCount += 1;
 }
 
-const sitemap = buildSitemap(staticRoutes, posts);
+const sitemap = buildSitemap(staticRoutes, posts, dossiers);
 const imageSitemap = buildImageSitemap(posts);
 const rss = buildRssFeed(posts);
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), sitemap);

@@ -21,6 +21,8 @@ export default function LoginPage() {
   const abuse = useAbuseChallenge();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totp, setTotp] = useState("");
+  const [needTotp, setNeedTotp] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -55,10 +57,16 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(email, password);
+      await login(email, password, totp || undefined);
       navigate(redirectTo);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      const msg = err instanceof Error ? err.message : t("common.error");
+      if (msg === "mfa_required") {
+        setNeedTotp(true);
+        setError(t("auth.totpHint"));
+      } else {
+        setError(msg);
+      }
     } finally {
       setBusy(false);
     }
@@ -87,7 +95,7 @@ export default function LoginPage() {
       return;
     }
     if (!abuse.ready || !abuse.answer.trim()) {
-      setError("Complete the verification check to continue as guest.");
+      setError(t("ui.LoginPage.guestChallenge"));
       return;
     }
     setBusy(true);
@@ -111,8 +119,7 @@ export default function LoginPage() {
       <p className="page-kicker">{t("common.account")}</p>
       <h1>{t("auth.loginTitle")}</h1>
       <p className="muted lede">
-        Sign in for preferences sync. Guest works for Tracker, Desk Corpus, and Research —
-        GCI remains factual delivery research, not advice.{" "}
+        {t("ui.LoginPage.lede")}{" "}
         <span className="legal-entity">© {LEGAL_ENTITY}.</span>
       </p>
       <form className="auth-form panel" onSubmit={onSubmit}>
@@ -139,12 +146,26 @@ export default function LoginPage() {
             autoComplete="current-password"
           />
         </label>
+        {needTotp && (
+          <label>
+            {t("auth.totp")}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              value={totp}
+              onChange={(e) => setTotp(e.target.value)}
+              data-testid="login-totp"
+              autoComplete="one-time-code"
+            />
+          </label>
+        )}
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn-primary" disabled={busy} data-testid="login-submit">
           {t("common.login")}
         </button>
         <p className="muted">
-          <Link to="/forgot-password">Forgot password?</Link>
+          <Link to="/forgot-password">{t("ui.LoginPage.forgot")}</Link>
         </p>
         <button
           type="button"

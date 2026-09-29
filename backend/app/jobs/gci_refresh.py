@@ -18,6 +18,18 @@ from typing import Any, Dict, List, Optional
 from app.services.refresh import refresh_interval_hours, run_gci_refresh
 
 
+def _maybe_ledger_digest() -> None:
+    flag = os.environ.get("INTELLENS_LEDGER_DIGEST", "").strip().lower()
+    if flag not in ("1", "true", "yes"):
+        return
+    try:
+        from app.services.ledger_digest import send_weekly
+
+        print(json.dumps({"ledger_digest": send_weekly()}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — digest must not stop the refresh loop
+        print(json.dumps({"ledger_digest": "error", "detail": type(exc).__name__}), flush=True)
+
+
 def _run_via_api(
     base_url: str,
     *,
@@ -121,6 +133,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             except Exception as exc:  # noqa: BLE001
                 report = {"ok": False, "error": type(exc).__name__, "detail": str(exc)}
             print(json.dumps(report, indent=2), flush=True)
+            _maybe_ledger_digest()
             ok = bool(report.get("ok"))
             # Full cadence on success; short backoff on failure so a blip doesn't wait 6h
             sleep_s = int(hours * 3600) if ok else min(120, max(30, int(hours * 60)))

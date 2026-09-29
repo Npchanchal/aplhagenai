@@ -15,10 +15,10 @@
 ## Auth
 
 - Register / login / guest continue — **Terms + Privacy acceptance required** (`accept_terms`).
-- Account types: `retail` (B2C personal tenant) · `b2b` (new org from `org_name`).
+- Public register is **B2B desk only** (creates a Pilot org from `org_name`). `account_type=retail` returns 403 until counsel attests `sebi_retail` (W8.1 / D1, 2026-09-29).
 - Write APIs: session Bearer **or** `X-API-Key` (org-scoped). Effective access = **intersection** of org plan features and user role (`GET /api/entitlements/me`).
-- Plans: `guest` · `retail` · `pilot` · `desk` · `enterprise` · `onestop`. Roles: `guest` · `viewer` · `analyst` · `labeler` · `reviewer` · `admin` · `owner`.
-- Guest: Tracker + dossier read (15 dossier opens / session) then a **paywall modal** (`guest_dossier_cap`). Register always; `/package` `/billing` only when retail marketing is counsel-approved (`INTELLENS_RETAIL_MARKETING` / sebi_retail attest). No Desk writes, chat, labeling, or feedback. Register merges `guest_token` prefs.
+- Plans: `guest` · `retail` (not sold) · `pilot` · `desk` · `enterprise` · `onestop`. Roles: `guest` · `viewer` · `analyst` · `labeler` · `reviewer` · `admin` · `owner`.
+- Guest: Tracker + dossier read (15 dossier opens / session) then a **paywall modal** (`guest_dossier_cap`) pointing at register / Pilot / Package. No Desk writes, chat, labeling, or feedback. Register merges `guest_token` prefs.
 - Seat admin assigns **role per invite**; design-partner invite → viewer + feedback, 60-day token.
 - SSO: stub/OIDC (`/api/auth/sso/*`) — production OIDC is ops follow-up.
 - Orgs/seats: `GET /api/orgs/{id}`, `GET /api/orgs/me` · legal: `/api/legal/*`.

@@ -20,7 +20,7 @@ def _register(email: str, *, org_name: str = "Ops Desk") -> dict:
         "/api/auth/register",
         json={
             "email": email,
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "Admin User",
             "accept_terms": True,
             "account_type": "b2b",

@@ -21,6 +21,8 @@
 | Alerts | `docs_pending_review` on Tracker alerts rail → Desk Review queue |
 | Schedule | **Every 6 hours** live: `docker compose` `scheduler` · `scripts/gci-refresh-loop.sh` · cron · `POST /api/ingest/refresh` |
 | Refresh job | Live IR crawl → pending docs → auto-extract to review queue (not auto-GCI) · optional FMP warm |
+| Source verify | Nightly (at most once per 24h on live refresh when `INTELLENS_VERIFY_SOURCES=1`): `python -m app.jobs.verify_sources --write`. Missing quotes → `citeable=false` + labeling queue. Counts on `/api/trust.source_verification` / Trust Center. |
+| Filing-to-score | Target **5 business days** from results filing (`as_of`) to publish (`reviewed_at`), for filings on or after 29 Sep 2026. Refresh writes `filing_seen` to `score_pipeline.jsonl`; `accept_draft` writes `review_publish`. Observed median: `/methodology` and `GET /api/meta` → `filing_to_score`. |
 | India listings | Real **NSE_ALL** (~2.3k) + **BSE_ALL** (~4.9k) masters in `app/data/listings/`; refresh via `scripts/refresh-india-listings.sh`. GCI only where outcomes exist (Sensex hand_labeled + Nifty demo). |
 
 ## Auth
@@ -45,5 +47,7 @@ Review queue: `/desk?tab=review` (includes **Run Sensex IR crawl**). Evidence Ac
 | Match | `services/matching.py` |
 | Ingest | `services/ingest.py` |
 | Crawl | `services/crawl.py` · `data/ir_sources.py` |
+| Source verify | `services/source_verify.py` · `python -m app.jobs.verify_sources` |
+| Score SLA | `services/score_sla.py` · `data/score_pipeline.jsonl` |
 | Store | `services/repository.py` · `data/doc_store.py` |
 | Parameters catalog | `GET /api/metrics` + `docs/GCI_PARAMETERS_AND_SOURCES.md` |

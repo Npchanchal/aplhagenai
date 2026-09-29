@@ -14,6 +14,7 @@ from app.models.schemas import (
     AuthEmailRequest,
     AuthGuestRequest,
     AuthLoginRequest,
+    AuthMfaConfirmRequest,
     AuthPasswordResetConfirm,
     AuthRegisterRequest,
     AuthVerifyConfirm,
@@ -31,6 +32,7 @@ from app.models.schemas import (
     IngestPasteRequest,
     IngestUrlRequest,
     LabelDraftRequest,
+    SetAuditFlagRequest,
     LabelImportRequest,
     LabelRejectRequest,
     LegalAttestRequest,
@@ -69,6 +71,20 @@ from app.version import APP_VERSION
 router = APIRouter()
 
 
+@router.get("/api/status")
+def public_status() -> Dict[str, Any]:
+    """W8.6 — live health plus latest frozen index file."""
+    from app.jobs import publish_index_files as pub
+
+    files = pub.list_files()
+    latest = files[-1] if files else None
+    return {
+        "ok": True,
+        "api": APP_VERSION,
+        "index_file": latest,
+    }
+
+
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     try:
@@ -80,6 +96,7 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok", version=APP_VERSION)
 
 
+@router.get("/api/v1/companies", response_model=List[CompanySummary])
 @router.get("/api/companies", response_model=List[CompanySummary])
 def companies(
     market: Optional[str] = None,
@@ -169,6 +186,7 @@ def score_universe(
     }
 
 
+@router.get("/api/v1/companies/{company_id}/gci", response_model=CompanyGCIDetail)
 @router.get("/api/companies/{company_id}/gci", response_model=CompanyGCIDetail)
 def company_gci(
     company_id: str,
@@ -185,6 +203,37 @@ def company_gci(
     return repository.get_company_gci(company_id)
 
 
+@router.post("/api/companies/{company_id}/audit-flags")
+def company_set_audit_flag(
+    company_id: str,
+    body: SetAuditFlagRequest,
+    auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    from app.services.guidance_flags import set_audit_flag
+
+    rec = set_audit_flag(
+        company_id,
+        body.flag,
+        set_by=str(auth.get("user_id") or auth.get("key") or ""),
+        source_url=body.source_url or "",
+        note=body.note or "",
+    )
+    return {"ok": True, "flag": rec}
+
+
+@router.delete("/api/companies/{company_id}/audit-flags/{flag}")
+def company_clear_audit_flag(
+    company_id: str,
+    flag: str,
+    _auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    from app.services.guidance_flags import clear_audit_flag
+
+    clear_audit_flag(company_id, flag)
+    return {"ok": True}
+
+
+@router.get("/api/v1/companies/{company_id}/gci/history", response_model=List[PitPoint])
 @router.get("/api/companies/{company_id}/gci/history", response_model=List[PitPoint])
 def company_gci_history(company_id: str) -> List[PitPoint]:
     return repository.pit_history(company_id)
@@ -368,7 +417,7 @@ def data_export_outcomes(
         if auth.get("source") == "guest":
             raise HTTPException(status_code=401, detail="X-API-Key required for CSV/Parquet export")
         if not has_feature(auth, "em_export"):
-            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise or One-Stop")
+            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise")
     result = phases.bulk_outcomes_export(format=fmt, limit=limit)
     if fmt == "json":
         return result
@@ -625,8 +674,8 @@ def reset_demo(_auth=Depends(admin_portal_svc.require_platform_perm("system.ops"
 
 
 @router.get("/api/companies/{company_id}/wordmap")
-def wordmap(company_id: str) -> Dict[str, Any]:
-    """G13 / P1.1 — entity vs industry themes from corpus (seed fallback)."""
+def wordmap(company_id: str, auth=Depends(require_feature("wordmap"))) -> Dict[str, Any]:
+    """G13 / P1.1 — entity vs industry themes from corpus (seed fallback). Seat-only."""
     from app.services.wordmap import build_wordmap
 
     return build_wordmap(company_id)
@@ -697,39 +746,44 @@ def vernacular(company_id: str, lang: str = "hi") -> Dict[str, Any]:
 
 
 @router.get("/api/badge/{ticker}")
-def trust_badge(ticker: str) -> Dict[str, Any]:
-    """G20 — broker-embeddable Trust Score badge payload."""
-    row = repository.resolve_ticker_summary(ticker)
-    if row is None:
-        raise HTTPException(status_code=404, detail="Ticker not found")
-    score = row["gci_score"]
-    return {
-        "ticker": row["ticker"],
-        "trust_score": score,
-        "label": "Promoter/Management Trust Score (GCI)",
-        "embed": f"<span data-intellens-badge=\"{row['ticker']}\">{score}</span>",
-        "svg_url": f"/api/badge/{row['ticker']}/svg",
-        "status": "ok",
-        "data_quality": row.get("data_quality"),
-        "disclaimer": "Not investment advice. Factual guidance-delivery metric.",
-    }
+def gci_badge(ticker: str) -> Dict[str, Any]:
+    """Broker-embeddable Guidance Credibility Index badge."""
+    from app.services import badge as badge_svc
+
+    return badge_svc.payload(ticker)
 
 
 @router.get("/api/badge/{ticker}/svg")
-def trust_badge_svg(ticker: str):
-    """G20 — SVG badge for broker embed."""
-    from fastapi.responses import Response
+def gci_badge_svg(ticker: str):
+    """SVG badge for broker embed (ticker, GCI, tier, as-of)."""
+    from app.services import badge as badge_svc
 
-    row = repository.resolve_ticker_summary(ticker)
-    if row is None:
-        raise HTTPException(status_code=404, detail="Ticker not found")
-    gci = row["gci_score"]
-    score = "n/a" if gci is None else f"{gci:.0f}"
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="160" height="36">
-  <rect width="160" height="36" fill="#1f6b4a"/>
-  <text x="10" y="22" fill="#fff" font-family="sans-serif" font-size="12">GCI {row['ticker']}: {score}</text>
-</svg>"""
-    return Response(content=svg, media_type="image/svg+xml")
+    return badge_svc.svg_response(ticker)
+
+
+@router.get("/api/public/seo-dossiers")
+def public_seo_dossiers() -> Dict[str, Any]:
+    """Hand-labeled dossiers for prerender + sitemap (W5.2)."""
+    from app.services.seo_public import list_indexable_dossiers
+
+    rows = list_indexable_dossiers()
+    return {"dossiers": rows, "count": len(rows)}
+
+
+@router.get("/api/og/{company_id}.png")
+def og_png(company_id: str):
+    """1200×630 PNG share card for a company dossier."""
+    from app.services import og_card
+
+    return og_card.png_response(company_id)
+
+
+@router.get("/api/og/{company_id}.svg")
+def og_svg(company_id: str):
+    """SVG share card (same content as PNG)."""
+    from app.services import og_card
+
+    return og_card.svg_response(company_id)
 
 
 @router.get("/api/meta")
@@ -753,10 +807,13 @@ def meta() -> Dict[str, Any]:
     from app.services.gci_scoring import algorithm_id, compute_company_gci
     from app.data.seed import get_outcomes
 
+    from app.services.score_policy import is_scoreable
+
     scored = sum(
         1
         for c in data["companies"]
-        if compute_company_gci(get_outcomes(c["id"])) is not None
+        if is_scoreable(c.get("data_quality"))
+        and compute_company_gci(get_outcomes(c["id"])) is not None
     )
     from app.data.gci_score_cache import load_cache
 
@@ -769,7 +826,17 @@ def meta() -> Dict[str, Any]:
         "hand_labeled_count": labeled,
         "demo_structured_count": demo,
         "gci_scored_count": scored,
+        "sensex_scored_count": sum(
+            1
+            for r in markets_data.list_constituents("SENSEX")
+            if is_scoreable(r.get("data_quality"))
+            and compute_company_gci(get_outcomes(r["id"])) is not None
+        ),
+        "sensex_count": len(markets_data.list_constituents("SENSEX")),
         "gci_listing_scored_count": listing_scored,
+        "gci_listing_unscored_count": max(
+            0, len(gci_cache.get("scores") or {}) - listing_scored
+        ),
         "gci_algorithm": algorithm_id(),
         "gci_cache_algorithm": gci_cache.get("algorithm") or "gci_scoring_v2",
         "gci_listing_as_of": gci_cache.get("as_of"),
@@ -787,8 +854,9 @@ def meta() -> Dict[str, Any]:
             "interval_hours": refresh_interval_hours(),
             "endpoint": "POST /api/ingest/refresh",
             "scheduler": "docker compose scheduler | scripts/gci-refresh-loop.sh",
-            "note": "Live IR crawl every 6h; docs/extracts stay pending until Desk accept",
+            "note": "Live IR crawl every 6 hours. New documents stay in the review queue until an analyst accepts them.",
         },
+        "filing_to_score": _filing_to_score_payload(),
         "document_count": len(doc_store.list_documents(include_rejected=True)),
         "gci_metric_count": len(METRICS),
         "gci_source_policy": POLICY_SUMMARY,
@@ -845,7 +913,7 @@ def meta() -> Dict[str, Any]:
             "watchlist": "/api/research/watchlist",
             "transcripts": "/api/research/transcripts",
             "citations": "/api/citations/{id}",
-            "note": "CiteAlpha Research Terminal; cite-only chat with numbered sources. Fundamentals MoM/QoQ/YoY are context — not GCI.",
+            "note": "CiteAlpha Filing Search; cite-only chat with numbered sources. Period changes are context — not GCI.",
         },
     }
 
@@ -890,6 +958,26 @@ def legal_privacy() -> Dict[str, Any]:
     return privacy_document()
 
 
+def _filing_to_score_payload() -> Dict[str, Any]:
+    from app.services.score_sla import sla_summary
+
+    return sla_summary()
+
+
+def _source_verification_payload() -> Dict[str, Any]:
+    from app.services.source_verify import load_report
+
+    r = load_report()
+    return {
+        "as_of": r.get("as_of"),
+        "checked": int(r.get("checked") or 0),
+        "verified": int(r.get("verified") or 0),
+        "failed": int(r.get("failed") or 0),
+        "fetch_failed": int(r.get("fetch_failed") or 0),
+        "note": r.get("note") or "",
+    }
+
+
 @router.get("/api/trust")
 def trust_center() -> Dict[str, Any]:
     """Public Trust Center payload — procurement hygiene, not marketing fluff."""
@@ -912,11 +1000,21 @@ def trust_center() -> Dict[str, Any]:
     privacy = privacy_document()
     meta = copyright_meta()
     llm_on = bool(flags_dict().get("LLM_CONFIGURED") or flags_dict().get("INTELLENS_LLM_EXTRACT"))
+    public_copyright = {
+        "legal_entity": meta.get("legal_entity"),
+        "product": meta.get("product"),
+        "year": meta.get("year"),
+        "line": meta.get("line"),
+        "terms_version": meta.get("terms_version"),
+        "privacy_version": meta.get("privacy_version"),
+        "contact_email": meta.get("contact_email"),
+        "domain": meta.get("domain"),
+    }
     return {
         "product": PRODUCT_NAME,
         "legal_entity": LEGAL_ENTITY,
         "domain": PUBLIC_DOMAIN,
-        "copyright": meta,
+        "copyright": public_copyright,
         "security": {
             "force_https": force_https(),
             "hsts": hsts_enabled(),
@@ -929,20 +1027,11 @@ def trust_center() -> Dict[str, Any]:
             ],
             "auth_modes": ["register", "login", "guest", "api_key", "sso"],
             "csp": csp_policy(),
-            "backups": (
-                "Scheduled backups are ops-dependent and are not an SLA on this page."
-            ),
         },
         "sso": {
             "enabled": st.get("enabled"),
             "configured": st.get("configured"),
-            "production_ready": st.get("production_ready"),
-            "note": st.get("note")
-            or (
-                "OIDC path ships in code; production needs live OIDC_* env and HTTPS redirect."
-                if not st.get("production_ready")
-                else "OIDC SSO ready for desk tenants."
-            ),
+            "note": "SSO is available for desk tenants on request.",
         },
         "citations": {
             "model": "cite_* ids with quote, locator, bibliographic / markdown / IC footnote",
@@ -954,9 +1043,13 @@ def trust_center() -> Dict[str, Any]:
             "sebi": "Not a SEBI-registered Research Analyst product unless separately disclosed",
             "terms_version": terms.get("version"),
             "privacy_version": privacy.get("version"),
-            "counsel_status": meta.get("counsel_status"),
-            "counsel_note": meta.get("counsel_note"),
             "contact_email": CONTACT_EMAIL,
+            "privacy_email": "privacy@citealpha.com",
+            "link_out_policy": (
+                "Filings and transcripts stay on the issuer or exchange site. "
+                "CiteAlpha stores a dated quote and a link; we do not redistribute original PDFs."
+            ),
+            "prices_on_public": False,
             "links": {
                 "terms": "/terms",
                 "privacy": "/privacy",
@@ -969,7 +1062,7 @@ def trust_center() -> Dict[str, Any]:
             "beachhead": "India equity (Sensex → Nifty)",
             "gci": "Guidance Credibility Index — management promises vs delivery",
             "invent_actuals": False,
-            "quality_badges": "hand_labeled (citeable) vs demo_structured vs market_scaffold",
+            "quality_badges": "hand_labeled (citeable) vs sample data vs listing-only",
         },
         "residency": {
             "region": "ap-south-1",
@@ -1000,8 +1093,8 @@ def trust_center() -> Dict[str, Any]:
                 "optional": True,
             },
             {
-                "name": "LLM extract processor",
-                "role": "Optional guidance extract when a model is keyed",
+                "name": "OpenAI or Anthropic",
+                "role": "Optional guidance extract when a model is keyed — not used to invent actuals",
                 "optional": True,
             },
             {
@@ -1017,29 +1110,25 @@ def trust_center() -> Dict[str, Any]:
         ],
         "incident": {
             "contact": CONTACT_EMAIL,
+            "privacy_email": "privacy@citealpha.com",
             "note": (
-                "Security questionnaires and DPA requests via sales until a dedicated "
-                "security mailbox is published."
+                "Security questionnaires and DPA requests via sales@citealpha.com. "
+                "Privacy requests via privacy@citealpha.com."
             ),
         },
         "labeling_governance": lbl.audit_summary(),
+        "source_verification": _source_verification_payload(),
+        "filing_to_score": _filing_to_score_payload(),
         "llm": {
             "configured": llm_on,
             "note": (
-                "Optional extract model with heuristic fallback. When enabled, submitted "
-                "extract text may be sent to a contracted processor. Not used to invent actuals."
+                "Optional extract model (OpenAI or Anthropic when keyed) with heuristic fallback. "
+                "Submitted extract text may be sent to that processor. Not used to invent actuals."
             ),
         },
         "feature_flags_public": {
             k: flags_dict().get(k)
-            for k in (
-                "INTELLENS_GCI_VERSION",
-                "SSO",
-                "RESEARCH_LLM",
-                "LLM_CONFIGURED",
-                "INTELLENS_LLM_EXTRACT",
-                "INTELLENS_EMBEDDINGS",
-            )
+            for k in ("SSO", "RESEARCH_LLM", "LLM_CONFIGURED")
             if k in flags_dict()
         },
     }
@@ -1057,7 +1146,7 @@ def em_factor(
         if auth.get("source") == "guest":
             raise HTTPException(status_code=401, detail="X-API-Key required for file export")
         if not has_feature(auth, "em_export"):
-            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise or One-Stop")
+            raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise")
     from app.services.pit_contract import series_meta_for
 
     hist = repository.pit_history(company_id)
@@ -2185,7 +2274,7 @@ def auth_register(body: AuthRegisterRequest) -> Dict[str, Any]:
 def auth_login(body: AuthLoginRequest) -> Dict[str, Any]:
     from app.services import session_auth
 
-    return session_auth.login(body.email, body.password)
+    return session_auth.login(body.email, body.password, totp_code=body.totp_code)
 
 
 @router.post("/api/auth/guest")
@@ -2494,6 +2583,33 @@ def billing_invoices(authorization: Optional[str] = Header(default=None)) -> Dic
     }
 
 
+@router.post("/api/auth/mfa/enroll")
+def auth_mfa_enroll(authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.mfa_enroll_start(session_auth.extract_bearer(authorization))
+
+
+@router.post("/api/auth/mfa/confirm")
+def auth_mfa_confirm(
+    body: AuthMfaConfirmRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.mfa_enroll_confirm(session_auth.extract_bearer(authorization), body.code)
+
+
+@router.post("/api/auth/mfa/disable")
+def auth_mfa_disable(
+    body: AuthMfaConfirmRequest,
+    authorization: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    from app.services import session_auth
+
+    return session_auth.mfa_disable(session_auth.extract_bearer(authorization), body.code)
+
+
 @router.post("/api/auth/logout")
 def auth_logout(authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     from app.services import session_auth
@@ -2691,7 +2807,10 @@ def index_history(index_id: str, years: int = 5) -> Dict[str, Any]:
 
 
 @router.get("/api/stocks/{stock_id}/history")
-def stock_history(stock_id: str, years: int = 5) -> Dict[str, Any]:
+def stock_history(
+    stock_id: str, years: int = 5, auth=Depends(require_feature("analytics_experimental"))
+) -> Dict[str, Any]:
+    """Price tape (demo unless a market-data key is configured). Workbench-only."""
     from app.data.market_history import get_stock_history
 
     row = get_stock_history(stock_id, years=years)
@@ -2758,7 +2877,10 @@ def company_changes(company_id: str) -> Dict[str, Any]:
 
 
 @router.get("/api/companies/{company_id}/analytics")
-def company_analytics(company_id: str) -> Dict[str, Any]:
+def company_analytics(
+    company_id: str, auth=Depends(require_feature("analytics_experimental"))
+) -> Dict[str, Any]:
+    """Workbench-only. Experimental — synthetic inputs (rule `index-integrity`)."""
     from app.data.market_history import get_stock_history
     from app.services.factor_analytics import build_company_analytics
     from app.services.feature_flags import (
@@ -2781,6 +2903,8 @@ def company_analytics(company_id: str) -> Dict[str, Any]:
         gci_score=detail.gci_score,
     )
     analytics["experimental"] = True
+    analytics["synthetic_inputs"] = True
+    analytics["banner"] = "Experimental — synthetic inputs. Not part of the published GCI."
     analytics["show_experimental_ui"] = analytics_experimental_ui()
     # Prefer PIT warehouse (≥12) for #7 alignment disclosure
     gci_vals, pit_points = analytics_series_for(company_id)
@@ -3031,6 +3155,7 @@ def org_pilot_checklist_patch(
     )
 
 
+@router.get("/api/v1/rankings")
 @router.get("/api/public/gci-rankings")
 def public_gci_rankings(
     market: str = "IN",
@@ -3045,6 +3170,116 @@ def public_gci_rankings(
     if (format or "json").lower() in ("md", "markdown"):
         return {"format": "markdown", "markdown": rankings_markdown(payload), **payload}
     return payload
+
+
+# --- Index integrity: score ledger + public changelog (W1.6 / W1.7) ---
+
+
+@router.get("/api/v1/index/ledger")
+def index_ledger(company_id: Optional[str] = None, limit: int = 200) -> Dict[str, Any]:
+    """Append-only record of every published GCI level (newest last)."""
+    from app.services import score_ledger
+
+    rows = score_ledger.rows_for(company_id) if company_id else score_ledger.read_all()
+    lim = max(1, min(int(limit), 1000))
+    rows = rows[-lim:]
+    return {
+        "company_id": company_id,
+        "count": len(rows),
+        "rows": rows,
+        "note": (
+            "One row per published level. A correction is a new row with a later as_of "
+            "and a reason; earlier rows are never edited."
+        ),
+    }
+
+
+@router.get("/api/v1/index/changelog")
+def index_changelog(company_id: Optional[str] = None) -> Dict[str, Any]:
+    """Public methodology / data changelog (mirrors docs/kb/03-scoring.md)."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    path = _Path(__file__).resolve().parents[1] / "data" / "score_changelog.json"
+    data = _json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"entries": []}
+    entries = list(data.get("entries") or [])
+    if company_id:
+        entries = [e for e in entries if company_id in (e.get("companies") or [])]
+    entries.sort(key=lambda e: e.get("date") or "", reverse=True)
+    return {"company_id": company_id, "count": len(entries), "entries": entries}
+
+
+@router.get("/api/v1/index/changelog.rss")
+def index_changelog_rss():
+    """W9.6 — RSS of the public changelog."""
+    from fastapi.responses import PlainTextResponse
+
+    data = index_changelog()
+    items = []
+    for e in data.get("entries") or []:
+        date = e.get("date") or ""
+        title = e.get("reason") or "update"
+        body = (e.get("change") or "").replace("&", "&amp;").replace("<", "&lt;")
+        items.append(
+            f"<item><title>{title} {date}</title><description>{body}</description>"
+            f"<pubDate>{date}</pubDate></item>"
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<rss version="2.0"><channel>'
+        "<title>CiteAlpha GCI changelog</title>"
+        "<link>https://citealpha.com/changelog</link>"
+        "<description>Published GCI methodology and data corrections</description>"
+        + "".join(items)
+        + "</channel></rss>"
+    )
+    return PlainTextResponse(xml, media_type="application/rss+xml")
+
+
+@router.get("/api/v1/index/files")
+def index_files() -> Dict[str, Any]:
+    """Frozen daily GCI level files (W9.2). Reproducible from the score ledger."""
+    from app.jobs import publish_index_files as pub
+
+    files = pub.list_files()
+    if not files:
+        pub.publish()
+        files = pub.list_files()
+    return {"files": files, "count": len(files)}
+
+
+@router.get("/api/v1/index/files/{name}")
+def index_file_download(name: str):
+    """Download one frozen CSV, Parquet, or checksum file."""
+    import re
+
+    from fastapi.responses import FileResponse
+
+    from app.jobs.publish_index_files import resolve_file
+
+    if not re.fullmatch(r"gci_levels_\d{8}\.(csv|parquet|sha256|json)", name):
+        raise HTTPException(status_code=404, detail="Unknown index file")
+    try:
+        path = resolve_file(name)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Index file not published") from None
+    media = {
+        ".csv": "text/csv",
+        ".parquet": "application/vnd.apache.parquet",
+        ".sha256": "text/plain",
+        ".json": "application/json",
+    }[path.suffix]
+    return FileResponse(path, media_type=media, filename=path.name)
+
+
+@router.get("/api/v1/index/digest")
+def index_ledger_digest() -> Dict[str, Any]:
+    """Preview of the weekly ledger-move email (W9.6). Does not send."""
+    from app.services.ledger_digest import preview
+
+    body = preview()
+    body.pop("recipients", None)
+    return body
 
 
 @router.get("/api/v1/pit/contract")
@@ -3129,6 +3364,22 @@ def admin_portal_legal(
     from app.services import legal_attest
 
     return legal_attest.snapshot()
+
+
+@router.get("/api/admin/portal/trust")
+def admin_portal_trust(
+    actor=Depends(admin_portal_svc.require_platform_perm("legal.read")),
+) -> Dict[str, Any]:
+    """Internal Trust fields that must not appear on public /api/trust (W8.2)."""
+    from app.services import legal_attest
+    from app.services.rbac import sso_status
+
+    snap = legal_attest.snapshot()
+    return {
+        **snap,
+        "sso": sso_status(),
+        "counsel_status": snap.get("counsel_status"),
+    }
 
 
 @router.post("/api/admin/portal/legal/attest")

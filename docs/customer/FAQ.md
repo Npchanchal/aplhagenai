@@ -7,7 +7,7 @@ No. Sentiment stubs exist for Wordmap context; GCI is guidance vs actuals with l
 Consensus is street estimates. GCI scores *management’s own* guided bands vs reported delivery.
 
 **Can we trust the scores?**  
-Hand-labeled cohort (e.g. Infosys official guidance-vs-actuals) is citation-ready. Remaining Sensex names may be `demo_structured` until labeled — check `data_quality` on each company.
+Hand-labeled, dual-cited rows are citation-ready. Check `data_quality` and the confidence tier on each company. Coverage counts live on `GET /api/meta`.
 
 **Will you give stock tips?**  
 No. Factual accountability metric only. See [COMPLIANCE.md](COMPLIANCE.md).
@@ -25,7 +25,7 @@ Enterprise scoping. Shared API key is for pilot/demo.
 They lead globally (esp. US). CiteAlpha is India-localized guidance tracking — pitch that, not “world’s first.”
 
 **Price?**  
-See [PRICING.md](PRICING.md). Pilot is time-boxed; Desk is per-seat; API is annual license; One-Stop is the bundled platform SKU.
+See [PRICING.md](PRICING.md). Pilot is time-boxed; Desk is per-seat; Enterprise API is an annual license.
 
-**We want a one-stop solution.**  
-Sell **One-Stop Platform**: single contract for Tracker + API + import + Wordmap context + CSM — India guidance accountability only. Not a Bloomberg replacement. See [ONE_STOP.md](ONE_STOP.md).
+**We want a single contract.**  
+Quote **Enterprise API / Data**: GCI Screener + evidence + API + facts import. India guidance accountability only. Not a market-terminal replacement.

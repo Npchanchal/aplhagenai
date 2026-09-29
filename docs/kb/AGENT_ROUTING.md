@@ -4,9 +4,12 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 
 | User intent | Agent (`.cursor/agents/`) | Skill | Rules (also) | KB |
 |---|---|---|---|---|
-| Score / GCI API / Tracker | `gci-engineer` | `citealpha-gci-dev` | gci-scoring, python-backend, api-contracts | 03, 05 |
+| Implement / continue Round-3 plan (R3-nn, W1–W9) | per workstream owner | `citealpha-worldclass-remediation` | index-integrity, public-copy-voice | `docs/PLAN_WORLDCLASS_GCI.md` |
+| A published score moved / scorer constant / ledger / changelog / tiers | `index-steward` | `citealpha-index-integrity` | index-integrity, gci-scoring | 03 |
+| Score / GCI API / Screener backend | `gci-engineer` | `citealpha-gci-dev` | gci-scoring, python-backend, api-contracts, index-integrity | 03, 05 |
 | Close gaps G01–G23 / pipeline | `gci-engineer` | `citealpha-close-gaps` | gci-pipeline | 04, GAPS doc |
-| UI / UX / dossier / desk | `frontend-designer` | `citealpha-frontend-ux` | frontend, frontend-ux | 06 |
+| Public pages: homepage, dossier, Screener, Snapshot, Package, copy voice | `frontend-designer` | `citealpha-expert-ux` | frontend-ux, public-copy-voice, compliance-sebi | 06 |
+| Workbench / Filing Search chrome, tabs, toasts | `frontend-designer` | `citealpha-frontend-ux` | frontend, frontend-ux | 06 |
 | Research search/chat | `research-terminal` | `citealpha-research` | research-terminal | 07 |
 | Hand-label Sensex | `labeling-analyst` | `citealpha-labeling` / phase0 | data-quality | 08 |
 | Product / GTM / stories | `product-strategist` | `citealpha-product` | citealpha-core, seo-marketing | 01, 13 |
@@ -24,6 +27,7 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 ## Default session
 
 1. Read `docs/kb/00-overview.md` if unfamiliar.
-2. Apply always-on `citealpha-core`.
+2. Apply always-on `citealpha-core` and `index-integrity`.
 3. Load the matching skill before coding.
 4. Keep changes small and tested.
+5. If a published GCI number changes, finish with the ledger + changelog protocol (`citealpha-index-integrity`).

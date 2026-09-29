@@ -58,7 +58,7 @@ CHECKLIST_ITEMS: List[Dict[str, str]] = [
     {
         "id": "sku_decision",
         "phase": "week4",
-        "label": "Decide Desk vs Enterprise API vs One-Stop",
+        "label": "Decide Desk seat vs Enterprise API",
     },
     {
         "id": "order_form",

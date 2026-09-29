@@ -1,17 +1,18 @@
 import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import { useI18n } from "../i18n";
 import { SEO_STRUCTURED } from "../lib/seoJsonLd";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 
 /** Voice- and AEO-friendly FAQ hub with answer-first structure. */
 export default function AnswersPage() {
+  const { t } = useI18n();
   return (
     <section className="page answers-page" data-testid="answers-page">
       <p className="page-kicker">{LEGAL_ENTITY}</p>
-      <h1 className="seo-speakable">{PRODUCT_NAME} Answers</h1>
+      <h1 className="seo-speakable">{t("ui.AnswersPage.title", { product: PRODUCT_NAME })}</h1>
       <p className="muted seo-speakable">
-        Short answers about the Guidance Credibility Index (GCI) for Indian equity desks. Factual
-        research — not investment advice.
+        {t("ui.AnswersPage.lede")}
       </p>
 
       <dl className="glossary landing-faq">
@@ -25,10 +26,10 @@ export default function AnswersPage() {
 
       <div className="landing-cta">
         <Link to="/blog/what-is-guidance-credibility-index" className="btn primary">
-          Full GCI definition
+          {t("ui.AnswersPage.fullDefinition")}
         </Link>
         <Link to="/pilot" className="btn">
-          Request a pilot
+          {t("footer.pilot")}
         </Link>
       </div>
 

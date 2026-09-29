@@ -9,7 +9,7 @@
 | **Hand-labeled cohort (G01)** | **Medium–High for Infosys** | Official guidance-vs-actuals table used |
 | **Sensex-30 hand_labeled** | **Medium (shallow)** | All 30 flagged HL; most have 1–2 outcomes — **P2 depth wave** (target ≥8 closed) |
 | **Nifty-50 tab (50)** | **Medium (shallow + P1 started)** | 40 HL + 10 demo; P1 promoted Trent/ONGC/Hindalco; 10 P1 names queued |
-| **IN1000 / NSE / BSE** | **Provisional** | 960+ names `listing_provisional` — **P3+** milestone-gated |
+| **IN1000 / NSE / BSE** | **Not yet scored** | Exchange listings without dual-cited, reviewed guidance — **P3+** milestone-gated |
 | **Extraction** | **Prototype** | LLM/heuristic extract; always `needs_review` |
 
 ## G01 sources (examples)

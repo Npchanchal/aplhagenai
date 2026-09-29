@@ -1,63 +1,38 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import Disclaimer from "../../components/Disclaimer";
+import { useI18n } from "../../i18n";
 
 const PRIMARY: { to: string; label: string; end?: boolean }[] = [
-  { to: "/sights", label: "Hub", end: true },
-  { to: "/sights/search", label: "Search" },
-  { to: "/sights/ask", label: "Ask" },
-  { to: "/sights/boards", label: "Boards" },
-];
-
-const MORE: { to: string; label: string }[] = [
-  { to: "/sights/themes", label: "Themes" },
-  { to: "/sights/street", label: "Street" },
-  { to: "/sights/field", label: "Field" },
-  { to: "/sights/grid", label: "Grid" },
-  { to: "/sights/deep-dive", label: "Deep Dive" },
-  { to: "/sights/fundamentals", label: "Fundamentals" },
-  { to: "/sights/agents", label: "Agents" },
-  { to: "/sights/export", label: "Export" },
-  { to: "/sights/settings", label: "Settings" },
+  { to: "/sights/search", label: "ui.SightsLayout.nav.search" },
+  { to: "/sights/ask", label: "ui.SightsLayout.nav.ask" },
+  { to: "/sights/grid", label: "ui.SightsLayout.nav.grid" },
 ];
 
 function linkClass(isActive: boolean) {
   return isActive ? "sights-nav-link active" : "sights-nav-link";
 }
 
-/** Disclosure Explorer (Sights) shell — cross-company disclosure research. */
+/** Disclosure Explorer shell — public nav is Search · Ask · Compare (W7.3). */
 export default function SightsLayout() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
-  const moreActive = MORE.some((l) => pathname === l.to || pathname.startsWith(`${l.to}/`));
 
   return (
     <div className="page sights-page" data-testid="sights-shell">
-      <p className="page-kicker">GCI by CiteAlpha · cross-company disclosures</p>
-      <h1>Disclosure Explorer</h1>
-      <p className="lede">
-        Search, cite-only answers, boards, and desk agents over public IR and CiteAlpha evidence —
-        not sell-side note redistribution.
-      </p>
-      <nav className="sights-nav" aria-label="Disclosure Explorer sections">
+      <p className="page-kicker">{t("ui.SightsLayout.kicker")}</p>
+      <h1>{t("ui.SightsLayout.title")}</h1>
+      <p className="lede">{t("ui.SightsLayout.lede")}</p>
+      <nav className="sights-nav" aria-label={t("ui.SightsLayout.navAria")}>
         {PRIMARY.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}
             end={l.end}
-            className={({ isActive }) => linkClass(isActive)}
+            className={({ isActive }) => linkClass(isActive || pathname === l.to)}
           >
-            {l.label}
+            {t(l.label)}
           </NavLink>
         ))}
-        <details className={`sights-nav-more ${moreActive ? "active" : ""}`}>
-          <summary>More</summary>
-          <div className="sights-nav-more-list">
-            {MORE.map((l) => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => linkClass(isActive)}>
-                {l.label}
-              </NavLink>
-            ))}
-          </div>
-        </details>
       </nav>
       <Outlet />
       <Disclaimer compact />

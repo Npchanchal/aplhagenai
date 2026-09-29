@@ -28,10 +28,11 @@ def test_sql_auth_backend_and_hsts_header():
         "/api/auth/register",
         json={
             "email": "sql@ocotillo.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "SQL",
             "accept_terms": True,
-            "account_type": "retail",
+            "account_type": "b2b",
+            "org_name": "SQL Desk",
         },
     )
     assert r.status_code == 200, r.text
@@ -77,7 +78,7 @@ def test_legal_attest_and_retail_paywall():
         "/api/auth/register",
         json={
             "email": "buyer@ocotillo.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "Buyer",
             "accept_terms": True,
             "account_type": "retail",
@@ -89,15 +90,14 @@ def test_legal_attest_and_retail_paywall():
         headers={"Authorization": f"Bearer {token}"},
         json={},
     )
-    assert checkout.status_code == 200, checkout.text
-    order_id = checkout.json()["id"]
+    assert checkout.status_code == 403, checkout.text
+    assert "quote" in checkout.json()["detail"].lower()
     paid = client.post(
         "/api/billing/retail/confirm",
         headers={"Authorization": f"Bearer {token}"},
-        json={"order_id": order_id, "payment_ref": "upi-test"},
+        json={"order_id": "ret-none", "payment_ref": "upi-test"},
     )
-    assert paid.status_code == 200
-    assert paid.json()["status"] == "paid"
+    assert paid.status_code == 403
 
 
 def test_msa_invoice_and_sign():
@@ -105,7 +105,7 @@ def test_msa_invoice_and_sign():
         "/api/auth/register",
         json={
             "email": "cfo@desk.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "CFO",
             "accept_terms": True,
             "account_type": "b2b",

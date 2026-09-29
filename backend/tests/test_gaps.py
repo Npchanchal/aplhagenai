@@ -23,7 +23,8 @@ def test_g01_hand_labeled_cohort():
     assert "infy" in HAND_LABELED_COMPANY_IDS
     infy = client.get("/api/companies/infy/gci").json()
     assert infy["data_quality"] == "hand_labeled"
-    assert len(infy["outcomes"]) >= 8
+    assert len(infy["outcomes"]) >= 7
+    assert not any(o["dropped"] for o in infy["outcomes"])
     rev = [o for o in infy["outcomes"] if o.get("thread_id") == "infy-rev-cc"]
     assert len(rev) == 5
     for o in rev:
@@ -106,15 +107,16 @@ def test_g11_peers():
 def test_g12_dropped():
     o = GuidanceOutcome("FY", "m", 1.0, None, "d", 1.0, dropped=True)
     assert classify_outcome(o) == OutcomeLabel.DROPPED
-    # v3: dropped excluded from period score (company −15 via audit); v2 legacy = 35
+    # v3/v4: dropped excluded from the period score; −15 only if an analyst sets
+    # guidance_withdrawal. v2 legacy = 35.
     assert outcome_score(o) is None
     assert outcome_score(o, version="v2") == 35.0
 
 
 def test_g13_wordmap_sentiment():
-    detail = client.get("/api/companies/infy/gci").json()
-    assert detail["sentiment"]
-    r = client.get("/api/companies/infy/wordmap")
+    # Wordmap is Workbench-only (seat feature); guests get 401.
+    assert client.get("/api/companies/infy/wordmap").status_code == 401
+    r = client.get("/api/companies/infy/wordmap", headers={"X-API-Key": "intellens-demo"})
     assert r.status_code == 200
     assert "entity" in r.json() and "industry" in r.json()
 
@@ -175,8 +177,9 @@ def test_g19_vernacular():
 
 def test_g20_badge():
     badge = client.get("/api/badge/INFY").json()
-    assert badge["trust_score"] is not None
-    assert "embed" in badge
+    assert badge["gci_score"] is not None
+    assert badge["label"] == "Guidance Credibility Index (GCI)"
+    assert "data-citealpha-badge" in badge["embed"]
     svg = client.get("/api/badge/INFY/svg")
     assert svg.status_code == 200
     assert "svg" in svg.text.lower()
@@ -193,10 +196,11 @@ def test_g20_badge_listing_ticker():
     assert badge.status_code == 200, badge.text
     body = badge.json()
     assert body["ticker"] == "20MICRONS"
-    assert body["trust_score"] is not None
+    assert body["gci_score"] is None
     svg = client.get("/api/badge/20MICRONS/svg")
     assert svg.status_code == 200
     assert "20MICRONS" in svg.text
+    assert "not yet scored" in svg.text.lower()
 
 
 def test_g21_sebi():

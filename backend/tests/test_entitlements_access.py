@@ -101,7 +101,11 @@ def test_sights_ask_requires_key():
     assert ok.status_code == 200
 
 
-def test_label_workbench_two_person_and_cite_required():
+def test_label_workbench_two_person_and_cite_required(tmp_path, monkeypatch):
+    from app.data import audit_log
+
+    monkeypatch.setattr(audit_log, "_PATH", tmp_path / "audit.json")
+    monkeypatch.setattr(audit_log, "_LOG", [])
     headers_l = {"X-API-Key": "intellens-onestop-labeler"}
     headers_a = {"X-API-Key": "intellens-onestop"}
     created = client.post(

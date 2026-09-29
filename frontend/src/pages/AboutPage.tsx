@@ -3,8 +3,6 @@ import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import { useI18n } from "../i18n";
 import { CONTACT_EMAIL, copyrightLine } from "../lib/legal";
-import { showArchitecturePage } from "../lib/siteFlags";
-
 const PIPELINE = [
   { step: "1", tip: "source", titleKey: "about.pipeline.1.title", textKey: "about.pipeline.1.text" },
   { step: "2", tip: "extract", titleKey: "about.pipeline.2.title", textKey: "about.pipeline.2.text" },
@@ -74,9 +72,6 @@ export default function AboutPage() {
         <a href="#how">{t("about.toc.how")}</a>
         <a href="#layers">{t("about.toc.layers")}</a>
         <Link to="/about/tiers">{t("about.toc.tiers")}</Link>
-        {showArchitecturePage ? (
-          <Link to="/about/architecture">{t("about.toc.architecture")}</Link>
-        ) : null}
         <a href="#who">{t("about.toc.who")}</a>
         <a href="#also">{t("about.toc.also")}</a>
       </nav>

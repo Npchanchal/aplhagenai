@@ -51,6 +51,16 @@ test.describe("Guest user journey", () => {
     await expect(fy22Trail).toContainText("Guidance given · 2021-04-14");
     await expect(fy22Trail).toContainText("Revenue growth guidance of 12%-14% in constant currency");
     await expect(fy22Trail).toContainText("Actual reported · 2022-04-13");
+    await expect(example.getByTestId("example-revisions-FY23")).toContainText("16–16.5%");
+    await expect(example.getByTestId("example-final-FY23")).toHaveText("missed");
+    await expect(example.getByTestId("example-calc")).toContainText("No deductions applied");
+    await expect(example.getByTestId("example-as-of")).toContainText("Data as of");
+    await expect(example.getByTestId("example-delivery-record")).toContainText("missed");
+
+    await example.getByTestId("example-tab-apollohosp").click();
+    await expect(example.getByTestId("example-company-gci")).toBeVisible();
+    await expect(example).toContainText("Apollo Hospitals");
+    await example.getByTestId("example-tab-infy").click();
 
     const exampleBox = await example.boundingBox();
     const defineBox = await page.getByTestId("landing-explain").boundingBox();
@@ -58,13 +68,32 @@ test.describe("Guest user journey", () => {
 
     await expect(page.getByTestId("landing-outcome-chips").locator(".pill")).toHaveCount(5);
     await expect(page.getByTestId("landing-method")).toContainText("What counts as guidance");
-    await expect(page.getByTestId("coverage-listings")).toContainText("Not for citation");
+    await expect(page.getByTestId("coverage-listings")).toContainText("not yet scored");
+    await expect(page.getByTestId("coverage-sensex")).toContainText("of 30 Sensex companies scored");
+    await expect(page.getByTestId("coverage-commitments")).toContainText("31 March 2027");
+    await expect(page.getByTestId("coverage-commitments")).toContainText("Sensex");
+    await expect(page.getByTestId("coverage-commitments")).toContainText("Nifty 50");
+    await expect(page.getByTestId("landing-independence")).toContainText(
+      "payment never influences a score",
+    );
     await expect(page.getByTestId("coverage-pit")).toContainText("design partners");
     await expect(page.locator('a[href="/api/meta"]')).toHaveCount(0);
     await expect(page.getByTestId("landing-page")).not.toContainText("Nifty names by guidance");
 
     await page.getByTestId("landing-cta-example").click();
     await expect(page).toHaveURL(/\/companies\/infy$/);
+  });
+
+  test("methodology page explains revisions, formula and independence", async ({ page }) => {
+    await page.goto("/methodology");
+    await dismissOverlays(page);
+    await expect(page.getByTestId("methodology-page")).toBeVisible();
+    await expect(page.getByTestId("methodology-revisions")).toContainText("original");
+    await expect(page.getByTestId("methodology-formula")).toContainText("floor of 60");
+    await expect(page.getByTestId("methodology-formula")).toContainText("promise-keeping discipline");
+    await expect(page.getByTestId("methodology-formula")).toContainText("about 59");
+    await expect(page.getByTestId("methodology-page")).toContainText("one analyst");
+    await expect(page.getByTestId("methodology-page")).toContainText("Payment never influences");
   });
 
   test("hero has one primary CTA and surfaces carry function and stage labels", async ({ page }) => {

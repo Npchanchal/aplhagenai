@@ -118,13 +118,17 @@ def test_v3_pending_and_unmapped_excluded():
     assert compute_company_gci_v3([u]) is None
 
 
-def test_v3_dropped_triggers_withdrawal_deduction():
+def test_v3_dropped_excluded_without_analyst_flag():
     met = _o("FY24", "revenue_growth_pct", 10.0, 10.0)
     dropped = _o("FY25", "capex_guidance", 100.0, None, dropped=True)
-    assert audit_deduction([met, dropped]) == 15.0
+    assert audit_deduction([met, dropped]) == 0.0
     detail = compute_gci_v3_detail([met, dropped])
-    assert detail.gci == 85.0  # 100 - 15
-    assert detail.shenanigans_deduction == 15.0
+    assert detail.gci == 100.0
+    assert detail.shenanigans_deduction == 0.0
+    flagged = compute_gci_v3_detail([met, dropped], audit_flags=["guidance_withdrawal"])
+    assert flagged.gci == 85.0
+    assert flagged.shenanigans_deduction == 15.0
+    assert audit_deduction([met, dropped], ["guidance_withdrawal"]) == 15.0
 
 
 def test_v3_definition_shift_flag():
@@ -161,12 +165,13 @@ def test_v3_metric_importance_weights():
     assert rev_heavy > equal
 
 
-def test_v3_insufficient_history_shrinks_to_sector():
+def test_v3_insufficient_history_is_low_confidence_not_shrunk():
+    # W1.5 (decision D5): sector shrinkage removed — sector_mean is ignored.
     only = _o("FY24", "revenue_growth_pct", 10.0, 10.0)
     detail = compute_gci_v3_detail([only], sector_mean=60.0)
     assert detail.low_confidence is True
     assert detail.periods_used == 1
-    assert detail.gci == 70.0
+    assert detail.gci == 100.0
 
 
 def test_v3_four_periods_full_confidence():

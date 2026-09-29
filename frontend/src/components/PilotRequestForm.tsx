@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "../lib/analytics";
 import { fetchAbuseChallenge, postPilotRequest } from "../lib/api";
+import { useI18n } from "../i18n";
 
 type Props = {
   source?: string;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export default function PilotRequestForm({ source = "landing", compact = false }: Props) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [firm, setFirm] = useState("");
@@ -30,7 +32,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
       setChallengePrompt(ch.prompt);
       setChallengeAnswer("");
     } catch {
-      setChallengePrompt("Unable to load verification — refresh and try again.");
+      setChallengePrompt(t("ui.PilotRequestForm.challengeError"));
     }
   }
 
@@ -65,7 +67,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
       setChallengeAnswer("");
       void loadChallenge();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not submit request");
+      setError(err instanceof Error ? err.message : t("ui.PilotRequestForm.submitError"));
       void loadChallenge();
     } finally {
       setBusy(false);
@@ -76,16 +78,16 @@ export default function PilotRequestForm({ source = "landing", compact = false }
     return (
       <div className="pilot-form-success" data-testid="pilot-request-success">
         <p>
-          <strong>Request received.</strong> Our team will review your pilot request and follow up at{" "}
+          <strong>{t("ui.PilotRequestForm.received")}</strong> {t("ui.PilotRequestForm.followUp")}{" "}
           <strong>{submittedEmail}</strong>.
         </p>
         <p className="muted">
-          You can also review{" "}
-          <Link to="/package">packages</Link> or open the{" "}
-          <Link to="/trust">Trust Center</Link> while we follow up.
+          {t("ui.PilotRequestForm.alsoReview")}{" "}
+          <Link to="/package">{t("ui.PilotRequestForm.packages")}</Link> {t("ui.PilotRequestForm.orOpen")}{" "}
+          <Link to="/trust">{t("footer.trust")}</Link> {t("ui.PilotRequestForm.whileWait")}
         </p>
         <button type="button" className="btn" onClick={() => setSuccess(false)}>
-          Submit another request
+          {t("ui.PilotRequestForm.another")}
         </button>
       </div>
     );
@@ -99,7 +101,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
     >
       <div className="pilot-form-grid">
         <label>
-          Full name
+          {t("ui.PilotRequestForm.fullName")}
           <input
             type="text"
             required
@@ -110,7 +112,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
           />
         </label>
         <label>
-          Work email
+          {t("ui.PilotRequestForm.workEmail")}
           <input
             type="email"
             required
@@ -121,7 +123,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
           />
         </label>
         <label>
-          Firm / organization
+          {t("ui.PilotRequestForm.firm")}
           <input
             type="text"
             required
@@ -132,40 +134,40 @@ export default function PilotRequestForm({ source = "landing", compact = false }
           />
         </label>
         <label>
-          Role
+          {t("ui.PilotRequestForm.role")}
           <input
             type="text"
             value={role}
             onChange={(e) => setRole(e.target.value)}
             autoComplete="organization-title"
-            placeholder="Research head, PM, etc."
+            placeholder={t("ui.PilotRequestForm.rolePlaceholder")}
             data-testid="pilot-role"
           />
         </label>
         <label>
-          Team size
+          {t("ui.PilotRequestForm.teamSize")}
           <select value={teamSize} onChange={(e) => setTeamSize(e.target.value)} data-testid="pilot-team-size">
-            <option value="">Select…</option>
-            <option value="1–5">1–5 analysts</option>
-            <option value="6–15">6–15 analysts</option>
-            <option value="16–40">16–40 analysts</option>
-            <option value="40+">40+ analysts</option>
+            <option value="">{t("ui.PilotRequestForm.select")}</option>
+            <option value="1–5">{t("ui.PilotRequestForm.analysts", { n: "1–5" })}</option>
+            <option value="6–15">{t("ui.PilotRequestForm.analysts", { n: "6–15" })}</option>
+            <option value="16–40">{t("ui.PilotRequestForm.analysts", { n: "16–40" })}</option>
+            <option value="40+">{t("ui.PilotRequestForm.analysts", { n: "40+" })}</option>
           </select>
         </label>
       </div>
       <label>
-        Coverage / evaluation notes
+        {t("ui.PilotRequestForm.notes")}
         <textarea
           rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Sensex names, compliance questions, timeline, etc."
+          placeholder={t("ui.PilotRequestForm.notesPlaceholder")}
           data-testid="pilot-message"
         />
       </label>
       {challengePrompt ? (
         <label>
-          Verification — {challengePrompt}
+          {t("ui.PilotRequestForm.verification", { prompt: challengePrompt })}
           <input
             type="text"
             required
@@ -178,10 +180,10 @@ export default function PilotRequestForm({ source = "landing", compact = false }
       ) : null}
       {error ? <p className="error">{error}</p> : null}
       <button type="submit" className="btn primary" disabled={busy || !challengeId} data-testid="pilot-submit">
-        {busy ? "Sending…" : "Request a pilot"}
+        {busy ? t("ui.PilotRequestForm.sending") : t("footer.pilot")}
       </button>
       <p className="muted pilot-form-note">
-        Not investment advice. Requests are reviewed by the CiteAlpha team — no spam lists.
+        {t("ui.PilotRequestForm.note")}
       </p>
     </form>
   );

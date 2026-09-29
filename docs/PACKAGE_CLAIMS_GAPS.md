@@ -14,7 +14,7 @@
 | EM factor export | **Shipped** — JSON + CSV (+ Parquet/TSV fallback) |
 | Facts / AlphaHunter import | **Shipped** — `/api/import/facts` + `/alphahunter` |
 | Org seats / plan entitlements | **Shipped** — Pilot 5 / Desk 25 / One-Stop 40 |
-| Soft API rate limits | **Shipped** — `RATE_LIMIT_RPM` (default 120) |
+| Soft API rate limits | **Shipped** — `RATE_LIMIT_RPM` (default 300, per visitor IP or API key) |
 | SSO OIDC | **Shipped** — authorize → token → session when `OIDC_*` set; HTML bridge for browser; see `docs/OIDC.md` |
 | Labeling priority queue | **Shipped** — Desk tab + `/api/labeling/queue` |
 | Research estimates | **Shipped** — no silent demo street (`ALLOW_DEMO_STREET`) |
@@ -33,7 +33,7 @@
 
 | Env | Default | Meaning |
 |---|---|---|
-| `RATE_LIMIT_RPM` | 120 | Soft API rate limit |
+| `RATE_LIMIT_RPM` | 300 | Soft API rate limit |
 | `SSO` | false | Enable SSO endpoints |
 | `OIDC_CLIENT_ID` / `ISSUER` / `REDIRECT_URI` / `CLIENT_SECRET` | — | Real OIDC |
 | `OIDC_DEMO_ASSERT` | false | Test-only email → session |

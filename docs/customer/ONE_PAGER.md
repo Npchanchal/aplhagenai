@@ -14,7 +14,7 @@
 
 ## What’s included
 
-- Sensex-30 Guidance Tracker workbench
+- Sensex GCI Screener + Analyst Workbench
 - Outcome labels: met · exceeded · missed · dropped · pending
 - Evidence trail with sources
 - Peer rank & sector average
@@ -41,9 +41,9 @@ Global guidance trackers (Marvin Labs, FinCatch) are strong on US/SEC workflows.
 | **Pilot** | 1 desk, Sensex view | ₹0 for time-boxed evaluation |
 | **Desk** | 5–25 analyst seats | Per-seat SaaS |
 | **Enterprise API** | Quant / platform embed | Annual data license |
-| **One-Stop Platform** | Single vendor for guidance stack | Bundled annual platform |
+| **Enterprise API / Data** | Quant / platform embed | Annual data license |
 
-If they ask for a **one-stop solution**, see [ONE_STOP.md](ONE_STOP.md) — one contract for Tracker + API + import + Wordmap context + support; not a market terminal.
+If they ask for a single contract, quote Enterprise API / Data — GCI Screener + evidence + API + facts import; not a market terminal.
 
 ## Contact
 

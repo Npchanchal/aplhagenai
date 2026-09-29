@@ -8,7 +8,7 @@
   {
     "path": "/tracker",
     "title": "GCI Screener: Sensex Guidance Credibility Scores — GCI by CiteAlpha",
-    "description": "Screen Sensex companies by Guidance Credibility Index with hand-labeled evidence. Other NSE/BSE listings are provisional and not for citation. Not investment advice.",
+    "description": "Screen Sensex companies by Guidance Credibility Index with hand-labeled evidence. Other NSE/BSE listings are not yet scored. Not investment advice.",
     "sitemap": { "changefreq": "daily", "priority": "0.9" }
   },
   {
@@ -43,14 +43,26 @@
   },
   {
     "path": "/products",
-    "title": "Product Portfolio: Score, Cite, Disclosure Explorer & More — CiteAlpha",
-    "description": "Score, Cite, Disclosure Explorer, Radar, Ledger, and Data SKUs for Guidance Credibility Index workflows on Indian equity desks. Not investment advice.",
+    "title": "What you get: Screener, Workbench, Filing Search, API — CiteAlpha",
+    "description": "GCI Screener, Analyst Workbench, Filing Search, and API for guidance delivery on Indian listed companies. SKU names in the appendix. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
   },
   {
+    "path": "/developers",
+    "title": "CiteAlpha API — public /api/v1 reads",
+    "description": "Public GCI reads under /api/v1. OpenAPI at /docs. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.5" }
+  },
+  {
+    "path": "/status",
+    "title": "CiteAlpha status",
+    "description": "Live health of the GCI API and the latest published index file.",
+    "sitemap": { "changefreq": "daily", "priority": "0.3" }
+  },
+  {
     "path": "/package",
-    "title": "Package & Pricing for GCI Pilots — CiteAlpha",
-    "description": "Pilot, Desk, and Enterprise API packages for Guidance Credibility Index. India-first institutional research product.",
+    "title": "Pilot, Desk seat, and Enterprise API — CiteAlpha",
+    "description": "Three ways to use the Guidance Credibility Index. Request a quote — there is no self-serve checkout. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
   },
   {
@@ -64,6 +76,18 @@
     "title": "CiteAlpha Answers — Guidance Credibility Index FAQ",
     "description": "Short answers about the Guidance Credibility Index (GCI) for Indian equity desks. Factual research — not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
+  },
+  {
+    "path": "/methodology",
+    "title": "GCI Methodology — How CiteAlpha Scores Guidance vs Actuals",
+    "description": "What counts as guidance, how in-year revisions are handled, the scoring formula, review and independence for the Guidance Credibility Index. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.8" }
+  },
+  {
+    "path": "/changelog",
+    "title": "GCI Score Changelog — Every Published Change, Logged — CiteAlpha",
+    "description": "Every change to a published Guidance Credibility Index level — new filing, correction, flag change or method revision — with before/after values and reasons. Append-only score ledger. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.7" }
   },
   {
     "path": "/press",

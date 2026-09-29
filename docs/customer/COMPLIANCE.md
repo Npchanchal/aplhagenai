@@ -30,6 +30,31 @@ A scored/ranked **Guidance Credibility Index** for specific listed companies, pu
 
 Until counsel attests, Trust Center must keep showing **pending / scaffold** counsel status — do not claim “SEBI-cleared.”
 
+### Decision logged 2026-09-29 (W8.1 / D1)
+
+Owner decision: **retail (B2C) stays off** until a written SEBI RA characterisation memo is received. Product posture until then:
+
+| Surface | Status |
+|---|---|
+| Individual self-serve signup (`account_type=retail`) | **403** unless `sebi_retail` is attested |
+| Retail checkout / UPI paywall | **off** (same attest) |
+| Public Snapshot / dossiers | **stay published** as factual delivery records (not recommendations) |
+| Terms/Privacy `counsel_status` | **pending** — do not self-attest; counsel signs via `POST /api/legal/attest kind=terms_privacy` |
+| Sold plans | Pilot · Desk · Enterprise (register creates a Pilot desk) |
+
+Do **not** set `INTELLENS_RETAIL_MARKETING=true` or attest `sebi_retail` in production until the memo is in hand.
+
+### Counsel brief (send to a SEBI-intermediaries practice)
+
+Ask for a written memo on:
+
+1. Whether GCI Score, the Public Snapshot, Radar, and public marketing are a “research report” or “research analysis” under the RA Regulations 2014 (as amended Dec 2024 / Jan 2025), given that they score and rank named listed companies.
+2. Whether a factual methodology + “not investment advice” disclaimer is a carve-out, or whether RA registration (or an arrangement with a registered intermediary) is required to publish them to external clients.
+3. Go / no-go on: (a) public company rankings, (b) individual (B2C) marketing and checkout, (c) selling the product as “diligence / IC input”.
+4. Review of current Terms (`/terms`) and Privacy (`/privacy`) for `terms_privacy` attestation.
+
+Attach: `/methodology`, one company dossier (e.g. Infosys), `/rankings`, `/package`, this page. Typical turnaround 2–4 weeks. After the memo: attest `terms_privacy` (and `sebi_retail` only if go); if no-go on retail, leave the 403 in place.
+
 ## Safe customer language (hygiene — necessary, not sufficient)
 
 | Prefer | Avoid |
@@ -54,10 +79,10 @@ Use **factual research / disclosure / evidence** language. This reduces tipster 
 |---|---|---|
 | Brand | **CiteAlpha** | Product of Ocotillo Innovation Private Limited |
 | Core metric | **Guidance Credibility Index (GCI)** | Evidence-linked management guidance vs delivery |
-| Nav | **GCI Tracker** | Screen coverage by guidance credibility |
-| Nav | **Desk** / **Review Desk** | Review queue and human-in-the-loop workflows |
-| Nav | **Research** / **Filings Research** | Cite-only filings and transcript search |
-| Nav / SKU | **Sights** | India disclosure research OS |
+| Nav | **GCI Screener** | Screen coverage by guidance credibility |
+| Nav | **Analyst Workbench** | Review queue and human-in-the-loop workflows |
+| Nav | **Filing Search** | Cite-only filings and transcript search |
+| Nav / SKU | **Disclosure Explorer** | India disclosure research workspace |
 | SKU | **CiteAlpha Score** | Company GCI + evidence trail (not marketed as a stock rating) |
 | SKU | **CiteAlpha Cite** | Primary-source citations and cite-only answers |
 | SKU | **CiteAlpha Radar** | Guidance-change / miss / drop alerts (not trade alerts) |

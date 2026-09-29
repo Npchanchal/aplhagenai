@@ -4,34 +4,41 @@
 
 | Tier | Coverage | Data quality |
 |---|---|---|
-| Product default | Sensex-30 | Mix of `hand_labeled` (~10) and `demo_structured` (remainder) |
-| Roadmap | Nifty 500 + sector benchmarks | Labeling expansion |
+| Product default | Sensex-30 | Mix of `hand_labeled` and not-yet-scored listings |
+| Commitment (W9.7) | Sensex 30 at Established | **31 March 2027** |
+| Commitment (W9.7) | Nifty 50 at Established | **31 March 2027** |
+| Later | Nifty 500 + sector benchmarks | Not dated |
 
 Always check `GET /api/meta` → `hand_labeled_count`, `data_quality_note`.
 
+## Filing-to-score (W2.8)
+
+A published score is updated **within 5 business days** of the results filing (India Monday–Friday; filing date = the actual's `as_of`). The clock starts on filings dated **on or after 29 September 2026**.
+
+Observed median (live sample vs historical backfill) is on `/methodology` and `GET /api/meta` → `filing_to_score`. Historical Sensex rows were batch-reviewed on 29 September 2026; that pass is reported as backfill and is not the 5-day target.
+
+Refresh records `filing_seen` when a new IR document lands; `accept_draft` records `review` → `publish`.
+
 ## Refresh
 
-| Layer | Cadence (MVP) |
+| Layer | Cadence |
 |---|---|
 | Seed / hand-labeled tables | Manual / batch on release |
-| Extract prototype | On-demand API |
+| IR crawl + extract queue | Every 6 hours; docs stay pending until analyst accept |
+| Source-link verification | Nightly on live refresh (at most once per 24 h) |
 | Alerts | Computed on request from current store |
-| Production NLP ingest | Phase 1+ (not live concall firehose yet) |
 
-## Availability targets (illustrative — contract in Enterprise)
+## Availability
 
-| Class | Target |
-|---|---|
-| Pilot / Desk hosted | 99.0% monthly (excludes planned maintenance) |
-| Enterprise API | 99.5%+ with maintenance windows |
+Uptime percentages are not published until 90 days of measured production. Hosted availability is currently best-effort. Any contracted uptime lives in the MSA, not on this page.
 
-## Support
+## Support (response aim, not a contracted SLA)
 
-| Plan | Channel | Response (business hours IST) |
+| Plan | Channel | Response aim (business hours IST) |
 |---|---|---|
-| Pilot | Email | &lt; 2 business days |
-| Desk | Email + optional Slack | &lt; 1 business day |
-| Enterprise | Named CSM + Slack | &lt; 4 hours Sev-1 |
+| Pilot | Email | 2 business days |
+| Desk | Email + optional Slack | 1 business day |
+| Enterprise | Named CSM + Slack | 4 hours Sev-1 |
 
 ## Severity
 

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTour } from "../lib/TourProvider";
 import { TOURS, TOUR_GROUPS, type TourId } from "../lib/tours";
+import { useI18n } from "../i18n";
 
 /** Compact launcher in the topnav + optional dropdown of all tours. */
 export default function TourMenu() {
+  const { t } = useI18n();
   const { startTour, resetSeen, seen } = useTour();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -24,31 +26,31 @@ export default function TourMenu() {
         className="nav-link tour-trigger"
         data-testid="tour-menu"
         aria-expanded={open}
-        title="Guided product tours"
+        title={t("ui.TourMenu.title")}
         onClick={() => setOpen((v) => !v)}
       >
-        Tours
+        {t("ui.TourMenu.trigger")}
       </button>
       {open && (
         <div className="tour-menu-dropdown panel" role="menu" data-testid="tour-menu-dropdown">
           <p className="muted" style={{ margin: "0 0 8px", fontSize: 12 }}>
-            Walk through each surface. Esc skips without marking complete.
+            {t("ui.TourMenu.hint")}
           </p>
           {TOUR_GROUPS.map((group) => (
             <div key={group.id}>
               <p className="tour-menu-heading">{group.label}</p>
-              {TOURS.filter((t) => t.group === group.id).map((t) => (
+              {TOURS.filter((tour) => tour.group === group.id).map((tour) => (
                 <button
-                  key={t.id}
+                  key={tour.id}
                   type="button"
                   role="menuitem"
                   className="tour-menu-item"
-                  data-testid={`tour-start-${t.id}`}
-                  onClick={() => launch(t.id)}
+                  data-testid={`tour-start-${tour.id}`}
+                  onClick={() => launch(tour.id)}
                 >
-                  <strong>{t.title}</strong>
-                  {seen[t.id] ? <span className="pill">seen</span> : null}
-                  <span className="muted">{t.blurb}</span>
+                  <strong>{tour.title}</strong>
+                  {seen[tour.id] ? <span className="pill">{t("ui.TourMenu.seen")}</span> : null}
+                  <span className="muted">{tour.blurb}</span>
                 </button>
               ))}
             </div>
@@ -63,7 +65,7 @@ export default function TourMenu() {
               setOpen(false);
             }}
           >
-            Reset tour progress
+            {t("ui.TourMenu.reset")}
           </button>
         </div>
       )}

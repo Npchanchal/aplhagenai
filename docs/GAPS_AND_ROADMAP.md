@@ -18,7 +18,7 @@ Each gap has a dedicated pytest in `backend/tests/test_gaps.py` (`test_g01_…` 
 | G12 | Closed | Dropped label + score 35 |
 | G13 | Closed | `GET /api/companies/{id}/wordmap` entity vs industry |
 | G14 | Closed | Accept/Edit/Reject + reviews corpus |
-| G15 | Closed | AlphaHunter import |
+| G15 | Closed | Facts JSON import |
 | G16 | Closed | `X-API-Key` + `GET /api/orgs/{id}` seats |
 | G17 | Closed | PIT history endpoint |
 | G18 | Closed | Alerts API + UI |
@@ -38,4 +38,4 @@ Each gap has a dedicated pytest in `backend/tests/test_gaps.py` (`test_g01_…` 
 
 **Status:** Phases 0–8 implemented in code (v0.4.0). Depth work continues (real LLM, live IR crawl, SSO OIDC wiring).
 
-`GET /api/meta` → `open_gaps: []`, `hand_labeled_count: 30` (after store rebuild).
+Coverage and score policy: use `GET /api/meta` (single live table). Do not copy counts from this file.

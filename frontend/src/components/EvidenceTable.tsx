@@ -1,12 +1,21 @@
 import { Fragment, useState } from "react";
 import ChangeChip from "./ChangeChip";
 import InfoTip from "./InfoTip";
+import { useI18n } from "../i18n";
 import type { OutcomeView } from "../lib/api";
 import { recordCiteCopy } from "../lib/api";
-import { tipForLabel } from "../lib/glossary";
+import { formatOutcomeLabel, tipForLabel } from "../lib/glossary";
 import { useSourceViewer } from "../lib/SourceViewerContext";
 import { withTextHighlight } from "../lib/sourceHighlight";
 import { trackEvent } from "../lib/analytics";
+import {
+  formatActual,
+  formatCharLocator,
+  formatDossierDate,
+  formatGuideGap,
+  formatGuidedBand,
+  metricDisplayName,
+} from "../lib/score";
 
 async function copyText(text: string): Promise<boolean> {
   try {
@@ -31,6 +40,14 @@ type Props = {
   testId?: string;
 };
 
+function sourceHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 type EditDraft = {
   period: string;
   guided_low: string;
@@ -48,9 +65,10 @@ export default function EvidenceTable({
   onEdit,
   onFlag,
   maxRows,
-  showDeltaActual = true,
+  showDeltaActual = false,
   testId = "evidence-table",
 }: Props) {
+  const { t } = useI18n();
   const { openSource } = useSourceViewer();
   const rows = maxRows != null ? outcomes.slice(0, maxRows) : outcomes;
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -68,7 +86,7 @@ export default function EvidenceTable({
   if (rows.length === 0) {
     return (
       <div className="empty" data-testid="empty-state">
-        Insufficient data — no matched guidance outcomes yet.
+        {t("ui.EvidenceTable.empty")}
       </div>
     );
   }
@@ -104,7 +122,25 @@ export default function EvidenceTable({
   };
 
   const showActions = Boolean(onReview || onEdit || onFlag);
-  const colCount = 7 + (showDeltaActual ? 1 : 0) + (showActions ? 1 : 0);
+  const colCount = 8 + (showDeltaActual ? 1 : 0) + (showActions ? 1 : 0);
+
+  const copyCitation = (o: OutcomeView) => {
+    const promise = o.guidance_source_url
+      ? `Promise: ${o.guidance_as_of || ""} ${o.guidance_source_url}`
+      : "";
+    const actual = o.source_url ? `Actual: ${o.as_of || ""} ${o.source_url}` : "";
+    const loc = formatCharLocator(o.span_start, o.span_end);
+    const quote = o.quote_span ? ` Quote: “${o.quote_span}”` : "";
+    const gq = o.guidance_quote ? ` Guidance: “${o.guidance_quote}”` : "";
+    const line = `${o.period} ${metricDisplayName(o.metric)}. ${promise}. ${actual}${loc ? ` (${loc})` : ""}.${gq}${quote}`;
+    void copyText(line.trim()).then((ok) => {
+      if (ok) {
+        setCopiedId(`${o.period}-${o.metric}`);
+        recordCiteCopy(companyId);
+        window.setTimeout(() => setCopiedId(null), 1600);
+      }
+    });
+  };
 
   return (
     <div className="table-scroll">
@@ -112,34 +148,35 @@ export default function EvidenceTable({
         <thead>
           <tr>
             <th>
-              Period <InfoTip termId="period" />
+              {t("ui.EvidenceTable.th.period")} <InfoTip termId="period" />
             </th>
             <th>
-              Metric <InfoTip termId="metric" />
+              {t("ui.EvidenceTable.th.metric")} <InfoTip termId="metric" />
             </th>
             <th>
-              Band <InfoTip termId="band" />
+              {t("ui.EvidenceTable.th.band")} <InfoTip termId="band" />
             </th>
             <th>
-              Actual <InfoTip termId="actual" />
+              {t("ui.EvidenceTable.th.actual")} <InfoTip termId="actual" />
             </th>
             {showDeltaActual && (
               <th>
-                Δ Actual <InfoTip termId="change_trend" />
+                {t("ui.EvidenceTable.th.deltaActual")} <InfoTip termId="change_trend" />
               </th>
             )}
             <th>
-              Label <InfoTip termId="label" />
+              {t("ui.EvidenceTable.th.label")} <InfoTip termId="label" />
             </th>
             <th>
-              Δ vs guide <InfoTip termId="delta" />
+              {t("ui.EvidenceTable.th.points")}{" "}
+              <InfoTip termId="gci" text={t("ui.EvidenceTable.pointsTip")} />
             </th>
-            <th>
-              Source <InfoTip termId="source" />
-            </th>
+            <th>{t("ui.EvidenceTable.th.promise")}</th>
+            <th>{t("ui.EvidenceTable.th.actualSource")}</th>
+            <th>{t("ui.EvidenceTable.th.cite")}</th>
             {showActions && (
               <th>
-                Review <InfoTip termId="review" />
+                {t("ui.EvidenceTable.th.review")} <InfoTip termId="review" />
               </th>
             )}
           </tr>
@@ -149,13 +186,9 @@ export default function EvidenceTable({
             <Fragment key={`${o.period}-${o.metric}-${idx}`}>
               <tr>
                 <td>{o.period}</td>
-                <td>{o.metric}</td>
-                <td>
-                  {o.guided_low != null && o.guided_high != null
-                    ? `${o.guided_low}–${o.guided_high}`
-                    : o.guided_value}
-                </td>
-                <td>{o.actual_value ?? "—"}</td>
+                <td>{metricDisplayName(o.metric)}</td>
+                <td>{formatGuidedBand({ ...o, metric: o.metric })}</td>
+                <td>{formatActual(o)}</td>
                 {showDeltaActual && (
                   <td>
                     <ChangeChip
@@ -165,128 +198,102 @@ export default function EvidenceTable({
                   </td>
                 )}
                 <td>
-                  <span className={`pill ${o.label}`}>{o.label}</span>{" "}
+                  <span className={`pill ${o.label}`}>{formatOutcomeLabel(o.label)}</span>{" "}
                   <InfoTip termId={o.label.toLowerCase()} text={tipForLabel(o.label)} />
                 </td>
-                <td className="num">{o.delta_pct ?? "—"}</td>
-                <td className="evidence-text">
-                  {o.citeable === false && (
-                    <span className="pill muted" title={o.cite_reason || "not citeable"}>
-                      not citeable
-                      {o.cite_reason ? ` · ${o.cite_reason}` : ""}
-                    </span>
+                <td className="num" title={t("ui.EvidenceTable.gapTitle", { gap: formatGuideGap(o) })}>
+                  {o.contribution_score != null ? o.contribution_score.toFixed(1) : "—"}
+                  <div className="muted" style={{ fontSize: 11 }}>
+                    {formatGuideGap(o)}
+                  </div>
+                </td>
+                <td className="evidence-source" data-testid={`promise-source-${idx}`}>
+                  {o.guidance_source_url ? (
+                    <details>
+                      <summary>
+                        <a
+                          href={o.guidance_source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {o.guidance_as_of ? formatDossierDate(o.guidance_as_of) : sourceHost(o.guidance_source_url)}
+                        </a>
+                      </summary>
+                      {o.guidance_quote ? <blockquote className="quote-span">“{o.guidance_quote}”</blockquote> : null}
+                    </details>
+                  ) : (
+                    <span className="muted">{t("ui.EvidenceTable.pendingPromise")}</span>
                   )}
-                  {o.citeable && o.citation_id && (
-                    <div className="citation-id">
-                      <code title="Stable citation id">{o.citation_id}</code>
-                      {o.doc_id && (
-                        <span className="muted" title="Bound document">
-                          {" "}
-                          · doc {String(o.doc_id).slice(0, 8)}
-                          {o.span_start != null && o.span_end != null
-                            ? ` [${o.span_start}:{o.span_end}]`
-                            : ""}
-                        </span>
-                      )}
-                      {o.source_url && (
-                        <>
-                          {" "}
-                          <button
-                            type="button"
-                            className="linkish"
-                            data-testid={`open-source-${idx}`}
-                            onClick={() =>
-                              openSource({
-                                citation_id: o.citation_id,
-                                doc_id: o.doc_id,
-                                title: `${o.period} ${o.metric}`,
-                                source_url: o.source_url,
-                                highlight_url: withTextHighlight(o.source_url, o.quote_span),
-                                quote: o.quote_span,
-                                span_start: o.span_start,
-                                span_end: o.span_end,
-                              })
-                            }
-                          >
-                            Open source
-                          </button>
-                        </>
-                      )}
+                </td>
+                <td className="evidence-source" data-testid={`actual-source-${idx}`}>
+                  {o.source_url ? (
+                    <>
                       <button
                         type="button"
-                        className="btn ghost small"
-                        data-testid={`copy-cite-${idx}`}
-                        onClick={() => {
-                          const quote = o.quote_span ? ` Quote: “${o.quote_span}”` : "";
-                          const loc =
-                            o.span_start != null && o.span_end != null
-                              ? ` chars ${o.span_start}–${o.span_end}`
-                              : "";
-                          const line = `${o.period} ${o.metric} (${o.citation_id})${loc} ${o.source_url || ""}.${quote}`;
-                          void copyText(line.trim()).then((ok) => {
-                            if (ok) {
-                              setCopiedId(o.citation_id || "");
-                              recordCiteCopy(companyId);
-                              window.setTimeout(() => setCopiedId(null), 1600);
-                            }
-                          });
-                        }}
-                      >
-                        {copiedId === o.citation_id ? "Copied" : "Copy cite"}
-                      </button>
-                    </div>
-                  )}
-                  {!o.citeable && o.source_url ? (
-                    <button
-                      type="button"
-                      className="linkish"
-                      onClick={() =>
-                        openSource({
-                          citation_id: o.citation_id,
-                          doc_id: o.doc_id,
-                          title: `${o.period} ${o.metric}`,
-                          source_url: o.source_url,
-                          highlight_url: withTextHighlight(o.source_url, o.quote_span),
-                          quote: o.quote_span,
-                          span_start: o.span_start,
-                          span_end: o.span_end,
-                        })
-                      }
-                    >
-                      {o.source_ref || "source"}
-                    </button>
-                  ) : !o.citeable ? (
-                    o.source_ref || "—"
-                  ) : null}
-                  {o.citeable && o.quote_span ? (
-                    <blockquote className="quote-span quote-span-click" cite={o.source_url || undefined}>
-                      <button
-                        type="button"
-                        className="linkish quote-open"
-                        onClick={() => {
-                          trackEvent("open_citation");
+                        className="linkish"
+                        data-testid={`open-source-${idx}`}
+                        onClick={() =>
                           openSource({
                             citation_id: o.citation_id,
                             doc_id: o.doc_id,
-                            title: `${o.period} ${o.metric}`,
+                            title: `${o.period} ${metricDisplayName(o.metric)}`,
                             source_url: o.source_url,
                             highlight_url: withTextHighlight(o.source_url, o.quote_span),
                             quote: o.quote_span,
                             span_start: o.span_start,
                             span_end: o.span_end,
-                          });
-                        }}
+                          })
+                        }
                       >
-                        “{o.quote_span}”
+                        {o.as_of ? formatDossierDate(o.as_of) : sourceHost(o.source_url)}
                       </button>
-                    </blockquote>
-                  ) : null}
-                  {!o.citeable && o.cite_reason === "provisional" ? (
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      Provisional score — no IR quote (not for external citation).
+                      {o.quote_span ? (
+                        <details>
+                          <summary>{t("ui.EvidenceTable.quote")}</summary>
+                          <blockquote className="quote-span quote-span-click">
+                            <button
+                              type="button"
+                              className="linkish quote-open"
+                              onClick={() => {
+                                trackEvent("open_citation");
+                                openSource({
+                                  citation_id: o.citation_id,
+                                  doc_id: o.doc_id,
+                                  title: `${o.period} ${metricDisplayName(o.metric)}`,
+                                  source_url: o.source_url,
+                                  highlight_url: withTextHighlight(o.source_url, o.quote_span),
+                                  quote: o.quote_span,
+                                  span_start: o.span_start,
+                                  span_end: o.span_end,
+                                });
+                              }}
+                            >
+                              “{o.quote_span}”
+                            </button>
+                          </blockquote>
+                        </details>
+                      ) : null}
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                  {o.citeable === false ? (
+                    <div className="muted" style={{ fontSize: 11 }}>
+                      {t("ui.EvidenceTable.notCiteable")}
                     </div>
                   ) : null}
-                  <div className="muted">{o.guided_text}</div>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="btn ghost small"
+                    data-testid={`copy-cite-${idx}`}
+                    onClick={() => copyCitation(o)}
+                  >
+                    {copiedId === `${o.period}-${o.metric}`
+                      ? t("ui.EvidenceTable.copied")
+                      : t("ui.EvidenceTable.copyCite")}
+                  </button>
                 </td>
                 {showActions && (
                   <td>
@@ -297,7 +304,7 @@ export default function EvidenceTable({
                           className="btn ghost small"
                           onClick={() => onReview(idx, "accept")}
                         >
-                          Accept
+                          {t("ui.EvidenceTable.accept")}
                         </button>
                       )}
                       {onEdit && (
@@ -309,7 +316,7 @@ export default function EvidenceTable({
                             editingIdx === idx ? setEditingIdx(null) : startEdit(idx, o)
                           }
                         >
-                          {editingIdx === idx ? "Cancel" : "Edit"}
+                          {editingIdx === idx ? t("ui.EvidenceTable.cancel") : t("ui.EvidenceTable.edit")}
                         </button>
                       )}
                       {onFlag && (
@@ -319,7 +326,7 @@ export default function EvidenceTable({
                           data-testid={`flag-outcome-${idx}`}
                           onClick={() => onFlag(o)}
                         >
-                          Flag
+                          {t("ui.EvidenceTable.flag")}
                         </button>
                       )}
                     </div>
@@ -331,14 +338,14 @@ export default function EvidenceTable({
                   <td colSpan={colCount}>
                     <div className="edit-form" data-testid={`edit-form-${idx}`}>
                       <label>
-                        <span className="field-label">Period</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.period")}</span>
                         <input
                           value={draft.period}
                           onChange={(e) => setDraft({ ...draft, period: e.target.value })}
                         />
                       </label>
                       <label>
-                        <span className="field-label">Guided low</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.guidedLow")}</span>
                         <input
                           type="number"
                           value={draft.guided_low}
@@ -348,7 +355,7 @@ export default function EvidenceTable({
                         />
                       </label>
                       <label>
-                        <span className="field-label">Guided high</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.guidedHigh")}</span>
                         <input
                           type="number"
                           value={draft.guided_high}
@@ -358,7 +365,7 @@ export default function EvidenceTable({
                         />
                       </label>
                       <label>
-                        <span className="field-label">Actual</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.actual")}</span>
                         <input
                           type="number"
                           value={draft.actual_value}
@@ -368,7 +375,7 @@ export default function EvidenceTable({
                         />
                       </label>
                       <label>
-                        <span className="field-label">Source URL</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.sourceUrl")}</span>
                         <input
                           value={draft.source_url}
                           onChange={(e) =>
@@ -378,7 +385,7 @@ export default function EvidenceTable({
                         />
                       </label>
                       <label>
-                        <span className="field-label">Source ref</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.sourceRef")}</span>
                         <input
                           value={draft.source_ref}
                           onChange={(e) =>
@@ -387,13 +394,13 @@ export default function EvidenceTable({
                         />
                       </label>
                       <label className="edit-span-full">
-                        <span className="field-label">Quote span (citability)</span>
+                        <span className="field-label">{t("ui.EvidenceTable.field.quoteSpan")}</span>
                         <input
                           value={draft.quote_span}
                           onChange={(e) =>
                             setDraft({ ...draft, quote_span: e.target.value })
                           }
-                          placeholder="Exact words from the transcript/filing"
+                          placeholder={t("ui.EvidenceTable.field.quoteSpanPlaceholder")}
                         />
                       </label>
                       <button
@@ -402,7 +409,7 @@ export default function EvidenceTable({
                         data-testid={`save-edit-${idx}`}
                         onClick={() => saveEdit(idx)}
                       >
-                        Save edit
+                        {t("ui.EvidenceTable.saveEdit")}
                       </button>
                     </div>
                   </td>

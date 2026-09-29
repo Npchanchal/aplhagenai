@@ -8,7 +8,7 @@ test("citation open source highlights quoted text", async ({ page }) => {
 
   const table = page.getByTestId("evidence-table");
   await expect(table).toBeVisible();
-  const open = table.getByRole("button", { name: "Open source" }).first();
+  const open = table.getByTestId("open-source-0");
   await expect(open).toBeVisible();
   await open.click();
   const viewer = page.getByTestId("source-viewer");

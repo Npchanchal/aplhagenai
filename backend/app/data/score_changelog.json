@@ -1,0 +1,65 @@
+{
+  "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
+  "entries": [
+    {
+      "date": "2026-09-29",
+      "reason": "display_fix",
+      "companies": [],
+      "change": "Filing-to-score target published: a reviewed score within 5 business days of the results filing, for filings dated on or after 29 Sep 2026. Methodology and Trust show the observed median from scored rows (today a historical batch reviewed on 29 Sep 2026; live sample is empty). Availability percentages removed from the coverage note until 90 days of measured uptime. Infosys 76.5 and Cipla 65.5 are unchanged."
+    },
+    {
+      "date": "2026-09-29",
+      "reason": "data_correction",
+      "companies": ["hcltech", "maruti", "jswsteel", "grasim"],
+      "change": "Every hand-labeled source link is checked for the recorded quote (python -m app.jobs.verify_sources; live refresh at most once per 24 hours). Missing quotes are not citeable and go to the labeling queue. The Trust Center shows how many links verified. Four HTML press pages that do not contain a verifiable quote are excluded until re-cited to a filing: HCLTech FY26 revenue guidance, Maruti FY25 wholesale volume, JSW Steel FY25, Grasim FY25 UltraTech volumes. Infosys 76.5 and Cipla 65.5 are unchanged."
+    },
+    {
+      "date": "2026-09-29",
+      "reason": "methodology",
+      "companies": ["infy", "cipla"],
+      "change": "Audit flags (guidance withdrawn, restatement, definition shift) now apply only when an analyst records the flag with their id and a source filing. Keyword matches still surface in the labeling queue as suggestions; they do not move a published score. Dropped guidance stays out of the average and no longer auto-applies the withdrawal deduction. Infosys 76.5 and Cipla 65.5 are unchanged."
+    },
+    {
+      "date": "2026-09-29",
+      "reason": "methodology",
+      "companies": ["infy", "cipla", "trent", "adani_ports", "apollohosp", "asianpaints", "axisbank", "bajajfinance", "bajajfinserv", "bhartiartl", "britannia", "coalindia", "drreddy", "eichermot", "grasim", "hcltech", "hdfcbank", "hdfclife", "hero_motocorp", "hindalco", "hindunilvr", "icicibank", "indusindbk", "itc", "kotakbank", "lt", "m_m", "maruti", "ntpc", "ongc", "reliance", "sbin", "sunpharma", "tatamotors", "tatasteel", "tcs", "techm", "titan", "wipro"],
+      "change": "A closed result now enters the company score only when both the original guidance and the subsequent actual are cited (source, quote and date). Rows that have the reported actual but not the original guidance filing are labelled pending guidance cite and stay on the company page without contributing points. 37 companies that had been scored from actual-only citations are withdrawn until those promise citations are filled, including Trent (89.9). Infosys stays 76.5 (five dual-cited years of constant-currency revenue guidance); the FY25 operating-margin row is excluded, so the company is provisional (one metric). Cipla 85.2 → 65.5 (only the FY24 EBITDA-margin row remains dual-cited). The Public Snapshot ranks no company until more names reach the Established tier."
+    },
+    {
+      "date": "2026-09-29",
+      "reason": "methodology",
+      "companies": ["infy", "cipla"],
+      "change": "Confidence-tier rule clarified: a metric counts toward a company's evidence breadth as soon as it has one closed, analyst-reviewed result, whether it enters the composite or is shown as context. The score formula and every published level are unchanged. Tier moves: Infosys provisional → deep (five closed years of constant-currency revenue guidance plus one closed operating-margin result), Cipla provisional → established (three closed periods across revenue and R&D spend). Hindalco, HDFC Life and Apollo Hospitals gain breadth but remain provisional with fewer than three closed periods. The Public Snapshot now ranks Trent, Cipla and Infosys."
+    },
+    {
+      "date": "2026-09-28",
+      "reason": "methodology",
+      "companies": ["infy", "cipla", "hdfclife", "apollohosp"],
+      "change": "Evidence-weighted composite (v4.1). A metric now enters the company score with weight equal to its number of closed reporting periods (capped at 5); a metric with only one closed period is shown as context and no longer moves the composite when a deeper metric exists. Moved: Infosys 88.2 → 76.5 (FY25 operating-margin row, one period, becomes context; score = five years of constant-currency revenue guidance), Cipla 92.6 → 85.2 (R&D-spend row context), HDFC Life 87.3 → 94.0 (VNB-growth row context), Apollo Hospitals 63.7 → 54.6 (occupancy, EBITDA-margin and revenue rows context). Trent and Hindalco unchanged. Sector shrinkage removed from the method (it was never applied). Every company now carries a confidence tier: provisional (< 3 closed periods or 1 metric), established (≥ 3 periods, ≥ 2 metrics), deep (≥ 5 periods, ≥ 2 metrics). Only established and deep scores are ranked on the Public Snapshot."
+    },
+    {
+      "date": "2026-09-28",
+      "reason": "display_fix",
+      "companies": [],
+      "change": "Score changes over time (week / month / quarter / year) are shown only when a company has at least four analyst-reviewed reporting dates. Synthetic point-in-time paths that previously filled these chips, the price overlay, lead–lag and correlation panels were removed from public pages; they remain in the Analyst Workbench, labelled experimental."
+    },
+    {
+      "date": "2026-09-28",
+      "reason": "flag_change",
+      "companies": ["infy"],
+      "change": "Infosys 48.2 → 88.2 (logged retrospectively; the move shipped without a changelog entry). In-year revenue-guidance band revisions (July / October / January results releases) are now recorded on the fiscal-year row's revision trail instead of as separate rows, and a placeholder FY24 \"dropped restatement sample\" row was removed. The guidance-withdrawal (−15), restatement (−15) and definition-shift (−10) deductions that fired on those placeholder rows no longer apply. Definition-shift now compares bands within the same reporting period only; a different band for a different year is not a definition change."
+    },
+    {
+      "date": "2026-09-27",
+      "reason": "data_correction",
+      "companies": ["infy"],
+      "change": "Infosys revenue rows re-cited to SEC-filed results releases (Form 6-K Ex. 99.1): the promise cites the April release that set the band; the actual cites the April release that reported it. FY22 band corrected 10–12% → 12–14% (the IR summary table disagreed with the filing); FY26 as-of date 17 Apr → 23 Apr 2026. FY22 row 60.4 → 61.8 pts; Infosys 48.1 → 48.2. No label changed."
+    },
+    {
+      "date": "2026-09-27",
+      "reason": "display_fix",
+      "companies": ["infy", "coalindia", "hdfclife", "ongc", "hindalco", "trent"],
+      "change": "Screener list, Public Snapshot, search and history now apply audit deductions, so every page shows the same number as the company page. Lists had shown the pre-deduction score for 22 audit-flagged names (e.g. Infosys 73.2 list vs 48.2 dossier; Coal India 4.7 vs 0.0)."
+    }
+  ]
+}

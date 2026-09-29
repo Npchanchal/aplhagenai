@@ -15,7 +15,9 @@ npm run build
 
 echo "== Docker deploy =="
 cd "$ROOT"
-docker compose up --build -d
+# E2E reloads pages rapidly from one IP; lift soft limits like backend/tests/conftest.py does.
+RATE_LIMIT_RPM="${RATE_LIMIT_RPM:-5000}" AUTH_RATE_LIMIT_RPM="${AUTH_RATE_LIMIT_RPM:-500}" \
+  docker compose up --build -d
 echo "Waiting for health..."
 for i in $(seq 1 30); do
   if curl -sf http://127.0.0.1:8000/health >/dev/null; then

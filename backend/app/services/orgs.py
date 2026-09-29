@@ -36,6 +36,8 @@ PLAN_FEATURES: Dict[str, set] = {
         "read_api",
         "feedback",
         "ic_export",
+        "wordmap",
+        "analytics_experimental",
     },
     "desk": {
         "tracker",
@@ -52,6 +54,7 @@ PLAN_FEATURES: Dict[str, set] = {
         "feedback",
         "labeling",
         "wordmap",
+        "analytics_experimental",
     },
     "enterprise": {
         "tracker",
@@ -71,6 +74,7 @@ PLAN_FEATURES: Dict[str, set] = {
         "labeling",
         "wordmap",
         "badge",
+        "analytics_experimental",
     },
     "onestop": {
         "tracker",
@@ -91,6 +95,7 @@ PLAN_FEATURES: Dict[str, set] = {
         "labeling_priority",
         "ic_export",
         "feedback",
+        "analytics_experimental",
     },
     "retail": {"tracker", "research", "read_api"},
     "one-stop": set(),  # alias filled below

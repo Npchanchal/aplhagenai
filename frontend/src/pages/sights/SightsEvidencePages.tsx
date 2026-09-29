@@ -12,8 +12,11 @@ import {
 } from "../../lib/api";
 import { useSourceViewer } from "../../lib/SourceViewerContext";
 import { withTextHighlight } from "../../lib/sourceHighlight";
+import { useI18n } from "../../i18n";
+import { metricDisplayName } from "../../lib/score";
 
 export function SightsThemesPage() {
+  const { t } = useI18n();
   const [themes, setThemes] = useState<{ theme: string; count: number; note: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,30 +27,31 @@ export function SightsThemesPage() {
         if (!cancelled) setThemes(r.themes || []);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("ui.SightsEvidencePages.failed"));
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <section className="sights-panel" data-testid="sights-themes">
-      <h2>Delivery Themes</h2>
-      <p className="muted">Guidance delivery labels — not news sentiment.</p>
+      <h2>{t("ui.SightsEvidencePages.themes.title")}</h2>
+      <p className="muted">{t("ui.SightsEvidencePages.themes.subtitle")}</p>
       {error && <p className="error">{error}</p>}
       <table className="table">
         <thead>
           <tr>
-            <th>Theme</th>
-            <th>Count</th>
+            <th>{t("ui.SightsEvidencePages.themes.th.theme")}</th>
+            <th>{t("ui.SightsEvidencePages.themes.th.count")}</th>
           </tr>
         </thead>
         <tbody>
-          {themes.map((t) => (
-            <tr key={t.theme}>
-              <td>{t.theme}</td>
-              <td>{t.count}</td>
+          {themes.map((row) => (
+            <tr key={row.theme}>
+              <td>{row.theme}</td>
+              <td>{row.count}</td>
             </tr>
           ))}
         </tbody>
@@ -57,19 +61,32 @@ export function SightsThemesPage() {
 }
 
 function useCompanyFocus() {
+  const { t } = useI18n();
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
   const [companyId, setCompanyId] = useState("");
+  const [focusError, setFocusError] = useState<string | null>(null);
   useEffect(() => {
-    fetchCompanies({ limit: 20 }).then((rows) => {
-      setCompanies(rows);
-      if (rows[0]) setCompanyId(rows[0].id);
-    });
+    let cancelled = false;
+    fetchCompanies({ limit: 20 })
+      .then((rows) => {
+        if (cancelled) return;
+        setCompanies(rows);
+        if (rows[0]) setCompanyId(rows[0].id);
+      })
+      .catch((e) => {
+        if (!cancelled) setFocusError(e instanceof Error ? e.message : t("ui.SightsEvidencePages.loadCompaniesFailed"));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return { companies, companyId, setCompanyId };
+  return { companies, companyId, setCompanyId, focusError };
 }
 
 export function SightsStreetPage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const { openSource } = useSourceViewer();
   const [note, setNote] = useState("");
   const [snippets, setSnippets] = useState<
@@ -87,7 +104,7 @@ export function SightsStreetPage() {
         setSnippets(r.public_filing_snippets || []);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("ui.SightsEvidencePages.failed"));
       });
     return () => {
       cancelled = true;
@@ -96,10 +113,10 @@ export function SightsStreetPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-street">
-      <h2>Street Context</h2>
+      <h2>{t("ui.SightsEvidencePages.street.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
       <p className="muted">{note}</p>
-      {error && <p className="error">{error}</p>}
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       <ul className="doc-list">
         {snippets.map((s, i) => (
           <li key={i}>
@@ -121,7 +138,7 @@ export function SightsStreetPage() {
                   })
                 }
               >
-                Open source →
+                {t("ui.SightsEvidencePages.openSource")}
               </button>
             )}
           </li>
@@ -132,7 +149,8 @@ export function SightsStreetPage() {
 }
 
 export function SightsFieldPage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const [ticker, setTicker] = useState("");
   const [dq, setDq] = useState("demo_structured");
   const [gci, setGci] = useState<number | null>(null);
@@ -157,7 +175,7 @@ export function SightsFieldPage() {
         setEmptyDemo(!!r.empty_demo);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("ui.SightsEvidencePages.failed"));
       });
     return () => {
       cancelled = true;
@@ -166,29 +184,29 @@ export function SightsFieldPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-field">
-      <h2>Field Evidence</h2>
+      <h2>{t("ui.SightsEvidencePages.field.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
       <p className="muted">{note}</p>
-      {error && <p className="error">{error}</p>}
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       <p>
         {ticker} · GCI {gci ?? "n/a"} <QualityBadge quality={dq} />
       </p>
       {emptyDemo && (
-        <p className="callout warn">Demo / thin evidence — prefer hand_labeled names for client work.</p>
+        <p className="callout warn">{t("ui.SightsEvidencePages.field.thinEvidence")}</p>
       )}
       <table className="table">
         <thead>
           <tr>
-            <th>Metric</th>
-            <th>Period</th>
-            <th>Label</th>
-            <th>Actual</th>
+            <th>{t("ui.SightsEvidencePages.field.th.metric")}</th>
+            <th>{t("ui.SightsEvidencePages.field.th.period")}</th>
+            <th>{t("ui.SightsEvidencePages.field.th.label")}</th>
+            <th>{t("ui.SightsEvidencePages.field.th.actual")}</th>
           </tr>
         </thead>
         <tbody>
           {outcomes.map((o, i) => (
             <tr key={i}>
-              <td>{String(o.metric ?? "")}</td>
+              <td>{metricDisplayName(String(o.metric ?? ""))}</td>
               <td>{String(o.period ?? "")}</td>
               <td>{String(o.label ?? "")}</td>
               <td>{String(o.actual ?? "")}</td>

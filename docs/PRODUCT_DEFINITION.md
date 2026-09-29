@@ -10,7 +10,7 @@ A **credit score for management guidance** on Indian listed companies, delivered
 2. Per-company **GCI score (0–100)** with trend and metric breakdown (revenue, margin, other).
 3. **Evidence trail:** each outcome shows guidance text, period, guided value, actual value, delta, confidence.
 4. REST API: health, list companies, get company GCI detail.
-5. Web UI: browse companies → open Guidance Tracker detail.
+5. Web UI: browse companies on the GCI Screener → open the evidence dossier.
 6. Seed dataset with synthetic-but-realistic guidance/actual pairs for demo and tests.
 
 ## Explicit non-goals (MVP)

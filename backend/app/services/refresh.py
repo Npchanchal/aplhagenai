@@ -115,6 +115,27 @@ def run_gci_refresh(
         ),
     }
 
+    try:
+        from app.services.score_sla import record_filings_from_crawl
+
+        report["filings_recorded"] = record_filings_from_crawl(crawl)
+    except Exception as exc:  # noqa: BLE001 — refresh must not die on SLA log
+        report["filings_recorded"] = {"ok": False, "error": type(exc).__name__}
+
+    try:
+        from app.services.source_verify import maybe_run_nightly_verify
+
+        verify_report = maybe_run_nightly_verify(write=True, live=live_run)
+        if verify_report:
+            report["source_verification"] = {
+                "checked": verify_report.get("checked"),
+                "verified": verify_report.get("verified"),
+                "failed": verify_report.get("failed"),
+                "as_of": verify_report.get("as_of"),
+            }
+    except Exception as exc:  # noqa: BLE001 — refresh must not die on verify
+        report["source_verification"] = {"ok": False, "error": type(exc).__name__}
+
     state = load_state()
     state["last_refresh"] = {
         "as_of": crawl.get("as_of"),

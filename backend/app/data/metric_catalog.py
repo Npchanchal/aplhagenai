@@ -298,6 +298,14 @@ for m in METRICS:
         _ALIAS[str(a).lower()] = m["id"]
 
 
+def display_name_for(metric_id: str) -> str:
+    """Human label for a catalog id (alerts, exports, public copy)."""
+    row = get_metric(metric_id)
+    if row:
+        return str(row.get("display_name") or metric_id)
+    return str(metric_id).replace("_", " ")
+
+
 def get_metric(metric_id: str) -> Optional[Dict[str, Any]]:
     if metric_id in _BY_ID:
         return _BY_ID[metric_id]

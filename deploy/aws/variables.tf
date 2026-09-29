@@ -316,3 +316,15 @@ variable "pilot_request_to" {
   default     = ""
   description = "Inbound pilot request mailbox (PILOT_REQUEST_TO)"
 }
+
+variable "enable_index_bucket" {
+  type        = bool
+  default     = false
+  description = "S3 bucket for frozen GCI CSV/Parquet (W9.2). Off until the production overlay is applied."
+}
+
+variable "ledger_digest_to" {
+  type        = string
+  default     = ""
+  description = "Comma-separated licensee emails for the weekly ledger digest (INTELLENS_LEDGER_DIGEST_TO)"
+}

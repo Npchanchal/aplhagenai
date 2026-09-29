@@ -6,7 +6,10 @@ Not a Beneish / forensic shenanigans engine.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from fastapi import HTTPException
 
 from app.services.gci_scoring import (
     AUDIT_PENALTY_PTS,
@@ -40,8 +43,8 @@ def _text_blob(o: GuidanceOutcome) -> str:
     return f"{o.source_ref or ''} {o.guided_text or ''} {o.quote_span or ''}".lower()
 
 
-def collect_audit_flags(outcomes: Sequence[GuidanceOutcome]) -> List[str]:
-    """Derive company-level audit flags from outcomes (evidence-linked heuristics)."""
+def suggest_audit_flags(outcomes: Sequence[GuidanceOutcome]) -> List[str]:
+    """Keyword heuristics — enqueue review only; never apply to GCI (W2.6)."""
     flags: set[str] = set()
     if any(o.dropped for o in outcomes):
         flags.add("guidance_withdrawal")
@@ -53,48 +56,231 @@ def collect_audit_flags(outcomes: Sequence[GuidanceOutcome]) -> List[str]:
         if "definition" in blob or "basis change" in blob or "reclassif" in blob:
             flags.add("definition_shift")
 
-    # Mid-horizon material revision on a thread → definition_shift candidate
-    by_thread: Dict[str, List[GuidanceOutcome]] = {}
+    # Two rows for the same thread and period whose bands disagree materially →
+    # definition_shift candidate. Guidance for different years, and in-year revisions
+    # recorded on ``revisions``, are expected to move and are not flagged.
+    by_thread: Dict[Tuple[str, str], List[GuidanceOutcome]] = {}
     for o in outcomes:
         if o.thread_id and not o.dropped:
-            by_thread.setdefault(o.thread_id, []).append(o)
+            by_thread.setdefault((o.thread_id, o.period), []).append(o)
     for rows in by_thread.values():
         ordered = sorted(rows, key=lambda r: (r.as_of or "", r.period))
         if len(ordered) < 2:
             continue
         for prev, cur in zip(ordered, ordered[1:]):
             if abs(_mid(cur) - _mid(prev)) >= 2.0:
-                # Same metric thread with material move mid-cycle
                 flags.add("definition_shift")
                 break
 
     return sorted(flags)
 
 
-def audited_company_gci(outcomes: Sequence[GuidanceOutcome], **kwargs: Any) -> Optional[float]:
-    """Company GCI after audit deductions — the number every surface must show."""
+def list_audit_flag_records(company_id: Optional[str]) -> List[Dict[str, Any]]:
+    """Persisted analyst flags that carry ``set_by`` (and a source)."""
+    if not company_id:
+        return []
+    from app.data.seed import get_data
+
+    rows = list((get_data().get("company_audit_flags") or {}).get(company_id) or [])
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        flag = r.get("flag")
+        if flag not in AUDIT_LABELS:
+            continue
+        if not str(r.get("set_by") or "").strip():
+            continue
+        if not str(r.get("source_url") or "").strip():
+            continue
+        out.append(dict(r))
+    out.sort(key=lambda r: str(r.get("flag") or ""))
+    return out
+
+
+def applied_audit_flags(company_id: Optional[str] = None) -> List[str]:
+    return sorted({str(r["flag"]) for r in list_audit_flag_records(company_id)})
+
+
+def collect_audit_flags(
+    outcomes: Sequence[GuidanceOutcome],
+    *,
+    company_id: Optional[str] = None,
+) -> List[str]:
+    """Flags that affect GCI: analyst-set with ``set_by`` + source only (W2.6).
+
+    ``outcomes`` is unused; heuristic candidates live on :func:`suggest_audit_flags`.
+    """
+    del outcomes
+    return applied_audit_flags(company_id)
+
+
+def set_audit_flag(
+    company_id: str,
+    flag: str,
+    *,
+    set_by: str,
+    source_url: str = "",
+    note: str = "",
+) -> Dict[str, Any]:
+    from app.data.seed import get_data, list_companies, save_data
+
+    if flag not in AUDIT_LABELS:
+        raise HTTPException(status_code=400, detail=f"Unknown audit flag: {flag}")
+    who = (set_by or "").strip()
+    if not who:
+        raise HTTPException(status_code=400, detail="set_by required")
+    src = (source_url or "").strip()
+    if not src:
+        raise HTTPException(status_code=400, detail="source_url required")
+    if not any(c["id"] == company_id for c in list_companies()):
+        raise HTTPException(status_code=404, detail="Company not found")
+    rec = {
+        "flag": flag,
+        "set_by": who,
+        "source_url": src,
+        "note": (note or "").strip(),
+        "set_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+    }
+    data = get_data()
+    store = data.setdefault("company_audit_flags", {})
+    rows = [r for r in (store.get(company_id) or []) if r.get("flag") != flag]
+    rows.append(rec)
+    store[company_id] = rows
+    save_data()
+    return rec
+
+
+def clear_audit_flag(company_id: str, flag: str) -> None:
+    from app.data.seed import get_data, save_data
+
+    data = get_data()
+    store = data.setdefault("company_audit_flags", {})
+    rows = [r for r in (store.get(company_id) or []) if r.get("flag") != flag]
+    if rows:
+        store[company_id] = rows
+    else:
+        store.pop(company_id, None)
+    save_data()
+
+
+def audited_company_gci(
+    outcomes: Sequence[GuidanceOutcome],
+    *,
+    company_id: Optional[str] = None,
+    audit_flags: Optional[Sequence[str]] = None,
+    **kwargs: Any,
+) -> Optional[float]:
+    """Company GCI after analyst-set audit deductions — the number every surface must show."""
     rows = list(outcomes)
-    return compute_company_gci(rows, audit_flags=collect_audit_flags(rows), **kwargs)
+    flags = list(audit_flags) if audit_flags is not None else applied_audit_flags(company_id)
+    return compute_company_gci(rows, audit_flags=flags, **kwargs)
 
 
-def audit_summary(outcomes: Sequence[GuidanceOutcome]) -> Dict[str, Any]:
-    flags = collect_audit_flags(outcomes)
+def score_meta(
+    outcomes: Sequence[GuidanceOutcome],
+    *,
+    scoreable: bool = True,
+    company_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Published-score provenance (W1.3/W1.4): tier, depth, as-of, composite parts.
+
+    ``gci_score`` here equals :func:`audited_company_gci` for the same rows.
+    """
+    from app.services.gci_scoring import algorithm_id, compute_gci_v3_detail, scorer_version
+    from app.services.score_policy import confidence_tier, excluded_from_score, is_pending_guidance_cite
+
+    rows = list(outcomes)
+    flags = applied_audit_flags(company_id)
+    empty = {
+        "gci_score": None,
+        "by_metric": {},
+        "context_metrics": {},
+        "periods_by_metric": {},
+        "composite_weights": {},
+        "confidence_tier": None,
+        "closed_periods": 0,
+        "metrics_scored": 0,
+        "as_of": None,
+        "reviewed_at": None,
+        "algorithm_id": algorithm_id(),
+    }
+    if not scoreable or not rows:
+        return empty
+    ver = scorer_version()
+    if ver == "v2":
+        score = audited_company_gci(rows, company_id=company_id, audit_flags=flags)
+        return {**empty, "gci_score": score}
+    res = compute_gci_v3_detail(rows, audit_flags=flags, version=ver)
+    if res.gci is None:
+        return empty
+    as_of_dates = sorted(
+        {
+            o.as_of
+            for o in rows
+            if o.as_of
+            and o.actual_value is not None
+            and not o.unmapped
+            and not is_pending_guidance_cite(o)
+            and not excluded_from_score(o)
+        }
+    )
+    review_dates = sorted(
+        {
+            o.reviewed_at
+            for o in rows
+            if o.reviewed_at and o.actual_value is not None and not excluded_from_score(o)
+        }
+    )
+    # Decision D-tier (2026-09-29): a metric counts toward evidence breadth as soon
+    # as it has one closed, analyst-reviewed result — whether it enters the
+    # composite or is shown as context. The composite weighting is unchanged.
+    metrics_scored = len(res.by_metric) + len(
+        [m for m in res.context_metrics if m not in res.by_metric]
+    )
+    return {
+        "gci_score": res.gci,
+        "by_metric": res.by_metric,
+        "context_metrics": res.context_metrics,
+        "periods_by_metric": res.periods_by_metric,
+        "composite_weights": {k: round(v, 2) for k, v in res.weights_used.items()},
+        "confidence_tier": confidence_tier(
+            closed_periods=res.periods_used, metrics_scored=metrics_scored
+        ),
+        "closed_periods": res.periods_used,
+        "metrics_scored": metrics_scored,
+        "as_of": as_of_dates[-1] if as_of_dates else None,
+        "reviewed_at": review_dates[-1] if review_dates else None,
+        "algorithm_id": algorithm_id(),
+    }
+
+
+def audit_summary(
+    outcomes: Sequence[GuidanceOutcome],
+    *,
+    company_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    records = list_audit_flag_records(company_id)
+    flags = sorted({str(r["flag"]) for r in records})
     deduction = audit_deduction(outcomes, flags)
     badges = [
         {
-            "flag": f,
-            "label": AUDIT_LABELS.get(f, f.replace("_", " ").title()),
-            "points": AUDIT_PENALTY_PTS.get(f, 0.0),
-            "severity": AUDIT_SEVERITY.get(f, "medium"),
+            "flag": r["flag"],
+            "label": AUDIT_LABELS.get(r["flag"], str(r["flag"]).replace("_", " ").title()),
+            "points": AUDIT_PENALTY_PTS.get(r["flag"], 0.0),
+            "severity": AUDIT_SEVERITY.get(r["flag"], "medium"),
+            "set_by": r.get("set_by"),
+            "source_url": r.get("source_url"),
+            "set_at": r.get("set_at"),
+            "note": r.get("note") or "",
         }
-        for f in flags
+        for r in records
     ]
     return {
         "flags": flags,
         "deduction": round(float(deduction), 1),
         "badges": badges,
         "note": (
-            "Audit deductions applied in GCI v3/v4 (withdrawal / restatement / definition shift). "
+            "Audit deductions apply only when an analyst sets the flag with a source. "
+            "Keyword heuristics enqueue a review suggestion and do not move GCI. "
             "Not a forensic accruals or Beneish engine."
         ),
     }
@@ -224,7 +410,7 @@ def company_red_alerts(
 ) -> List[Dict[str, Any]]:
     """Per-company red alert cards for dossier (subset of global alert rail)."""
     alerts: List[Dict[str, Any]] = []
-    summary = audit_summary(outcomes)
+    summary = audit_summary(outcomes, company_id=company_id)
     for b in summary["badges"]:
         alerts.append(
             {

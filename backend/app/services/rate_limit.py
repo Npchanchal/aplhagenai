@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import os
 import time
 from collections import defaultdict, deque
@@ -14,9 +15,9 @@ from starlette.responses import JSONResponse, Response
 
 def rate_limit_rpm() -> int:
     try:
-        return max(30, int(os.environ.get("RATE_LIMIT_RPM", "120")))
+        return max(30, int(os.environ.get("RATE_LIMIT_RPM", "300")))
     except ValueError:
-        return 120
+        return 300
 
 
 def auth_rate_limit_rpm() -> int:
@@ -25,6 +26,30 @@ def auth_rate_limit_rpm() -> int:
         return max(5, int(os.environ.get("AUTH_RATE_LIMIT_RPM", "20")))
     except ValueError:
         return 20
+
+
+def public_api_keys() -> frozenset[str]:
+    """Keys shipped in the browser bundle — shared by every visitor, so they are bucketed per IP."""
+    extra = os.environ.get("PUBLIC_API_KEYS", "")
+    return frozenset({"intellens-demo", *(k.strip() for k in extra.split(",") if k.strip())})
+
+
+def _is_internal(host: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return addr.is_loopback or addr.is_private
+
+
+def client_ip(request: Request) -> str:
+    """Visitor IP. X-Real-IP is honoured only from our own reverse proxy (loopback / private peer)."""
+    peer = request.client.host if request.client else "unknown"
+    if _is_internal(peer):
+        real = (request.headers.get("x-real-ip") or "").strip()
+        if real:
+            return real
+    return peer
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -38,37 +63,41 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _key(self, request: Request) -> str:
         api_key = request.headers.get("x-api-key")
-        if api_key:
+        if api_key and api_key not in public_api_keys():
             return f"key:{api_key}"
-        client = request.client.host if request.client else "unknown"
-        return f"ip:{client}"
+        return f"ip:{client_ip(request)}"
 
-    def _limit_for(self, path: str) -> Tuple[int, str]:
-        if path.startswith("/api/auth/") or path == "/api/pilot-request":
-            return auth_rate_limit_rpm(), "auth"
-        return rate_limit_rpm(), "api"
+    def _limit_for(self, path: str, method: str = "GET") -> Tuple[int, str]:
+        if path == "/api/pilot-request":
+            return self.auth_rpm, "auth"
+        # Only credential / account-creation writes are abuse-prone; session reads such as
+        # /api/auth/me run on every page load and must not share the strict bucket.
+        if path.startswith("/api/auth/") and method == "POST" and path != "/api/auth/logout":
+            return self.auth_rpm, "auth"
+        return self.rpm, "api"
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         path = request.url.path
         if path in ("/health", "/api/meta") or path.startswith("/docs") or path.startswith("/openapi"):
             return await call_next(request)
 
-        limit, bucket = self._limit_for(path)
+        limit, bucket = self._limit_for(path, request.method)
         key = f"{bucket}:{self._key(request)}"
         now = time.monotonic()
         window = self._hits[key]
         while window and now - window[0] > 60.0:
             window.popleft()
         if len(window) >= limit:
+            retry_after = max(1, int(60.0 - (now - window[0])) + 1)
             return JSONResponse(
                 status_code=429,
                 content={
                     "detail": "Rate limit exceeded",
                     "limit_rpm": limit,
                     "bucket": bucket,
-                    "retry_after_sec": 60,
+                    "retry_after_sec": retry_after,
                 },
-                headers={"Retry-After": "60"},
+                headers={"Retry-After": str(retry_after)},
             )
         window.append(now)
         response = await call_next(request)

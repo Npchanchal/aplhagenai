@@ -564,12 +564,12 @@ def extraction_workbench_status() -> Dict[str, Any]:
 
 
 def trust_badge_channel(ticker: str) -> Dict[str, Any]:
-    """Broker Trust Badge channel metadata (wraps badge endpoint)."""
+    """Broker GCI badge channel metadata (wraps badge endpoint)."""
     row = repository.resolve_ticker_summary(ticker)
     if row is None:
         return {"status": "not_found", "ticker": ticker}
     return {
-        "product": "Broker Trust Badge",
+        "product": "GCI badge",
         "channel": "white_label",
         "ticker": row["ticker"],
         "company_id": row["id"],

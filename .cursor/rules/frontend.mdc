@@ -1,5 +1,5 @@
 ---
-description: Frontend conventions for CiteAlpha Guidance Tracker UI
+description: Frontend conventions for CiteAlpha GCI UI
 globs: frontend/**/*.{ts,tsx,css}
 alwaysApply: false
 ---
@@ -11,4 +11,4 @@ alwaysApply: false
 - No Buy/Hold recommendation UI in MVP. Display GCI 0–100, trend, metric breakdown.
 - Prefer accessible labels; keep charts simple and labeled with units.
 - Colocate page components under `pages/`; reusable widgets under `components/`.
-- UX detail rule: `frontend-ux.mdc`. KB: `docs/kb/06-frontend-ux.md`.
+- UX detail rule: `frontend-ux.mdc`; copy rule: `public-copy-voice.mdc`. KB: `docs/kb/06-frontend-ux.md`.

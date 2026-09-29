@@ -5,6 +5,9 @@ import {
   fetchCompanies,
   fetchMarkets,
   fetchMarketIndexes,
+  postMfaConfirm,
+  postMfaDisable,
+  postMfaEnroll,
   type CompanySummary,
   type Market,
   type MarketIndex,
@@ -23,6 +26,8 @@ export default function AccountSettingsPage() {
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
   const [addId, setAddId] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [mfaSecret, setMfaSecret] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
 
   const market = preferences?.default_market ?? "IN";
   const index = preferences?.default_index ?? "SENSEX";
@@ -61,9 +66,9 @@ export default function AccountSettingsPage() {
     setMsg(null);
     try {
       await updatePreferences(p);
-      setMsg("Saved.");
+      setMsg(t("ui.AccountSettingsPage.saved"));
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Save failed");
+      setMsg(e instanceof Error ? e.message : t("ui.AccountSettingsPage.saveFailed"));
     }
   }
 
@@ -86,45 +91,44 @@ export default function AccountSettingsPage() {
       <p className="page-kicker">{t("common.account")}</p>
       <h1>{t("prefs.title")}</h1>
       <p className="muted lede">
-        Language, default universe, watchlist, and display options sync when you are signed in.
-        Guests keep prefs in this browser only.
+        {t("ui.AccountSettingsPage.lede")}
       </p>
 
       <div className="settings-grid">
         <div className="panel settings-panel">
-          <h2 style={{ marginTop: 0 }}>Profile</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.profile")}</h2>
           {!user ? (
             <p className="muted">
               <Link to="/login" state={{ from: "/account" }}>
-                Log in
+                {t("common.login")}
               </Link>{" "}
-              or{" "}
-              <Link to="/register">register</Link> to sync preferences across devices.
+              {t("ui.AccountSettingsPage.or")}{" "}
+              <Link to="/register">{t("ui.AccountSettingsPage.registerLink")}</Link> {t("ui.AccountSettingsPage.syncHint")}
             </p>
           ) : (
             <dl className="settings-dl">
               <div>
-                <dt>Name</dt>
+                <dt>{t("ui.AccountSettingsPage.name")}</dt>
                 <dd>{user.name || "—"}</dd>
               </div>
               <div>
-                <dt>Email</dt>
+                <dt>{t("auth.email")}</dt>
                 <dd>{user.email || "—"}</dd>
               </div>
               <div>
-                <dt>Account</dt>
+                <dt>{t("common.account")}</dt>
                 <dd>
-                  {user.kind === "guest" ? "Guest" : user.account_type ?? "registered"} · role{" "}
+                  {user.kind === "guest" ? t("ui.AccountSettingsPage.guest") : user.account_type ?? t("ui.AccountSettingsPage.registered")} · {t("ui.AccountSettingsPage.role")}{" "}
                   <code>{user.role ?? "—"}</code>
                 </dd>
               </div>
               {user.org_id && (
                 <div>
-                  <dt>Organization</dt>
+                  <dt>{t("ui.AccountSettingsPage.organization")}</dt>
                   <dd>
                     <code>{user.org_id}</code>{" "}
                     {(user.role === "owner" || user.role === "admin") && (
-                      <Link to="/org/settings">Org settings →</Link>
+                      <Link to="/org/settings">{t("ui.AccountSettingsPage.orgSettings")}</Link>
                     )}
                   </dd>
                 </div>
@@ -134,14 +138,100 @@ export default function AccountSettingsPage() {
           {user && user.kind !== "guest" && (
             <p style={{ marginTop: 12 }}>
               <Link to="/billing" className="btn">
-                Billing
+                {t("footer.billing")}
               </Link>
             </p>
           )}
         </div>
 
+        {(user?.role === "owner" || user?.role === "admin") && (
+          <div className="panel settings-panel" data-testid="account-mfa">
+            <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.mfa")}</h2>
+            <p className="muted" style={{ fontSize: 13 }}>
+              {t("ui.AccountSettingsPage.mfaHint")}
+            </p>
+            <p>
+              {user.mfa_enabled
+                ? t("ui.AccountSettingsPage.mfaOn")
+                : t("ui.AccountSettingsPage.mfaOff")}
+            </p>
+            {mfaSecret && (
+              <p className="muted" style={{ fontSize: 13 }}>
+                {t("ui.AccountSettingsPage.mfaSecret")}: <code>{mfaSecret}</code>
+              </p>
+            )}
+            <div className="auth-form settings-form">
+              <label>
+                {t("auth.totp")}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  data-testid="account-mfa-code"
+                />
+              </label>
+            </div>
+            <div className="row gap">
+              <button
+                type="button"
+                className="btn-ghost"
+                data-testid="account-mfa-enroll"
+                onClick={() => {
+                  void postMfaEnroll()
+                    .then((r) => {
+                      setMfaSecret(r.secret);
+                      setMsg(t("ui.AccountSettingsPage.mfaSecret"));
+                    })
+                    .catch((e) =>
+                      setMsg(e instanceof Error ? e.message : t("ui.AccountSettingsPage.saveFailed")),
+                    );
+                }}
+              >
+                {t("ui.AccountSettingsPage.mfaEnroll")}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                data-testid="account-mfa-confirm"
+                onClick={() => {
+                  void postMfaConfirm(mfaCode)
+                    .then(() => {
+                      setMfaSecret(null);
+                      setMfaCode("");
+                      setMsg(t("ui.AccountSettingsPage.saved"));
+                    })
+                    .catch((e) =>
+                      setMsg(e instanceof Error ? e.message : t("ui.AccountSettingsPage.saveFailed")),
+                    );
+                }}
+              >
+                {t("ui.AccountSettingsPage.mfaVerify")}
+              </button>
+              {user.mfa_enabled && (
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => {
+                    void postMfaDisable(mfaCode)
+                      .then(() => {
+                        setMfaCode("");
+                        setMsg(t("ui.AccountSettingsPage.saved"));
+                      })
+                      .catch((e) =>
+                        setMsg(e instanceof Error ? e.message : t("ui.AccountSettingsPage.saveFailed")),
+                      );
+                  }}
+                >
+                  {t("ui.AccountSettingsPage.mfaDisable")}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="panel settings-panel">
-          <h2 style={{ marginTop: 0 }}>Locale &amp; universe</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.locale")}</h2>
           <div className="auth-form settings-form">
             <label>
               {t("common.language")}
@@ -193,7 +283,7 @@ export default function AccountSettingsPage() {
         </div>
 
         <div className="panel settings-panel">
-          <h2 style={{ marginTop: 0 }}>Display</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.display")}</h2>
           <div className="auth-form settings-form">
             <label>
               {t("prefs.density")}
@@ -204,8 +294,8 @@ export default function AccountSettingsPage() {
                 }
                 data-testid="account-pref-density"
               >
-                <option value="comfortable">Comfortable</option>
-                <option value="compact">Compact</option>
+                <option value="comfortable">{t("ui.AccountSettingsPage.comfortable")}</option>
+                <option value="compact">{t("ui.AccountSettingsPage.compact")}</option>
               </select>
             </label>
             <label className="settings-check">
@@ -221,12 +311,12 @@ export default function AccountSettingsPage() {
         </div>
 
         <div className="panel settings-panel">
-          <h2 style={{ marginTop: 0 }}>Watchlist</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.watchlist")}</h2>
           <p className="muted" style={{ fontSize: 13 }}>
-            Used on Research and Sights boards. Add names from your default index.
+            {t("ui.AccountSettingsPage.watchlistHint")}
           </p>
           {watchlist.length === 0 ? (
-            <p className="muted">No companies on your watchlist yet.</p>
+            <p className="muted">{t("ui.AccountSettingsPage.watchlistEmpty")}</p>
           ) : (
             <ul className="settings-watchlist" data-testid="account-watchlist">
               {watchlist.map((id) => {
@@ -243,7 +333,7 @@ export default function AccountSettingsPage() {
                         void patch({ watchlist: watchlist.filter((x) => x !== id) })
                       }
                     >
-                      Remove
+                      {t("ui.AccountSettingsPage.remove")}
                     </button>
                   </li>
                 );
@@ -255,7 +345,7 @@ export default function AccountSettingsPage() {
               <select
                 value={addId || addCandidates[0]?.id || ""}
                 onChange={(e) => setAddId(e.target.value)}
-                aria-label="Add company to watchlist"
+                aria-label={t("ui.AccountSettingsPage.addAria")}
               >
                 {addCandidates.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -274,7 +364,7 @@ export default function AccountSettingsPage() {
                   setAddId("");
                 }}
               >
-                Add
+                {t("ui.AccountSettingsPage.add")}
               </button>
             </div>
           )}
@@ -285,33 +375,33 @@ export default function AccountSettingsPage() {
               style={{ marginTop: 8 }}
               onClick={() => void patch({ watchlist: [] })}
             >
-              Clear watchlist
+              {t("ui.AccountSettingsPage.clear")}
             </button>
           )}
         </div>
 
         {analyticsConfigured() && (
           <div className="panel settings-panel">
-            <h2 style={{ marginTop: 0 }}>Analytics</h2>
+            <h2 style={{ marginTop: 0 }}>{t("ui.AccountSettingsPage.analytics")}</h2>
             <p className="muted" style={{ fontSize: 13 }}>
-              Optional funnel analytics (GA4 / Plausible). No evidence quotes or emails are sent.
+              {t("ui.AccountSettingsPage.analyticsHint")}
             </p>
             <p>
-              Current:{" "}
+              {t("ui.AccountSettingsPage.current")}{" "}
               <strong>
                 {analyticsConsent === true
-                  ? "Accepted"
+                  ? t("ui.AccountSettingsPage.accepted")
                   : analyticsConsent === false
-                    ? "Declined"
-                    : "Not set"}
+                    ? t("ui.AccountSettingsPage.declined")
+                    : t("ui.AccountSettingsPage.notSet")}
               </strong>
             </p>
             <div className="row gap">
               <button type="button" className="btn-primary" onClick={() => void setAnalytics(true)}>
-                Accept analytics
+                {t("ui.ConsentBanner.accept")}
               </button>
               <button type="button" className="btn-ghost" onClick={() => void setAnalytics(false)}>
-                Decline
+                {t("ui.ConsentBanner.decline")}
               </button>
             </div>
           </div>

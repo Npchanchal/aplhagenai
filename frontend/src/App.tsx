@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
+import { Route, Routes, useLocation, Link } from "react-router-dom";
 import BrandLogo from "./components/BrandLogo";
 import SessionMenu from "./components/SessionMenu";
 import SiteFooter from "./components/SiteFooter";
@@ -14,12 +14,13 @@ import ConsentBanner from "./components/ConsentBanner";
 import SeoHead from "./components/SeoHead";
 import { useAuth } from "./lib/auth";
 import { useI18n } from "./i18n";
-import { showArchitecturePage } from "./lib/siteFlags";
 import NavMenu from "./components/NavMenu";
 import SightsLayout from "./pages/sights/SightsLayout";
 import SightsHubPage from "./pages/sights/SightsHubPage";
 
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const MethodologyPage = lazy(() => import("./pages/MethodologyPage"));
+const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const DeskPage = lazy(() => import("./pages/DeskPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
@@ -32,6 +33,8 @@ const PilotRequestPage = lazy(() => import("./pages/PilotRequestPage"));
 const PressPage = lazy(() => import("./pages/PressPage"));
 const AnswersPage = lazy(() => import("./pages/AnswersPage"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const DevelopersPage = lazy(() => import("./pages/DevelopersPage"));
+const StatusPage = lazy(() => import("./pages/StatusPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ResearchPage = lazy(() => import("./pages/ResearchPage"));
 const TierFeaturesPage = lazy(() => import("./pages/TierFeaturesPage"));
@@ -40,7 +43,6 @@ const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
 import AdminPortalPage from "./pages/AdminPortalPage";
 const TrustPage = lazy(() => import("./pages/TrustPage"));
-const ArchitecturePage = lazy(() => import("./pages/ArchitecturePage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const SightsBoardsPage = lazy(() => import("./pages/sights/SightsBoardsPage"));
@@ -154,7 +156,7 @@ export default function App() {
         <nav
           id="primary-nav"
           className={`topnav ${navOpen ? "open" : ""}`}
-          aria-label="Primary"
+          aria-label={t("ui.App.primaryNav")}
         >
           <NavMenu />
           <SessionMenu />
@@ -196,16 +198,14 @@ export default function App() {
             <Route path="/package" element={<PackagePage />} />
             <Route path="/pilot" element={<PilotRequestPage />} />
             <Route path="/answers" element={<AnswersPage />} />
+            <Route path="/methodology" element={<MethodologyPage />} />
+            <Route path="/changelog" element={<ChangelogPage />} />
             <Route path="/press" element={<PressPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/developers" element={<DevelopersPage />} />
+            <Route path="/status" element={<StatusPage />} />
             <Route path="/rankings" element={<RankingsPage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route
-              path="/about/architecture"
-              element={
-                showArchitecturePage ? <ArchitecturePage /> : <Navigate to="/about" replace />
-              }
-            />
             <Route path="/about/tiers" element={<TierFeaturesPage />} />
             <Route path="/blog" element={<BlogIndexPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />

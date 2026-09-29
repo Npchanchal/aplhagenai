@@ -8,7 +8,8 @@ alwaysApply: false
 
 - Extraction output must be structured statements (metric, band, period, speaker, confidence).
 - Matching keys: `(company_id, period, metric)` only.
-- AlphaHunter import maps `Facts_Extracted`-like rows via `/api/import/alphahunter`.
+- Facts import (UI label; legacy route `/api/import/alphahunter`) maps `Facts_Extracted`-like rows. Never show "AlphaHunter" in UI.
+- Filing → score path: crawl → extract (pending) → analyst review → promote with `reviewed_by` → ledger + changelog. Nothing auto-commits to a published score.
 - Mutations (`extract` persist, `review`, `import`, `reset`) require `X-API-Key`.
 - Review actions: `accept` | `edit` | `reject` — append to `reviews[]` corpus (moat).
 - Do not invent live filing numbers; mark `data_quality` honestly (`demo_structured` vs `hand_labeled`).

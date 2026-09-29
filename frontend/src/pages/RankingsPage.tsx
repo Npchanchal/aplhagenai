@@ -1,23 +1,60 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import TierBadge from "../components/TierBadge";
 import { useI18n } from "../i18n";
-import { fetchPublicGciRankings } from "../lib/api";
-import { formatScore, scoreClass } from "../lib/score";
+import { fetchPublicGciRankings, type SnapshotRecordRow } from "../lib/api";
+import { formatDossierDate, formatScore, scoreClass } from "../lib/score";
 
 type Rankings = Awaited<ReturnType<typeof fetchPublicGciRankings>>;
 
+function recordsToCsv(rows: SnapshotRecordRow[], asOf: string): string {
+  const header = ["ticker", "name", "tier", "met", "exceeded", "missed", "as_of", "gci"];
+  const lines = [header.join(",")];
+  for (const r of rows) {
+    lines.push(
+      [
+        r.ticker,
+        `"${(r.name || "").replace(/"/g, '""')}"`,
+        r.confidence_tier || "",
+        r.met,
+        r.exceeded,
+        r.missed,
+        r.as_of || asOf,
+        r.gci_score ?? "",
+      ].join(","),
+    );
+  }
+  return lines.join("\n");
+}
+
 export default function RankingsPage() {
   const { t } = useI18n();
+  const [params] = useSearchParams();
   const [data, setData] = useState<Rankings | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [md, setMd] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPublicGciRankings({ limit: 10 })
+    fetchPublicGciRankings({ limit: 30, index: "NIFTY50" })
       .then(setData)
       .catch((e) => setErr((e as Error).message));
   }, []);
+
+  const recordMode = (data?.mode || "record") !== "ranked" || (data?.universe_n ?? 0) < 20;
+  const permalinkAsOf = params.get("as_of") || data?.as_of;
+
+  const downloadCsv = () => {
+    if (!data?.records?.length) return;
+    const blob = new Blob([recordsToCsv(data.records, data.as_of)], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gci-snapshot-${data.as_of}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <section className="page" data-testid="gci-rankings-page">
@@ -32,11 +69,73 @@ export default function RankingsPage() {
 
       {data && (
         <>
-          <p className="muted" style={{ fontSize: 13 }}>
-            As of {data.as_of} · n={data.universe_n} citeable · {data.methodology}
+          <p className="muted" style={{ fontSize: 13 }} data-testid="rankings-as-of">
+            {t("ui.RankingsPage.asOf", {
+              asOf: permalinkAsOf || data.as_of,
+              n: data.universe_n,
+              methodology: data.methodology,
+            })}
           </p>
-          <div className="workbench">
-            <div className="workbench-main">
+          {recordMode ? (
+            <div className="panel">
+              <h2>{t("rankings.recordMode.title")}</h2>
+              <p className="muted">{t("rankings.recordMode")}</p>
+              <div className="table-scroll">
+                <table className="table" data-testid="rankings-record-table">
+                  <thead>
+                    <tr>
+                      <th>{t("ui.RankingsPage.th.name")}</th>
+                      <th>{t("common.confidence")}</th>
+                      <th>{t("rankings.record.met")}</th>
+                      <th>{t("rankings.record.exceeded")}</th>
+                      <th>{t("rankings.record.missed")}</th>
+                      <th>{t("rankings.record.lastFiling")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(data.records || []).length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="muted" data-testid="rankings-empty">
+                          {t("rankings.noneRankable")}
+                        </td>
+                      </tr>
+                    )}
+                    {(data.records || []).map((r) => (
+                      <tr key={r.company_id}>
+                        <td>
+                          <Link to={`/companies/${r.company_id}`}>
+                            <strong>{r.ticker}</strong> {r.name}
+                          </Link>
+                        </td>
+                        <td>
+                          <TierBadge
+                            tier={r.confidence_tier}
+                            testId={`rank-tier-${r.company_id}`}
+                          />
+                        </td>
+                        <td>{r.met}</td>
+                        <td>{r.exceeded}</td>
+                        <td>{r.missed}</td>
+                        <td>{r.as_of ? formatDossierDate(r.as_of) : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="queue-ingest-row" style={{ marginTop: 12 }}>
+                <button type="button" className="btn" data-testid="rankings-csv" onClick={downloadCsv}>
+                  {t("rankings.exportCsv")}
+                </button>
+                <Link
+                  className="btn ghost"
+                  to={`/rankings?as_of=${encodeURIComponent(data.as_of)}`}
+                >
+                  {t("rankings.permalink")}
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
               <div className="panel">
                 <h2>{t("rankings.topGci")}</h2>
                 <div className="table-scroll">
@@ -44,10 +143,10 @@ export default function RankingsPage() {
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Name</th>
-                        <th>Sector</th>
+                        <th>{t("ui.RankingsPage.th.name")}</th>
+                        <th>{t("ui.RankingsPage.th.sector")}</th>
                         <th>GCI</th>
-                        <th>Citeable</th>
+                        <th>{t("common.confidence")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -60,81 +159,25 @@ export default function RankingsPage() {
                             </Link>
                           </td>
                           <td>{r.sector}</td>
-                          <td className={scoreClass(r.gci_score)}>
-                            {formatScore(r.gci_score)}
-                          </td>
-                          <td>{r.citeable_outcomes}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div className="panel">
-                <h2>{t("rankings.lowestGci")}</h2>
-                <div className="table-scroll">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Sector</th>
-                        <th>GCI</th>
-                        <th>Citeable</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.bottom.map((r) => (
-                        <tr key={`b-${r.company_id}`}>
-                          <td>{r.rank}</td>
+                          <td className={scoreClass(r.gci_score)}>{formatScore(r.gci_score)}</td>
                           <td>
-                            <Link to={`/companies/${r.company_id}`}>
-                              <strong>{r.ticker}</strong> {r.name}
-                            </Link>
+                            <TierBadge
+                              tier={r.confidence_tier}
+                              testId={`rank-tier-${r.company_id}`}
+                            />
                           </td>
-                          <td>{r.sector}</td>
-                          <td className={scoreClass(r.gci_score)}>
-                            {formatScore(r.gci_score)}
-                          </td>
-                          <td>{r.citeable_outcomes}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
-              <div className="queue-ingest-row">
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={async () => {
-                    const pack = await fetchPublicGciRankings({
-                      limit: 10,
-                      format: "markdown",
-                    });
-                    setMd(pack.markdown || "");
-                  }}
-                >
-                  Export Markdown
-                </button>
-                <Link className="btn ghost" to="/package">
-                  Packages &amp; pilots
-                </Link>
-              </div>
-              {md && (
-                <pre
-                  className="api-out"
-                  style={{ whiteSpace: "pre-wrap", maxHeight: 360, overflow: "auto" }}
-                >
-                  {md}
-                </pre>
-              )}
-              <Disclaimer />
-            </div>
-          </div>
+            </>
+          )}
           <p className="muted" style={{ fontSize: 12 }}>
-            {data.legal}
+            {data.legal} · <Link to="/changelog">{t("footer.changelog")}</Link>
           </p>
+          <Disclaimer />
         </>
       )}
     </section>

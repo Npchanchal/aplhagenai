@@ -15,6 +15,23 @@ export type CompanySummary = {
   yoy_pct?: number | null;
   market_id?: string | null;
   index_ids?: string[] | null;
+  /** provisional | established | deep — null when not scored (W1.3). */
+  confidence_tier?: ConfidenceTier | null;
+  closed_periods?: number;
+  metrics_scored?: number;
+  as_of?: string | null;
+  algorithm_id?: string | null;
+};
+
+export type ConfidenceTier = "provisional" | "established" | "deep";
+
+export type GuidanceRevision = {
+  as_of: string;
+  guided_low: number;
+  guided_high: number;
+  source_url?: string | null;
+  source_ref?: string | null;
+  quote?: string | null;
 };
 
 export type OutcomeView = {
@@ -39,6 +56,11 @@ export type OutcomeView = {
   guidance_source_ref?: string | null;
   guidance_quote?: string | null;
   guidance_as_of?: string | null;
+  revisions?: GuidanceRevision[];
+  revision_direction?: "raised" | "cut" | "unchanged" | null;
+  final_guided_low?: number | null;
+  final_guided_high?: number | null;
+  final_label?: string | null;
   dropped?: boolean;
   actual_change_pct?: number | null;
   actual_change_horizon?: string | null;
@@ -50,6 +72,8 @@ export type OutcomeView = {
   cite_reason?: string | null;
   span_start?: number | null;
   span_end?: number | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
 };
 
 export type CompanyGCIDetail = {
@@ -60,7 +84,12 @@ export type CompanyGCIDetail = {
   gci_score: number | null;
   status: string;
   data_quality: string;
+  /** Metrics in the composite. */
   by_metric: Record<string, number>;
+  /** Metrics with < 2 closed periods — shown as context, not in the composite. */
+  context_metrics?: Record<string, number>;
+  periods_by_metric?: Record<string, number>;
+  composite_weights?: Record<string, number>;
   label_counts: Record<string, number>;
   outcomes: OutcomeView[];
   trend: {
@@ -73,7 +102,12 @@ export type CompanyGCIDetail = {
   peer_rank_in_sector?: number | null;
   sector_avg_gci?: number | null;
   threads: Record<string, OutcomeView[]>;
-  sentiment: Record<string, number>;
+  confidence_tier?: ConfidenceTier | null;
+  closed_periods?: number;
+  metrics_scored?: number;
+  as_of?: string | null;
+  reviewed_at?: string | null;
+  algorithm_id?: string | null;
   gci_change_pct?: number | null;
   gci_change_horizon?: string | null;
   by_metric_changes?: Record<
@@ -93,6 +127,10 @@ export type CompanyGCIDetail = {
     label: string;
     points: number;
     severity: string;
+    set_by?: string;
+    source_url?: string;
+    set_at?: string;
+    note?: string;
   }>;
   red_alerts?: Array<{
     company_id: string;
@@ -287,6 +325,14 @@ export class ApiError extends Error {
 }
 
 function throwFromResponse(status: number, body: unknown): never {
+  if (status === 429) {
+    const wait = Number((body as { retry_after_sec?: unknown } | null)?.retry_after_sec);
+    const secs = Number.isFinite(wait) && wait > 0 ? Math.ceil(wait) : 60;
+    throw new ApiError(
+      `Too many requests right now — please wait about ${secs} seconds and try again.`,
+      { status, code: "rate_limited", detail: body },
+    );
+  }
   const raw = (body as { detail?: unknown } | null)?.detail;
   if (typeof raw === "string") {
     throw new ApiError(raw, { status, detail: raw });
@@ -301,6 +347,25 @@ function throwFromResponse(status: number, body: unknown): never {
     });
   }
   throw new ApiError(`Request failed: ${status}`, { status, detail: body });
+}
+
+/** Seconds to wait before retrying, when `e` is a 429 from the API; otherwise null. */
+export function rateLimitRetrySeconds(e: unknown): number | null {
+  if (!(e instanceof ApiError) || e.status !== 429) return null;
+  const wait = Number((e.detail as { retry_after_sec?: unknown } | null)?.retry_after_sec);
+  return Number.isFinite(wait) && wait > 0 ? Math.ceil(wait) : 60;
+}
+
+/** Retry once after the server's Retry-After when rate-limited. */
+export async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    const secs = rateLimitRetrySeconds(e);
+    if (secs == null) throw e;
+    await new Promise((resolve) => window.setTimeout(resolve, secs * 1000));
+    return fn();
+  }
 }
 
 async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -429,6 +494,11 @@ export function fetchCompanyChanges(id: string): Promise<{
   yoy_pct?: number | null;
   pop_pct?: number | null;
   pop_horizon?: string | null;
+  /** citeable_pit | citeable_pit_short | insufficient_history | not_yet_scored */
+  series_kind?: string | null;
+  series_n?: number | null;
+  citeable?: boolean;
+  note?: string | null;
 }> {
   return getJson(`/api/companies/${id}/changes`);
 }
@@ -652,31 +722,49 @@ export function postProvisionPilot(body: {
   });
 }
 
+export type PublicRankingRow = {
+  rank: number;
+  ticker: string;
+  name: string;
+  sector: string;
+  gci_score: number;
+  citeable_outcomes: number;
+  company_id: string;
+  confidence_tier?: ConfidenceTier | null;
+  closed_periods?: number;
+  metrics_scored?: number;
+  as_of?: string | null;
+  algorithm_id?: string | null;
+};
+
+export type SnapshotRecordRow = {
+  company_id: string;
+  ticker: string;
+  name: string;
+  confidence_tier?: ConfidenceTier | null;
+  gci_score?: number | null;
+  met: number;
+  exceeded: number;
+  missed: number;
+  as_of?: string | null;
+  closed_periods?: number;
+};
+
 export function fetchPublicGciRankings(opts?: {
   limit?: number;
   format?: "json" | "markdown";
+  index?: string;
 }): Promise<{
   title: string;
   as_of: string;
+  index?: string;
   universe_n: number;
-  top: Array<{
-    rank: number;
-    ticker: string;
-    name: string;
-    sector: string;
-    gci_score: number;
-    citeable_outcomes: number;
-    company_id: string;
-  }>;
-  bottom: Array<{
-    rank: number;
-    ticker: string;
-    name: string;
-    sector: string;
-    gci_score: number;
-    citeable_outcomes: number;
-    company_id: string;
-  }>;
+  mode?: "ranked" | "record";
+  ranked_threshold?: number;
+  records?: SnapshotRecordRow[];
+  tiers_ranked?: string[];
+  top: PublicRankingRow[];
+  bottom: PublicRankingRow[];
   methodology: string;
   legal: string;
   markdown?: string;
@@ -684,8 +772,48 @@ export function fetchPublicGciRankings(opts?: {
   const params = new URLSearchParams();
   if (opts?.limit != null) params.set("limit", String(opts.limit));
   if (opts?.format) params.set("format", opts.format);
+  if (opts?.index) params.set("index", opts.index);
   const qs = params.toString();
   return getJson(`/api/public/gci-rankings${qs ? `?${qs}` : ""}`);
+}
+
+// --- Index integrity: score ledger + public changelog (W1.6 / W1.7) ---
+
+export type ScoreLedgerRow = {
+  company_id: string;
+  as_of: string;
+  algorithm_id: string;
+  dataset_version: string;
+  gci: number | null;
+  prior_gci: number | null;
+  confidence_tier: ConfidenceTier | null;
+  reason: string;
+  note: string;
+  by: string;
+};
+
+export function fetchScoreLedger(
+  companyId?: string,
+  limit = 200,
+): Promise<{ company_id: string | null; count: number; rows: ScoreLedgerRow[]; note: string }> {
+  const params = new URLSearchParams();
+  if (companyId) params.set("company_id", companyId);
+  params.set("limit", String(limit));
+  return getJson(`/api/v1/index/ledger?${params.toString()}`);
+}
+
+export type ChangelogEntry = {
+  date: string;
+  reason: string;
+  companies: string[];
+  change: string;
+};
+
+export function fetchScoreChangelog(
+  companyId?: string,
+): Promise<{ company_id: string | null; count: number; entries: ChangelogEntry[] }> {
+  const qs = companyId ? `?company_id=${encodeURIComponent(companyId)}` : "";
+  return getJson(`/api/v1/index/changelog${qs}`);
 }
 
 export function fetchPitContract(): Promise<Record<string, unknown>> {
@@ -1225,6 +1353,43 @@ export function fetchWorkbenchExtraction(): Promise<{
   return getJson("/api/workbench/extraction", { headers: { "X-API-Key": API_KEY } });
 }
 
+export type FilingToScoreSla = {
+  target_business_days: number;
+  instrumentation_date?: string;
+  unit?: string;
+  scored_rows: number;
+  observed_median_business_days: number | null;
+  sample?: string;
+  policy?: string;
+  live?: {
+    n: number;
+    median_business_days: number | null;
+    note?: string;
+  };
+  backfill?: {
+    n: number;
+    median_business_days: number | null;
+    reviewed_on?: string;
+    note?: string;
+  };
+};
+
+export type ProductMeta = {
+  version: string;
+  company_count: number;
+  hand_labeled_count: number;
+  demo_structured_count: number;
+  gci_scored_count: number;
+  gci_listing_scored_count: number;
+  gci_listing_unscored_count?: number;
+  sensex_scored_count?: number;
+  sensex_count?: number;
+  gci_algorithm: string;
+  gci_listing_as_of?: string | null;
+  feature_flags?: Record<string, boolean | string>;
+  filing_to_score?: FilingToScoreSla;
+};
+
 export function fetchTrustBadgeChannel(ticker: string): Promise<{
   ticker: string;
   gci_score: number | null;
@@ -1239,18 +1404,6 @@ export function fetchTrustBadgeChannel(ticker: string): Promise<{
 export function fetchMetaFlags(): Promise<ProductMeta> {
   return fetchProductMeta();
 }
-
-export type ProductMeta = {
-  version: string;
-  company_count: number;
-  hand_labeled_count: number;
-  demo_structured_count: number;
-  gci_scored_count: number;
-  gci_listing_scored_count: number;
-  gci_algorithm: string;
-  gci_listing_as_of?: string | null;
-  feature_flags?: Record<string, boolean | string>;
-};
 
 export function fetchProductMeta(): Promise<ProductMeta> {
   return getJson("/api/meta");
@@ -1725,6 +1878,9 @@ export type TrustCenterPayload = {
     counsel_status?: string;
     counsel_note?: string;
     contact_email?: string;
+    privacy_email?: string;
+    link_out_policy?: string;
+    prices_on_public?: boolean;
     links: Record<string, string>;
   };
   data: {
@@ -1762,6 +1918,15 @@ export type TrustCenterPayload = {
       updated_at?: string;
     }>;
   };
+  source_verification?: {
+    as_of?: string | null;
+    checked?: number;
+    verified?: number;
+    failed?: number;
+    fetch_failed?: number;
+    note?: string;
+  };
+  filing_to_score?: FilingToScoreSla;
   feature_flags_public?: Record<string, unknown>;
 };
 
@@ -1797,6 +1962,9 @@ export type LabelingQueueItem = {
   priority?: string;
   status?: string;
   note?: string;
+  kind?: string;
+  flag?: string | null;
+  requested_by?: string;
 };
 
 export type VernacularPayload = {
@@ -1809,7 +1977,11 @@ export type VernacularPayload = {
 
 export type BadgePayload = {
   ticker: string;
-  trust_score: number | null;
+  name?: string | null;
+  gci_score: number | null;
+  confidence_tier?: string | null;
+  as_of?: string | null;
+  algorithm_id?: string | null;
   label: string;
   embed: string;
   svg_url: string;
@@ -2012,6 +2184,27 @@ export function postLabelingQueue(body: {
     headers: authHeaders(),
     body: JSON.stringify(body),
   });
+}
+
+export function postCompanyAuditFlag(
+  companyId: string,
+  body: { flag: string; source_url: string; note?: string },
+): Promise<{ ok: boolean; flag: Record<string, unknown> }> {
+  return getJson(`/api/companies/${encodeURIComponent(companyId)}/audit-flags`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteCompanyAuditFlag(
+  companyId: string,
+  flag: string,
+): Promise<{ ok: boolean }> {
+  return getJson(
+    `/api/companies/${encodeURIComponent(companyId)}/audit-flags/${encodeURIComponent(flag)}`,
+    { method: "DELETE", headers: authHeaders() },
+  );
 }
 
 export function fetchEmFactorCsvUrl(companyId: string): string {
@@ -2232,6 +2425,7 @@ export type AuthUser = {
   privacy_version?: string;
   preferences: UserPreferences;
   created_at?: string;
+  mfa_enabled?: boolean;
 };
 
 export type AuthSession = {
@@ -2322,11 +2516,37 @@ export function postRegister(body: {
   return authJson("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
 }
 
-export function postLogin(email: string, password: string): Promise<AuthSession> {
+export function postLogin(
+  email: string,
+  password: string,
+  totpCode?: string,
+): Promise<AuthSession> {
   return authJson("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, totp_code: totpCode || undefined }),
   });
+}
+
+export function postMfaEnroll(token?: string | null): Promise<{
+  secret: string;
+  otpauth_uri: string;
+  mfa_enabled: boolean;
+}> {
+  return authJson("/api/auth/mfa/enroll", { method: "POST" }, token);
+}
+
+export function postMfaConfirm(code: string, token?: string | null): Promise<{
+  mfa_enabled: boolean;
+  user: AuthUser;
+}> {
+  return authJson("/api/auth/mfa/confirm", { method: "POST", body: JSON.stringify({ code }) }, token);
+}
+
+export function postMfaDisable(code: string, token?: string | null): Promise<{
+  mfa_enabled: boolean;
+  user: AuthUser;
+}> {
+  return authJson("/api/auth/mfa/disable", { method: "POST", body: JSON.stringify({ code }) }, token);
 }
 
 export function postGuest(body?: {

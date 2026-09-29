@@ -127,6 +127,9 @@ export function breadcrumbJsonLd(routePath, pageTitle) {
   if (routePath.startsWith("/blog/")) {
     items.push({ name: "Blog", path: "/blog" });
     items.push({ name: String(pageTitle).replace(/ — CiteAlpha.*$/, ""), path: routePath });
+  } else if (routePath.startsWith("/companies/")) {
+    items.push({ name: "GCI Screener", path: "/tracker" });
+    items.push({ name: String(pageTitle).replace(/ — CiteAlpha.*$/, ""), path: routePath });
   } else if (routePath.startsWith("/about/")) {
     items.push({ name: "About", path: "/about" });
     items.push({ name: String(pageTitle).replace(/ — CiteAlpha$/, ""), path: routePath });
@@ -252,22 +255,24 @@ export function marketingBodyHtml(routePath, opts = {}) {
         <li>FY23 — guided 13–15%, actual 15.4% — <strong>exceeded</strong> (reported 2023-04-13). Guidance given 2022-04-13: <a href="https://www.sec.gov/Archives/edgar/data/1067491/000106749122000020/exv99w01.htm">“Revenue growth of 13%-15% in constant currency”</a> · Actual reported 2023-04-13: <a href="https://www.sec.gov/Archives/edgar/data/1067491/000106749123000027/exv99w01.htm">“industry-leading growth of 15.4% in constant currency”</a></li>
         <li>FY24 — guided 4–7%, actual 1.4% — <strong>missed</strong> (reported 2024-04-18). Guidance given 2023-04-13: <a href="https://www.sec.gov/Archives/edgar/data/1067491/000106749123000027/exv99w01.htm">“Revenue growth of 4%-7% in constant currency”</a> · Actual reported 2024-04-18: <a href="https://www.sec.gov/Archives/edgar/data/1067491/000106749124000016/exv99w01.htm">“Revenues in CC terms grew by 1.4% YoY”</a></li>
       </ul>
-      <p>Why doesn't a big beat score 100? GCI scores how close results came to guidance. Guidance of 12–14% against an actual of 19.7% was well off, so FY22 scores about 62, not 100. Beats never drop below 60; a miss the same distance below the band scores far lower. <a href="${SITE}/companies/infy">Open the full Infosys evidence trail</a>.</p>
+      <p>Infosys changed its guidance during each of these years: FY22 was raised three times to 19.5%–20.0%, FY23 to 16.0%–16.5%, and FY24 was cut to 1.5%–2.0%. We score against the original April guidance and show every revision, with its own filing, next to it. Against the final range, FY23 was a miss.</p>
+      <p>Why doesn't a big beat score 100? GCI measures promise-keeping discipline, not forecast accuracy. Guidance of 12–14% against an actual of 19.7% scores about 62. A wide beat is scored on how reliable the promise was. A beat never scores below 60. A miss the same distance below the range scores 0. <a href="${SITE}/methodology">Full methodology</a> · <a href="${SITE}/companies/infy">Open the full Infosys evidence trail</a>.</p>
       <h2>What is a Guidance Credibility Index?</h2>
-      <p>GCI is a 0–100 score of how closely a company's reported results matched its own quantified guidance — revenue bands, margins, volumes, capex. It tracks delivery, not sentiment or share price. Each guided number gets one outcome once the period closes: met, exceeded, missed, dropped, or pending.</p>
+      <p>GCI is a 0–100 score of promise-keeping against a company's own quantified guidance — revenue bands, margins, volumes, capex. It tracks that promise, not forecast accuracy, sentiment, or share price. Each guided number gets one outcome once the period closes: met, exceeded, missed, dropped, or pending.</p>
       <h2>How we build a score</h2>
       <ol>
         <li><strong>Sources</strong> — NSE and BSE filings, company IR decks and guidance tables, earnings-call transcripts.</li>
-        <li><strong>What counts as guidance</strong> — a number or range for a named metric and period. Qualitative commentary is marked unmapped and left out of the score.</li>
-        <li><strong>Verification</strong> — an analyst reviews every extracted row. Each row keeps the quote, document link, and date.</li>
-        <li><strong>Scoring</strong> — versioned, unit-tested scorer. Open periods stay pending and are excluded. Scores change after a new filing is reviewed, not automatically.</li>
+        <li><strong>What counts as guidance</strong> — a number or range for a named metric and period, from a filing, results release or call transcript. Commentary without a number is left out. If guidance is raised or cut during the year, we score against the original number and show every revision next to it.</li>
+        <li><strong>Verification</strong> — one analyst checks every extracted row against its source document before it counts. Scores published today are that single review. Each row keeps the quote, the document link and the date.</li>
+        <li><strong>Scoring</strong> — GCI scores promise-keeping, not forecast accuracy. Each closed result earns 0–100 points for where it landed against its own guided range; misses lose points faster than beats. A wide range reaches 100 more easily than a tight one. Scores are not adjusted by sector. Open periods don't count until results are filed.</li>
+        <li><strong>Independence</strong> — payment never influences a score or when it changes. Covered companies cannot buy, edit or delay their score.</li>
       </ol>
       <h2>Coverage today</h2>
       <ul>
-        <li>Sensex-depth companies hand-labeled with cited evidence — the rows meant for citation.</li>
-        <li>A smaller set of demo-structured companies (including early Nifty names) — for walkthroughs, not citation.</li>
-        <li>Other NSE/BSE listings are browsable with provisional scores built from placeholder outcomes — not for citation.</li>
-        <li>Point-in-time API (pit.v1) for design partners; every point is as-of stamped and flagged citeable or not.</li>
+        <li>Sensex companies plus early Nifty 50 names are scored from analyst-reviewed guidance with cited filings, once they have at least one closed result. Only these carry a GCI.</li>
+        <li>A small set of companies have sample data for walkthroughs — not scored, not for citation.</li>
+        <li>Other NSE/BSE listings can be browsed but are not yet scored.</li>
+        <li>Point-in-time API for design partners: every data point carries the date it became known and whether it can be cited.</li>
       </ul>
       <h2>Explore the product</h2>
       <p>Each tool is labeled by what it does and who can use it today.</p>
@@ -312,7 +317,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
     </main>`,
     "/research": `<main>
       <h1>Filing Search: Cite-Only Search of One Company's Filings — CiteAlpha</h1>
-      <p class="seo-speakable">Search one Indian company's IR filings and transcripts with cite-only chat that refuses invented actuals. Complements the GCI Screener — demo tape is not live prices. Not investment advice.</p>
+      <p class="seo-speakable">Search one Indian company's IR filings and transcripts with cite-only chat that refuses invented actuals. Complements the GCI Screener. Not a price feed and not investment advice.</p>
       <h2>Capabilities</h2>
       <ul>
         <li>Filings and concall search with citation ids back to sources.</li>
@@ -384,7 +389,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
     </main>`,
     "/tracker": `<main>
       <h1>GCI Screener: Sensex Guidance Credibility Scores</h1>
-      <p class="seo-speakable">Screen Sensex companies by Guidance Credibility Index, with hand-labeled evidence behind every citeable score. Other NSE/BSE listings show provisional scores that are not for citation.</p>
+      <p class="seo-speakable">Screen Sensex companies by Guidance Credibility Index, with hand-labeled evidence behind every citeable score. Other NSE/BSE listings are listed as not yet scored.</p>
       <ul>
         <li>Company GCI with trend and coverage context.</li>
         <li>Evidence trail: guidance → actual → label → source.</li>

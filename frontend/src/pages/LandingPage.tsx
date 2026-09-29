@@ -11,8 +11,6 @@ import { fetchProductMeta, type ProductMeta } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 import { SEO_STRUCTURED } from "../lib/seoJsonLd";
-import { showArchitecturePage } from "../lib/siteFlags";
-
 const PERSONAS = [
   { labelKey: "landing.persona.buy", to: "/products#desk-buy-side" },
   { labelKey: "landing.persona.sell", to: "/products#desk-sell-side" },
@@ -116,13 +114,13 @@ export default function LandingPage() {
             <li key={s.titleKey}>
               <strong>{t(s.titleKey)}</strong>
               <span className="muted">
-                {t(s.textKey, { algo: meta?.gci_algorithm ?? "gci_scoring_v4" })}
+                {t(s.textKey)}
               </span>
             </li>
           ))}
         </ol>
         <p className="muted landing-sources">
-          <Link to="/about#how">{t("landing.method.more")}</Link>
+          <Link to="/methodology">{t("landing.method.more")}</Link>
           {" · "}
           {t("landing.sources")}:{" "}
           <a href="https://www.nseindia.com/" rel="noopener noreferrer" target="_blank">
@@ -181,7 +179,7 @@ export default function LandingPage() {
       </div>
 
       <div className="panel landing-faq-block" data-testid="landing-faq">
-        <h2 style={{ marginTop: 0 }}>Common questions</h2>
+        <h2 style={{ marginTop: 0 }}>{t("ui.LandingPage.faqTitle")}</h2>
         <dl className="glossary landing-faq">
           {SEO_STRUCTURED.faq.slice(0, 3).map((item) => (
             <div className="glossary-row" key={item.question}>
@@ -191,9 +189,9 @@ export default function LandingPage() {
           ))}
         </dl>
         <p className="muted">
-          <Link to="/answers">All FAQ answers</Link>
+          <Link to="/answers">{t("ui.LandingPage.allFaq")}</Link>
           {" · "}
-          <Link to="/blog/what-is-guidance-credibility-index">Full GCI definition</Link>
+          <Link to="/blog/what-is-guidance-credibility-index">{t("ui.AnswersPage.fullDefinition")}</Link>
         </p>
       </div>
 
@@ -203,6 +201,7 @@ export default function LandingPage() {
           <li>{t("landing.trust.item1")}</li>
           <li>{t("landing.trust.item2")}</li>
           <li>{t("landing.trust.item3")}</li>
+          <li data-testid="landing-independence">{t("landing.trust.item4")}</li>
         </ul>
         <p className="muted">
           <Link to="/about">{t("landing.trust.about", { product: PRODUCT_NAME })}</Link>
@@ -210,12 +209,6 @@ export default function LandingPage() {
           <Link to="/blog">{t("nav.blog")}</Link>
           {" · "}
           <Link to="/trust">{t("footer.trust")}</Link>
-          {showArchitecturePage ? (
-            <>
-              {" · "}
-              <Link to="/about/architecture">{t("footer.architecture")}</Link>
-            </>
-          ) : null}
           {" · "}
           <Link to="/login">{t("common.login")}</Link>
         </p>

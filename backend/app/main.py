@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+import os
 
 from app.api.routes import router
 from app.services.guest_lock import GuestWriteMiddleware
@@ -13,9 +15,20 @@ app = FastAPI(
     version=APP_VERSION,
 )
 
+_CORS_DEFAULT = (
+    "https://citealpha.com,https://www.citealpha.com,"
+    "http://localhost:8080,http://127.0.0.1:8080,"
+    "http://localhost:5173,http://127.0.0.1:5173"
+)
+_cors_origins = [
+    o.strip()
+    for o in os.environ.get("INTELLENS_CORS_ORIGINS", _CORS_DEFAULT).split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +38,67 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(GuestWriteMiddleware)
 
 app.include_router(router)
+
+# Public contract only (W8.5). Workbench, auth, billing, and ops routes stay
+# callable; they are omitted from /openapi.json so the published spec is the
+# index a licensee integrates against.
+_PUBLIC_OPENAPI_PATHS = frozenset(
+    {
+        "/health",
+        "/api/status",
+        "/api/meta",
+        "/api/trust",
+        "/api/compliance/sebi-note",
+        "/api/legal/terms",
+        "/api/legal/privacy",
+        "/api/legal/meta",
+        "/api/v1/companies",
+        "/api/v1/companies/{company_id}/gci",
+        "/api/v1/companies/{company_id}/gci/history",
+        "/api/v1/rankings",
+        "/api/public/gci-rankings",
+        "/api/public/seo-dossiers",
+        "/api/v1/index/ledger",
+        "/api/v1/index/changelog",
+        "/api/v1/index/changelog.rss",
+        "/api/v1/index/files",
+        "/api/v1/index/files/{name}",
+        "/api/v1/index/digest",
+        "/api/badge/{ticker}",
+        "/api/badge/{ticker}/svg",
+        "/api/og/{company_id}.png",
+        "/api/og/{company_id}.svg",
+        "/api/alerts",
+        "/api/metrics",
+        "/api/metrics/{metric_id}",
+        "/api/sectors/leaderboard",
+        "/api/pilot-request",
+        "/api/feedback",
+        "/api/v1/pit/contract",
+        "/api/activity/cite-copy",
+    }
+)
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=(
+            "Public Guidance Credibility Index reads. "
+            "Auth, billing, labeling, and ops routes are not in this spec."
+        ),
+        routes=app.routes,
+    )
+    paths = schema.get("paths") or {}
+    schema["paths"] = {p: v for p, v in paths.items() if p in _PUBLIC_OPENAPI_PATHS}
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = custom_openapi
 
 
 @app.on_event("startup")

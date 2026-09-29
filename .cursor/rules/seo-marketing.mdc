@@ -10,5 +10,7 @@ alwaysApply: false
 - Prerender: `frontend/scripts/prerender-seo.mjs` — keep titles/descriptions factual, no accuracy over-claims.
 - Blog meta: `lib/blogMeta.ts` / `blogPosts.ts` — cite-only, India GCI positioning; not investment advice.
 - Public assets: `sitemap.xml`, `robots.txt`, `site.webmanifest` stay in sync with routes.
+- Company dossiers for `hand_labeled` names are **indexable**: per-ticker title ("Infosys — Guidance Credibility Index (GCI) …"), description with delivery record + as-of, `Dataset` JSON-LD, OG share card, sitemap + prerender entries. Non-hand-labeled dossiers stay `noindex`.
+- Every score-bearing page carries "Data as of" in its meta description.
 - Competitor names only in internal docs — never in public SEO copy or OG tags.
 - Align claims with `hand_labeled` cohort reality and `docs/customer/COMPLIANCE.md`.

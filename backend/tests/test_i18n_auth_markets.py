@@ -6,6 +6,7 @@ from app.main import app
 from app.services.session_auth import reset_auth_store
 
 client = TestClient(app)
+SEAT = {"X-API-Key": "intellens-demo"}
 
 
 def setup_function() -> None:
@@ -94,7 +95,7 @@ def test_register_login_guest_preferences_roundtrip():
         "/api/auth/register",
         json={
             "email": "desk@intellens.test",
-            "password": "secret99",
+            "password": "secret99pass!",
             "name": "Desk User",
             "guest_token": gtoken,
             "accept_terms": True,
@@ -118,7 +119,7 @@ def test_register_login_guest_preferences_roundtrip():
 
     login = client.post(
         "/api/auth/login",
-        json={"email": "desk@intellens.test", "password": "secret99"},
+        json={"email": "desk@intellens.test", "password": "secret99pass!"},
     ).json()
     assert login["user"]["preferences"]["default_index"] == "SPX"
 
@@ -161,12 +162,14 @@ def test_five_year_market_and_stock_history():
     constituents = client.get("/api/indexes/SPX/constituents").json()["constituents"]
     assert len(constituents) >= 5
     for row in constituents[:5]:
-        sh = client.get(f"/api/stocks/{row['id']}/history?years=5").json()
+        sh = client.get(f"/api/stocks/{row['id']}/history?years=5", headers=SEAT).json()
         assert sh["stock_id"] == row["id"]
         assert sh["point_count"] >= 50
         assert len(sh["fundamentals"]) == 5
 
     # India Sensex name also has history
-    infy = client.get("/api/stocks/infy/history").json()
+    # Price tape is Workbench-only (W1.2): guests get 401
+    assert client.get("/api/stocks/infy/history").status_code == 401
+    infy = client.get("/api/stocks/infy/history", headers=SEAT).json()
     assert infy["ticker"] == "INFY"
     assert infy["last"] is not None

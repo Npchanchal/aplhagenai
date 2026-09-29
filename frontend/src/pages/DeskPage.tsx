@@ -75,25 +75,25 @@ import {
   type WordmapPayload,
   type LabelingQueueItem,
 } from "../lib/api";
-import { formatScore } from "../lib/score";
+import { formatScore, formatCompanyScore } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
 import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 
 const TABS = [
-  { id: "console", label: "Console", title: "Multi-pane GCI ops console" },
-  { id: "review", label: "Review queue", title: tipText("extract") },
-  { id: "corpus", label: "Corpus", title: tipText("tier1") },
-  { id: "reports", label: "Reports", title: tipText("citability") },
-  { id: "pit", label: "API / PIT", title: tipText("pit") },
-  { id: "import", label: "Facts import", title: tipText("alphahunter") },
-  { id: "parameters", label: "Parameters", title: tipText("gci_parameter") },
-  { id: "wordmap", label: "Wordmap", title: tipText("sentiment") },
-  { id: "vernacular", label: "Vernacular", title: tipText("gci") },
-  { id: "labeling", label: "Labeling", title: tipText("labeling_queue") },
-  { id: "feedback", label: "Feedback", title: "Design-partner quality flags" },
-  { id: "csm", label: "CSM", title: tipText("csm") },
+  { id: "console", labelKey: "ui.DeskPage.tab.console", titleKey: "ui.DeskPage.tab.consoleTitle" },
+  { id: "review", labelKey: "ui.DeskPage.tab.review", title: tipText("extract") },
+  { id: "corpus", labelKey: "ui.DeskPage.tab.corpus", title: tipText("tier1") },
+  { id: "reports", labelKey: "ui.DeskPage.tab.reports", title: tipText("citability") },
+  { id: "pit", labelKey: "ui.DeskPage.tab.pit", title: tipText("pit") },
+  { id: "import", labelKey: "ui.DeskPage.tab.import", title: tipText("alphahunter") },
+  { id: "parameters", labelKey: "ui.DeskPage.tab.parameters", title: tipText("gci_parameter") },
+  { id: "wordmap", labelKey: "ui.DeskPage.tab.wordmap", title: tipText("sentiment") },
+  { id: "vernacular", labelKey: "ui.DeskPage.tab.vernacular", title: tipText("gci") },
+  { id: "labeling", labelKey: "ui.DeskPage.tab.labeling", title: tipText("labeling_queue") },
+  { id: "feedback", labelKey: "ui.DeskPage.tab.feedback", titleKey: "ui.DeskPage.tab.feedbackTitle" },
+  { id: "csm", labelKey: "ui.DeskPage.tab.csm", title: tipText("csm") },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -412,9 +412,11 @@ export default function DeskPage() {
         edits: Object.keys(edits).length > 0 ? edits : undefined,
       });
       setMsg(
-        `Committed ${res.committed} statement(s)` +
-          (res.edited ? ` (${res.edited} edited)` : "") +
-          ` — rejected ${batch.statements.length - accepted.length}`
+        t("ui.DeskPage.review.committed", { n: res.committed }) +
+          (res.edited ? t("ui.DeskPage.review.committedEdited", { n: res.edited }) : "") +
+          t("ui.DeskPage.review.committedRejected", {
+            n: batch.statements.length - accepted.length,
+          })
       );
       loadQueue(companyId);
       const d = await fetchCompanyGci(companyId);
@@ -435,10 +437,10 @@ export default function DeskPage() {
       />
       {detail && (
         <span className="muted" style={{ fontSize: 13 }}>
-          GCI {formatScore(detail.gci_score)} ·{" "}
-          <Link to={`/companies/${companyId}`}>Dossier</Link>
+          GCI {formatCompanyScore(detail.gci_score)} ·{" "}
+          <Link to={`/companies/${companyId}`}>{t("ui.DeskPage.picker.dossier")}</Link>
           {" · "}
-          <Link to="/tracker">Universe</Link>
+          <Link to="/tracker">{t("ui.DeskPage.picker.universe")}</Link>
         </span>
       )}
     </div>
@@ -459,12 +461,18 @@ export default function DeskPage() {
     return true;
   });
 
+  const tabItem = (x: (typeof TABS)[number]) => ({
+    id: x.id,
+    label: t(x.labelKey),
+    title: "titleKey" in x ? t(x.titleKey) : x.title,
+  });
+
   return (
     <PlanAccessGate
       feature="desk"
       title={t("desk.title")}
       kicker={t("desk.kicker")}
-      description="Desk review, ingest, and labeling require a Pilot or Desk plan. Sign in if your org already has access."
+      description={t("ui.DeskPage.gate.description")}
       returnTo="/desk"
       testId="desk-access-gate"
     >
@@ -480,26 +488,26 @@ export default function DeskPage() {
         {picker}
         <TabBar
           tabs={[
-            ...primaryTabs,
-            { id: "more", label: "More", title: "Import, parameters, vernacular, labeling, CSM" },
+            ...primaryTabs.map(tabItem),
+            { id: "more", label: t("ui.DeskPage.tab.more"), title: t("ui.DeskPage.tab.moreTitle") },
           ]}
           active={MORE_TAB_IDS.has(tab) ? "more" : tab}
           onChange={(id) => {
             if (id === "more") setTab("import");
             else if (TABS.some((x) => x.id === id)) setTab(id as TabId);
           }}
-          ariaLabel="Desk sections"
+          ariaLabel={t("ui.DeskPage.tab.ariaSections")}
         />
         {MORE_TAB_IDS.has(tab) && (
-          <div className="desk-more-tabs" role="tablist" aria-label="More desk tools">
-            {moreTabs.map((t) => (
+          <div className="desk-more-tabs" role="tablist" aria-label={t("ui.DeskPage.tab.ariaMore")}>
+            {moreTabs.map((tb) => (
               <button
-                key={t.id}
+                key={tb.id}
                 type="button"
-                className={`tab-bar-btn ${tab === t.id ? "active" : ""}`}
-                onClick={() => setTab(t.id)}
+                className={`tab-bar-btn ${tab === tb.id ? "active" : ""}`}
+                onClick={() => setTab(tb.id)}
               >
-                {t.label}
+                {t(tb.labelKey)}
               </button>
             ))}
           </div>
@@ -523,27 +531,23 @@ export default function DeskPage() {
       {tab === "review" && (
         <div className="panel desk-panel" data-testid="review-queue-panel">
           <h2 style={{ marginTop: 0 }}>
-            Guidance review queue <InfoTip termId="extract" />
+            {t("ui.DeskPage.review.title")} <InfoTip termId="extract" />
           </h2>
-          <p className="muted">
-            Human-in-the-loop pipeline: ingest a transcript → extract candidate
-            guidance → accept / edit / reject → commit. Only accepted statements
-            enter GCI; every correction compounds the labeled corpus.
-          </p>
+          <p className="muted">{t("ui.DeskPage.review.lede")}</p>
 
           <div className="crawl-bar" data-testid="crawl-bar">
             <div>
-              <strong>Live refresh</strong>
+              <strong>{t("ui.DeskPage.review.liveRefresh")}</strong>
               <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
-                Scheduler runs every{" "}
-                <strong>6 hours</strong> (`docker compose` service{" "}
-                <code className="inline-code">scheduler</code> or{" "}
+                {t("ui.DeskPage.review.scheduler.before")}{" "}
+                <strong>{t("ui.DeskPage.review.scheduler.hours")}</strong> {t("ui.DeskPage.review.scheduler.service")}{" "}
+                <code className="inline-code">scheduler</code> {t("ui.DeskPage.review.scheduler.or")}{" "}
                 <code className="inline-code">scripts/gci-refresh-loop.sh</code>
-                ). Live IR fetch → pending docs + extract queue — Accept before GCI.
+                {t("ui.DeskPage.review.scheduler.after")}
                 {pendingDocs > 0
-                  ? ` · ${pendingDocs} doc(s) awaiting review`
-                  : " · no pending docs"}
-                {lastCrawl ? ` · last ${lastCrawl}` : ""}
+                  ? t("ui.DeskPage.review.docsAwaiting", { n: pendingDocs })
+                  : t("ui.DeskPage.review.noPendingDocs")}
+                {lastCrawl ? t("ui.DeskPage.common.lastCrawl", { when: lastCrawl }) : ""}
               </p>
             </div>
             <button
@@ -558,7 +562,11 @@ export default function DeskPage() {
                   const c = r.crawl || {};
                   const ex = r.extract || {};
                   setMsg(
-                    `Live refresh: ${c.pending_new ?? 0} new docs · ${ex.batches ?? 0} extract batch(es) · ${c.pending_total ?? 0} pending`
+                    t("ui.DeskPage.review.liveRefreshToast", {
+                      newDocs: String(c.pending_new ?? 0),
+                      batches: String(ex.batches ?? 0),
+                      pending: String(c.pending_total ?? 0),
+                    })
                   );
                   setPendingDocs(Number(c.pending_total ?? pendingDocs));
                   setLastCrawl(String(c.as_of ?? new Date().toISOString()));
@@ -570,23 +578,21 @@ export default function DeskPage() {
                 }
               }}
             >
-              {crawlBusy ? "Refreshing…" : "Run live refresh now"}
+              {crawlBusy ? t("ui.DeskPage.review.refreshing") : t("ui.DeskPage.review.runLiveRefresh")}
             </button>
           </div>
 
           <div className="queue-ingest">
             <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
-              Primary path: live IR crawl keeps period docs in the queue (see status above).
-              Paste below is the <strong>exception</strong> path when a transcript is not
-              yet in the corpus.
+              {t("ui.DeskPage.review.primaryPath.before")} <strong>{t("ui.DeskPage.review.primaryPath.exception")}</strong> {t("ui.DeskPage.review.primaryPath.after")}
             </p>
             <label className="desk-field">
-              <span className="field-label">Exception · paste transcript</span>
+              <span className="field-label">{t("ui.DeskPage.review.pasteLabel")}</span>
               <textarea
                 rows={6}
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
-                placeholder="Paste concall / IR transcript text with quantified guidance…"
+                placeholder={t("ui.DeskPage.review.pastePlaceholder")}
                 spellCheck={false}
                 data-testid="queue-paste"
               />
@@ -595,14 +601,14 @@ export default function DeskPage() {
               <input
                 value={ingestUrlValue}
                 onChange={(e) => setIngestUrlValue(e.target.value)}
-                placeholder="…or an IR page URL (https://)"
+                placeholder={t("ui.DeskPage.review.urlPlaceholder")}
                 data-testid="queue-url"
               />
               <input
                 value={extractPeriod}
                 onChange={(e) => setExtractPeriod(e.target.value)}
                 style={{ maxWidth: 90 }}
-                aria-label="Guidance period"
+                aria-label={t("ui.DeskPage.review.periodAria")}
               />
               <button
                 type="button"
@@ -619,8 +625,8 @@ export default function DeskPage() {
                       const n = r.extract?.statements?.length ?? 0;
                       setMsg(
                         n > 0
-                          ? `Ingested ${r.document.doc_id} · auto-extracted ${n} candidate(s) — review below`
-                          : `Ingested ${r.document.doc_id} · no quantified guidance found to extract`
+                          ? t("ui.DeskPage.review.ingestedPasteExtracted", { doc: r.document.doc_id, n })
+                          : t("ui.DeskPage.review.ingestedPasteNone", { doc: r.document.doc_id })
                       );
                       if (n > 0) loadQueue(companyId);
                     } else {
@@ -631,8 +637,8 @@ export default function DeskPage() {
                       const n = r.extract?.statements?.length ?? 0;
                       setMsg(
                         n > 0
-                          ? `Ingested ${r.document.doc_id} · auto-extracted ${n} candidate(s)`
-                          : `Ingested ${r.document.doc_id}`
+                          ? t("ui.DeskPage.review.ingestedUrlExtracted", { doc: r.document.doc_id, n })
+                          : t("ui.DeskPage.review.ingestedUrl", { doc: r.document.doc_id })
                       );
                       if (n > 0) loadQueue(companyId);
                     }
@@ -643,7 +649,7 @@ export default function DeskPage() {
                   }
                 }}
               >
-                Ingest to doc store
+                {t("ui.DeskPage.review.ingestBtn")}
               </button>
               <button
                 type="button"
@@ -660,8 +666,8 @@ export default function DeskPage() {
                     });
                     setMsg(
                       res.count > 0
-                        ? `2 · Extracted ${res.count} candidate statement(s) — review below`
-                        : "No quantified guidance found in that text"
+                        ? t("ui.DeskPage.review.extracted", { n: res.count })
+                        : t("ui.DeskPage.review.extractedNone")
                     );
                     loadQueue(companyId);
                   } catch (e) {
@@ -671,15 +677,15 @@ export default function DeskPage() {
                   }
                 }}
               >
-                {pasteText.trim() ? "Run extract" : "Run extract on demo sample"}
+                {pasteText.trim() ? t("ui.DeskPage.review.runExtract") : t("ui.DeskPage.review.runExtractDemo")}
               </button>
             </div>
           </div>
 
-          <h3 style={{ marginBottom: 4 }}>Pending statements</h3>
+          <h3 style={{ marginBottom: 4 }}>{t("ui.DeskPage.review.pendingTitle")}</h3>
           {pendingBatches.length === 0 && (
             <p className="muted" data-testid="queue-empty">
-              Queue is clear — run an extract to add candidate statements.
+              {t("ui.DeskPage.review.queueEmpty")}
             </p>
           )}
           {pendingBatches.map((batch) => (
@@ -688,11 +694,11 @@ export default function DeskPage() {
                 <span className="muted" style={{ fontSize: 12 }}>
                   {batch.sample ? (
                     <span className="quality-badge demo" data-testid={`batch-demo-${batch.id}`}>
-                      Demo sample — practice data, not a real filing
+                      {t("ui.DeskPage.review.demoSample")}
                     </span>
                   ) : null}{" "}
-                  Batch <code className="inline-code">{batch.id.slice(0, 8)}</code> ·{" "}
-                  {batch.statements.length} statement(s)
+                  {t("ui.DeskPage.review.batch")} <code className="inline-code">{batch.id.slice(0, 8)}</code> ·{" "}
+                  {t("ui.DeskPage.review.statementCount", { n: batch.statements.length })}
                 </span>
                 <button
                   type="button"
@@ -701,7 +707,7 @@ export default function DeskPage() {
                   data-testid={`commit-${batch.id}`}
                   onClick={() => commitBatch(batch)}
                 >
-                  Commit decisions →
+                  {t("ui.DeskPage.review.commit")}
                 </button>
               </div>
               {batch.statements.map((s, i) => {
@@ -721,14 +727,14 @@ export default function DeskPage() {
                             ? `${s.guided_low}–${s.guided_high}`
                             : s.guided_value}
                         </span>
-                        <span className="muted">conf {s.confidence}</span>
+                        <span className="muted">{t("ui.DeskPage.review.conf", { n: s.confidence })}</span>
                         <span className="muted">{s.speaker}</span>
                       </div>
                       <p className="muted queue-quote">“{s.guided_text}”</p>
                       {d.editing && (
                         <div className="edit-form">
                           <label>
-                            <span className="field-label">Period</span>
+                            <span className="field-label">{t("ui.DeskPage.review.period")}</span>
                             <input
                               value={d.period || s.period}
                               onChange={(e) =>
@@ -737,7 +743,7 @@ export default function DeskPage() {
                             />
                           </label>
                           <label>
-                            <span className="field-label">Guided low</span>
+                            <span className="field-label">{t("ui.DeskPage.review.guidedLow")}</span>
                             <input
                               type="number"
                               value={d.low}
@@ -748,7 +754,7 @@ export default function DeskPage() {
                             />
                           </label>
                           <label>
-                            <span className="field-label">Guided high</span>
+                            <span className="field-label">{t("ui.DeskPage.review.guidedHigh")}</span>
                             <input
                               type="number"
                               value={d.high}
@@ -769,7 +775,7 @@ export default function DeskPage() {
                           setDecision(batch.id, i, { action: "accept", editing: false })
                         }
                       >
-                        Accept
+                        {t("ui.DeskPage.common.accept")}
                       </button>
                       <button
                         type="button"
@@ -778,7 +784,7 @@ export default function DeskPage() {
                           setDecision(batch.id, i, { action: "accept", editing: !d.editing })
                         }
                       >
-                        Edit
+                        {t("ui.DeskPage.review.edit")}
                       </button>
                       <button
                         type="button"
@@ -787,7 +793,7 @@ export default function DeskPage() {
                           setDecision(batch.id, i, { action: "reject", editing: false })
                         }
                       >
-                        Reject
+                        {t("ui.DeskPage.common.reject")}
                       </button>
                     </div>
                   </div>
@@ -796,19 +802,19 @@ export default function DeskPage() {
             </div>
           ))}
 
-          <h3 style={{ marginBottom: 4 }}>Recent review history</h3>
+          <h3 style={{ marginBottom: 4 }}>{t("ui.DeskPage.review.historyTitle")}</h3>
           {reviews.length === 0 ? (
-            <p className="muted">No reviews recorded yet.</p>
+            <p className="muted">{t("ui.DeskPage.review.historyEmpty")}</p>
           ) : (
             <div className="table-scroll">
               <table className="table" data-testid="review-history">
                 <thead>
                   <tr>
-                    <th>When</th>
-                    <th>Company</th>
-                    <th>Action</th>
-                    <th>Source</th>
-                    <th>Edits</th>
+                    <th>{t("ui.DeskPage.review.colWhen")}</th>
+                    <th>{t("ui.DeskPage.common.company")}</th>
+                    <th>{t("ui.DeskPage.review.colAction")}</th>
+                    <th>{t("ui.DeskPage.review.colSource")}</th>
+                    <th>{t("ui.DeskPage.review.colEdits")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -842,16 +848,13 @@ export default function DeskPage() {
       {tab === "corpus" && (
         <div className="panel desk-panel" data-testid="corpus-panel">
           <h2 style={{ marginTop: 0 }}>
-            Tier 1 corpus <InfoTip termId="tier1" />
+            {t("ui.DeskPage.corpus.title")} <InfoTip termId="tier1" />
           </h2>
-          <p className="muted">
-            Coverage, IR crawl, pending doc Accept/Reject, and pending-depth bootstrap. Digests stay
-            curated until analysts accept — never invent actuals.
-          </p>
+          <p className="muted">{t("ui.DeskPage.corpus.lede")}</p>
           {corpusCov && (
             <div className="metrics" data-testid="corpus-coverage">
               <div className="metric">
-                <div className="label">Tier-1 pass</div>
+                <div className="label">{t("ui.DeskPage.corpus.tier1Pass")}</div>
                 <div className="value" style={{ fontSize: 20 }}>
                   {String(corpusCov.tier1_gate_pass ?? corpusCov.tier1_pass ?? "—")} /{" "}
                   {String(
@@ -864,7 +867,7 @@ export default function DeskPage() {
                 </div>
               </div>
               <div className="metric">
-                <div className="label">Tier-1 rate</div>
+                <div className="label">{t("ui.DeskPage.corpus.tier1Rate")}</div>
                 <div className="value" style={{ fontSize: 20 }}>
                   {corpusCov.tier1_gate_rate != null || corpusCov.tier1_rate_pct != null
                     ? `${Number(corpusCov.tier1_gate_rate ?? corpusCov.tier1_rate_pct).toFixed(1)}%`
@@ -875,7 +878,7 @@ export default function DeskPage() {
           )}
           {pendingDepth && (
             <p className="muted" style={{ fontSize: 13 }} data-testid="pending-depth-summary">
-              Depth: LLM{" "}
+              {t("ui.DeskPage.corpus.depthLlm")}{" "}
               {String(
                 (pendingDepth.flags as Record<string, unknown> | undefined)?.LLM_CONFIGURED ??
                   pendingDepth.llm_configured ??
@@ -890,13 +893,13 @@ export default function DeskPage() {
           )}
           <div className="crawl-bar">
             <div>
-              <strong>Ingest lag</strong>
+              <strong>{t("ui.DeskPage.corpus.ingestLag")}</strong>
               <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
-                Live IR refresh every 6h.
+                {t("ui.DeskPage.corpus.refreshEvery")}
                 {pendingDocs > 0
-                  ? ` · ${pendingDocs} doc(s) pending review`
-                  : " · queue clear"}
-                {lastCrawl ? ` · last ${lastCrawl}` : ""}
+                  ? t("ui.DeskPage.corpus.docsPending", { n: pendingDocs })
+                  : t("ui.DeskPage.corpus.queueClear")}
+                {lastCrawl ? t("ui.DeskPage.common.lastCrawl", { when: lastCrawl }) : ""}
               </p>
             </div>
             <button
@@ -914,7 +917,10 @@ export default function DeskPage() {
                     min_n?: number;
                   };
                   setMsg(
-                    `Foundation: ${cites.companies ?? 0} companies · PIT min N=${pit.min_n ?? "—"}`
+                    t("ui.DeskPage.corpus.foundationToast", {
+                      n: cites.companies ?? 0,
+                      minN: pit.min_n ?? "—",
+                    })
                   );
                   const c = await fetchCorpusCoverage();
                   setCorpusCov(c as Record<string, unknown>);
@@ -925,7 +931,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              {foundationBusy ? "Building…" : "Build Sensex foundation"}
+              {foundationBusy ? t("ui.DeskPage.corpus.building") : t("ui.DeskPage.corpus.buildFoundation")}
             </button>
           </div>
           <div className="queue-ingest-row" style={{ marginTop: 12 }}>
@@ -939,7 +945,10 @@ export default function DeskPage() {
                 try {
                   const r = await postIngestCrawl({ limit: 30, dry_run: true, live: false });
                   setMsg(
-                    `Crawl dry-run: pending_new=${r.pending_new} pending_total=${r.pending_total}`,
+                    t("ui.DeskPage.corpus.crawlDryToast", {
+                      newDocs: r.pending_new,
+                      total: r.pending_total,
+                    }),
                   );
                 } catch (e) {
                   setMsg((e as Error).message);
@@ -948,7 +957,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              Crawl dry-run
+              {t("ui.DeskPage.corpus.crawlDry")}
             </button>
             <button
               type="button"
@@ -960,7 +969,10 @@ export default function DeskPage() {
                 try {
                   const r = await postIngestCrawl({ limit: 30, dry_run: false, live: true });
                   setMsg(
-                    `Crawl live: pending_new=${r.pending_new} pending_total=${r.pending_total}`,
+                    t("ui.DeskPage.corpus.crawlLiveToast", {
+                      newDocs: r.pending_new,
+                      total: r.pending_total,
+                    }),
                   );
                   const docs = await fetchDocuments({ review_status: "pending" });
                   setPendingDocs(docs.count);
@@ -972,7 +984,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              Crawl live (IR allowlist)
+              {t("ui.DeskPage.corpus.crawlLive")}
             </button>
             <button
               type="button"
@@ -983,7 +995,7 @@ export default function DeskPage() {
                 setFoundationBusy(true);
                 try {
                   const r = await postPendingDepthBootstrap();
-                  setMsg(`Bootstrap ok · ${JSON.stringify(r).slice(0, 120)}…`);
+                  setMsg(t("ui.DeskPage.corpus.bootstrapToast", { json: JSON.stringify(r).slice(0, 120) }));
                   setPendingDepth(await fetchPendingDepth());
                 } catch (e) {
                   setMsg((e as Error).message);
@@ -992,7 +1004,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              Pending-depth bootstrap
+              {t("ui.DeskPage.corpus.bootstrap")}
             </button>
           </div>
           <div className="queue-ingest-row" style={{ marginTop: 12 }}>
@@ -1007,8 +1019,8 @@ export default function DeskPage() {
                 try {
                   const r = await postEnsureCitations({ company_id: companyId });
                   setMsg(
-                    `Bound ${String(r.linked ?? 0)} citations for ${companyId}` +
-                      (r.pit ? ` · PIT n=${(r.pit as { n?: number }).n}` : "")
+                    t("ui.DeskPage.corpus.boundToast", { n: String(r.linked ?? 0), company: companyId }) +
+                      (r.pit ? t("ui.DeskPage.corpus.boundPit", { n: String((r.pit as { n?: number }).n) }) : "")
                   );
                 } catch (e) {
                   setMsg((e as Error).message);
@@ -1017,7 +1029,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              Bind citations · {selected?.ticker || companyId}
+              {t("ui.DeskPage.corpus.bindCitations", { ticker: selected?.ticker || companyId })}
             </button>
             <button
               type="button"
@@ -1029,14 +1041,18 @@ export default function DeskPage() {
                   setThroughput(tput as unknown as Record<string, unknown>);
                   const u = tput.universe || {};
                   setMsg(
-                    `Throughput: citeable ${u.citeable_outcomes}/${u.outcomes_total_hand_labeled} · pending docs ${tput.backlog?.pending_docs_review ?? 0}`,
+                    t("ui.DeskPage.corpus.throughputToast", {
+                      citeable: String(u.citeable_outcomes),
+                      total: String(u.outcomes_total_hand_labeled),
+                      pending: tput.backlog?.pending_docs_review ?? 0,
+                    }),
                   );
                 } catch (e) {
                   setMsg((e as Error).message);
                 }
               }}
             >
-              Citeable coverage / throughput
+              {t("ui.DeskPage.corpus.throughput")}
             </button>
           </div>
           {throughput && (
@@ -1048,15 +1064,15 @@ export default function DeskPage() {
               {JSON.stringify(throughput, null, 2)}
             </pre>
           )}
-          <h3 style={{ marginTop: 20 }}>Pending documents</h3>
+          <h3 style={{ marginTop: 20 }}>{t("ui.DeskPage.corpus.pendingDocsTitle")}</h3>
           <div className="table-scroll">
             <table className="table" data-testid="pending-docs-table">
               <thead>
                 <tr>
-                  <th>Company</th>
-                  <th>Type</th>
-                  <th>Title</th>
-                  <th>Actions</th>
+                  <th>{t("ui.DeskPage.common.company")}</th>
+                  <th>{t("ui.DeskPage.corpus.colType")}</th>
+                  <th>{t("ui.DeskPage.corpus.colTitle")}</th>
+                  <th>{t("ui.DeskPage.corpus.colActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1078,13 +1094,13 @@ export default function DeskPage() {
                               const docs = await fetchDocuments({ review_status: "pending" });
                               setPendingDocs(docs.count);
                               setPendingDocRows(docs.documents || []);
-                              setMsg(`Accepted ${id}`);
+                              setMsg(t("ui.DeskPage.corpus.acceptedToast", { id }));
                             } catch (e) {
                               setMsg((e as Error).message);
                             }
                           }}
                         >
-                          Accept
+                          {t("ui.DeskPage.common.accept")}
                         </button>
                         <button
                           type="button"
@@ -1095,13 +1111,13 @@ export default function DeskPage() {
                               const docs = await fetchDocuments({ review_status: "pending" });
                               setPendingDocs(docs.count);
                               setPendingDocRows(docs.documents || []);
-                              setMsg(`Rejected ${id}`);
+                              setMsg(t("ui.DeskPage.corpus.rejectedToast", { id }));
                             } catch (e) {
                               setMsg((e as Error).message);
                             }
                           }}
                         >
-                          Reject
+                          {t("ui.DeskPage.common.reject")}
                         </button>
                       </td>
                     </tr>
@@ -1110,7 +1126,7 @@ export default function DeskPage() {
                 {pendingDocRows.length === 0 && (
                   <tr>
                     <td colSpan={4} className="muted">
-                      No pending documents
+                      {t("ui.DeskPage.corpus.noPendingDocs")}
                     </td>
                   </tr>
                 )}
@@ -1118,8 +1134,7 @@ export default function DeskPage() {
             </table>
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 16 }}>
-            Gate: expected types (transcript / results / IR) accepted per recent FY + ≥95%
-            citeable outcomes. Open the company dossier → Docs for the period matrix.
+            {t("ui.DeskPage.corpus.gateNote")}
           </p>
           {msg && <p className="toast-inline">{msg}</p>}
           <Disclaimer compact />
@@ -1129,12 +1144,10 @@ export default function DeskPage() {
       {tab === "reports" && (
         <div className="panel desk-panel" data-testid="reports-panel">
           <h2 style={{ marginTop: 0 }}>
-            IC audit dossier & role reports <InfoTip termId="citability" />
+            {t("ui.DeskPage.reports.title")} <InfoTip termId="citability" />
           </h2>
           <p className="muted">
-            Default template is the <strong>IC audit dossier</strong> (citeable matrix +
-            citation appendix). Export Markdown, JSON, or PDF for investment committee
-            notes. Provisional rows are excluded.
+            {t("ui.DeskPage.reports.lede.before")} <strong>{t("ui.DeskPage.reports.lede.strong")}</strong> {t("ui.DeskPage.reports.lede.after")}
           </p>
           <div className="queue-ingest-row">
             <select
@@ -1144,10 +1157,10 @@ export default function DeskPage() {
             >
               {(reportTemplates.length
                 ? reportTemplates
-                : [{ id: "ic_audit", name: "IC audit", role: "", industry: "" }]
-              ).map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+                : [{ id: "ic_audit", name: t("ui.DeskPage.reports.icAudit"), role: "", industry: "" }]
+              ).map((tpl) => (
+                <option key={tpl.id} value={tpl.id}>
+                  {tpl.name}
                 </option>
               ))}
             </select>
@@ -1167,7 +1180,7 @@ export default function DeskPage() {
                   });
                   setReportMd(r.markdown || "");
                   setReportJson(null);
-                  setMsg(`Generated: ${r.template_name}`);
+                  setMsg(t("ui.DeskPage.reports.generatedToast", { name: String(r.template_name) }));
                 } catch (e) {
                   setMsg((e as Error).message);
                 } finally {
@@ -1175,7 +1188,9 @@ export default function DeskPage() {
                 }
               }}
             >
-              {reportBusy ? "Generating…" : `Markdown · ${selected?.ticker || "—"}`}
+              {reportBusy
+                ? t("ui.DeskPage.reports.generating")
+                : t("ui.DeskPage.reports.markdownBtn", { ticker: selected?.ticker || "—" })}
             </button>
             <button
               type="button"
@@ -1193,7 +1208,7 @@ export default function DeskPage() {
                   });
                   setReportJson(JSON.stringify(r.dossier || r, null, 2));
                   setReportMd(r.markdown || null);
-                  setMsg(`IC JSON · citeable ${r.citeable_count ?? "—"}`);
+                  setMsg(t("ui.DeskPage.reports.icJsonToast", { n: r.citeable_count ?? "—" }));
                 } catch (e) {
                   setMsg((e as Error).message);
                 } finally {
@@ -1201,7 +1216,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              IC JSON
+              {t("ui.DeskPage.reports.icJson")}
             </button>
             <button
               type="button"
@@ -1219,7 +1234,7 @@ export default function DeskPage() {
                   a.download = `ic-audit-${selected?.ticker || companyId}.pdf`;
                   a.click();
                   URL.revokeObjectURL(url);
-                  setMsg("IC PDF downloaded");
+                  setMsg(t("ui.DeskPage.reports.icPdfToast"));
                 } catch (e) {
                   setMsg((e as Error).message);
                 } finally {
@@ -1227,7 +1242,7 @@ export default function DeskPage() {
                 }
               }}
             >
-              IC PDF
+              {t("ui.DeskPage.reports.icPdf")}
             </button>
           </div>
           {reportJson && (
@@ -1255,23 +1270,22 @@ export default function DeskPage() {
       {tab === "pit" && (
         <div className="panel desk-panel" data-testid="pit-panel">
           <h2 style={{ marginTop: 0 }}>
-            API + point-in-time history <InfoTip termId="pit" />
+            {t("ui.DeskPage.pit.title")} <InfoTip termId="pit" />
           </h2>
           <p className="muted">
-            Use <code className="inline-code">as_of</code> scores for backtests — do not
-            leak today’s GCI into past dates. Demo key:{" "}
+            {t("ui.DeskPage.pit.lede.before")} <code className="inline-code">as_of</code> {t("ui.DeskPage.pit.lede.after")}{" "}
             <code className="inline-code">{demoApiKey()}</code>
           </p>
           {history.length >= 2 && (
             <div className="chart-block">
-              <h3 className="chart-title">PIT GCI path</h3>
+              <h3 className="chart-title">{t("ui.DeskPage.pit.chartTitle")}</h3>
               <LineChart
                 points={history.map((h) => ({
                   label: h.as_of.slice(0, 7),
                   value: h.gci_score,
                 }))}
                 yDomain={[0, 100]}
-                ariaLabel="Point-in-time GCI line chart"
+                ariaLabel={t("ui.DeskPage.pit.chartAria")}
               />
             </div>
           )}
@@ -1297,7 +1311,7 @@ export default function DeskPage() {
                 {history.length === 0 && (
                   <tr>
                     <td colSpan={3} className="muted">
-                      No PIT points yet.
+                      {t("ui.DeskPage.pit.empty")}
                     </td>
                   </tr>
                 )}
@@ -1311,10 +1325,10 @@ export default function DeskPage() {
               onClick={async () => {
                 const rows = await fetchHistory(companyId);
                 setApiOut(JSON.stringify(rows, null, 2));
-                setMsg("Fetched /api/companies/{id}/gci/history");
+                setMsg(t("ui.DeskPage.pit.fetchedToast"));
               }}
             >
-              Try PIT API
+              {t("ui.DeskPage.pit.tryApi")}
             </button>
             <button
               type="button"
@@ -1328,11 +1342,11 @@ export default function DeskPage() {
                   JSON.stringify({ contract, history_v1: hist }, null, 2),
                 );
                 setMsg(
-                  `pit.v1 · ${hist.series_kind} · citeable=${String(hist.citeable)}`,
+                  `Point-in-time contract · ${hist.series_kind === "citeable_pit" ? "citeable" : "not citeable"}`,
                 );
               }}
             >
-              PIT v1 contract
+              {t("ui.DeskPage.pit.v1Contract")}
             </button>
             <a className="btn ghost" href={apiDocsUrl()} target="_blank" rel="noreferrer">
               OpenAPI /docs
@@ -1343,7 +1357,7 @@ export default function DeskPage() {
               target="_blank"
               rel="noreferrer"
             >
-              EM factor CSV
+              {t("ui.DeskPage.pit.emFactorCsv")}
             </a>
           </div>
           {apiOut && <pre className="desk-pre">{apiOut}</pre>}
@@ -1353,12 +1367,14 @@ export default function DeskPage() {
       {tab === "import" && (
         <div className="panel desk-panel">
           <h2 style={{ marginTop: 0 }}>
-            Facts / AlphaHunter <InfoTip termId="alphahunter" />
+            {t("ui.DeskPage.import.title")} <InfoTip termId="alphahunter" />
           </h2>
           <p className="muted">
             {ahStatus?.configured
-              ? `Live connector configured (${ahStatus.url_host || "vendor"}). Pull merges into the selected company after review.`
-              : "Paste catalog-aligned facts JSON, or set ALPHAHUNTER_API_URL for live vendor pull."}
+              ? t("ui.DeskPage.import.configured", {
+                  host: ahStatus.url_host || t("ui.DeskPage.import.vendor"),
+                })
+              : t("ui.DeskPage.import.notConfigured")}
           </p>
           {ahStatus && <p className="muted">{ahStatus.note}</p>}
           <button
@@ -1369,7 +1385,12 @@ export default function DeskPage() {
             onClick={async () => {
               try {
                 const res = await postAlphaHunterLive({ company_id: companyId, merge: true });
-                setMsg(`Live pull ok — ${res.fact_count ?? 0} fact(s), merged ${res.merged ?? 0}`);
+                setMsg(
+                  t("ui.DeskPage.import.livePullToast", {
+                    facts: res.fact_count ?? 0,
+                    merged: res.merged ?? 0,
+                  }),
+                );
                 setApiOut(JSON.stringify(res, null, 2));
                 const d = await fetchCompanyGci(companyId);
                 setDetail(d);
@@ -1378,10 +1399,10 @@ export default function DeskPage() {
               }
             }}
           >
-            Pull live & merge
+            {t("ui.DeskPage.import.pullLive")}
           </button>
           <label className="desk-field">
-            <span className="field-label">Facts JSON (paste)</span>
+            <span className="field-label">{t("ui.DeskPage.import.factsLabel")}</span>
             <textarea
               rows={12}
               value={factsJson}
@@ -1400,7 +1421,7 @@ export default function DeskPage() {
                   facts,
                   merge_into_company: companyId,
                 });
-                setMsg(`Import ok — merged ${res.merged ?? 0} outcome(s)`);
+                setMsg(t("ui.DeskPage.import.importToast", { n: res.merged ?? 0 }));
                 setApiOut(JSON.stringify(res, null, 2));
                 const d = await fetchCompanyGci(companyId);
                 setDetail(d);
@@ -1409,23 +1430,25 @@ export default function DeskPage() {
               }
             }}
           >
-            Import & merge
+            {t("ui.DeskPage.import.importMerge")}
           </button>
           {apiOut && <pre className="desk-pre">{apiOut}</pre>}
 
-          <h3 style={{ marginTop: 28 }}>Street consensus import</h3>
+          <h3 style={{ marginTop: 28 }}>{t("ui.DeskPage.import.consensusTitle")}</h3>
           <p className="muted" style={{ fontSize: 13 }}>
-            Upsert rows via <code>POST /api/consensus/import</code>. Sample rows use{" "}
-            <code>source: sample_import</code> and require <code>?demo=true</code>. Licensed street
-            data replaces this for production.
+            {t("ui.DeskPage.import.consensus.upsert")} <code>POST /api/consensus/import</code>{t("ui.DeskPage.import.consensus.sampleRows")}{" "}
+            <code>source: sample_import</code> {t("ui.DeskPage.import.consensus.require")} <code>?demo=true</code>{t("ui.DeskPage.import.consensus.after")}
           </p>
           {consensusStats && (
             <p className="muted" data-testid="consensus-stats">
-              Store: {consensusStats.row_count} row(s) · {consensusStats.company_count} compan(ies)
+              {t("ui.DeskPage.import.consensusStats", {
+                rows: consensusStats.row_count,
+                companies: consensusStats.company_count,
+              })}
             </p>
           )}
           <label className="desk-field">
-            <span className="field-label">Consensus JSON array</span>
+            <span className="field-label">{t("ui.DeskPage.import.consensusLabel")}</span>
             <textarea
               rows={8}
               value={consensusJson}
@@ -1444,14 +1467,17 @@ export default function DeskPage() {
                   const rows = JSON.parse(consensusJson || "[]") as Record<string, unknown>[];
                   const demo = rows.some((r) => String(r.source || "").includes("sample"));
                   const res = await postConsensusImport(rows, { demo });
-                  setMsg(`Consensus imported ${res.imported} row(s)${res.demo ? " (demo)" : ""}`);
+                  setMsg(
+                    t("ui.DeskPage.import.consensusToast", { n: res.imported }) +
+                      (res.demo ? t("ui.DeskPage.import.demoSuffix") : ""),
+                  );
                   setConsensusStats(await fetchConsensusStats());
                 } catch (e) {
                   setMsg((e as Error).message);
                 }
               }}
             >
-              Import consensus
+              {t("ui.DeskPage.import.importConsensus")}
             </button>
             <button
               type="button"
@@ -1462,10 +1488,10 @@ export default function DeskPage() {
                   const r = await fetch("/api/consensus/sample", {
                     headers: { "X-API-Key": demoApiKey() },
                   });
-                  if (!r.ok) throw new Error("Sample unavailable");
+                  if (!r.ok) throw new Error(t("ui.DeskPage.import.sampleUnavailable"));
                   const body = await r.json();
                   setConsensusJson(JSON.stringify(body.rows || body, null, 2));
-                  setMsg("Loaded sample_import fixture — import with demo gate");
+                  setMsg(t("ui.DeskPage.import.sampleLoaded"));
                 } catch {
                   setConsensusJson(
                     JSON.stringify(
@@ -1483,11 +1509,11 @@ export default function DeskPage() {
                       2,
                     ),
                   );
-                  setMsg("Loaded inline sample (demo)");
+                  setMsg(t("ui.DeskPage.import.inlineSampleLoaded"));
                 }
               }}
             >
-              Load sample fixture
+              {t("ui.DeskPage.import.loadSample")}
             </button>
           </div>
         </div>
@@ -1496,16 +1522,13 @@ export default function DeskPage() {
       {tab === "parameters" && (
         <div className="panel desk-panel" data-testid="gci-parameters-panel">
           <h2 style={{ marginTop: 0 }}>
-            GCI parameters <InfoTip termId="gci_parameter" />
+            {t("ui.DeskPage.params.title")} <InfoTip termId="gci_parameter" />
           </h2>
-          <p className="muted lede">
-            What can enter the score: quantified guidance metrics only. Charts show
-            how the catalog is used in the current Sensex seed.
-          </p>
+          <p className="muted lede">{t("ui.DeskPage.params.lede")}</p>
 
           <div className="viz-grid">
             <div className="chart-block">
-              <h3 className="chart-title">By family</h3>
+              <h3 className="chart-title">{t("ui.DeskPage.params.byFamily")}</h3>
               <DonutChart
                 centerLabel={`${catalog.length}`}
                 slices={Object.entries(
@@ -1518,11 +1541,11 @@ export default function DeskPage() {
                   value,
                   color: FAMILY_COLORS[label] || "var(--accent)",
                 }))}
-                ariaLabel="Metric families donut"
+                ariaLabel={t("ui.DeskPage.params.donutAria")}
               />
             </div>
             <div className="chart-block">
-              <h3 className="chart-title">Outcome coverage (seed)</h3>
+              <h3 className="chart-title">{t("ui.DeskPage.params.coverageTitle")}</h3>
               <BarChart
                 rows={[...catalog]
                   .sort((a, b) => (b.outcome_count || 0) - (a.outcome_count || 0))
@@ -1532,28 +1555,28 @@ export default function DeskPage() {
                     value: m.outcome_count || 0,
                     color: FAMILY_COLORS[m.family] || "var(--accent)",
                   }))}
-                ariaLabel="Top metrics by outcome count"
+                ariaLabel={t("ui.DeskPage.params.barAria")}
               />
             </div>
           </div>
 
-          <div className="source-viz" aria-label="Source policy">
-            <h3 className="chart-title">What feeds GCI</h3>
+          <div className="source-viz" aria-label={t("ui.DeskPage.params.sourceAria")}>
+            <h3 className="chart-title">{t("ui.DeskPage.params.feedsTitle")}</h3>
             <div className="source-pills">
               {[
-                { ok: true, label: "Transcripts" },
-                { ok: true, label: "Filings / PDF text" },
-                { ok: true, label: "IR HTML" },
-                { ok: true, label: "PPT text" },
-                { ok: true, label: "ASR → text" },
-                { ok: true, label: "Reported actuals" },
-                { ok: false, label: "Raw audio/video" },
-                { ok: false, label: "Technicals" },
-                { ok: false, label: "Shenanigans" },
-                { ok: false, label: "Sentiment-only" },
+                { ok: true, key: "ui.DeskPage.params.source.transcripts" },
+                { ok: true, key: "ui.DeskPage.params.source.filings" },
+                { ok: true, key: "ui.DeskPage.params.source.irHtml" },
+                { ok: true, key: "ui.DeskPage.params.source.ppt" },
+                { ok: true, key: "ui.DeskPage.params.source.asr" },
+                { ok: true, key: "ui.DeskPage.params.source.actuals" },
+                { ok: false, key: "ui.DeskPage.params.source.rawAv" },
+                { ok: false, key: "ui.DeskPage.params.source.technicals" },
+                { ok: false, key: "ui.DeskPage.params.source.shenanigans" },
+                { ok: false, key: "ui.DeskPage.params.source.sentimentOnly" },
               ].map((s) => (
-                <span key={s.label} className={`source-pill ${s.ok ? "in" : "out"}`}>
-                  {s.ok ? "✓" : "✕"} {s.label}
+                <span key={s.key} className={`source-pill ${s.ok ? "in" : "out"}`}>
+                  {s.ok ? "✓" : "✕"} {t(s.key)}
                 </span>
               ))}
             </div>
@@ -1563,11 +1586,11 @@ export default function DeskPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Parameter</th>
-                  <th>Family</th>
-                  <th>Unit</th>
-                  <th>Tier</th>
-                  <th>Usage</th>
+                  <th>{t("ui.DeskPage.params.colParameter")}</th>
+                  <th>{t("ui.DeskPage.params.colFamily")}</th>
+                  <th>{t("ui.DeskPage.params.colUnit")}</th>
+                  <th>{t("ui.DeskPage.params.colTier")}</th>
+                  <th>{t("ui.DeskPage.params.colUsage")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1611,7 +1634,7 @@ export default function DeskPage() {
                         />
                       </div>
                       <span className="muted" style={{ fontSize: 12 }}>
-                        {m.outcome_count ?? 0} outcomes
+                        {t("ui.DeskPage.params.outcomes", { n: m.outcome_count ?? 0 })}
                       </span>
                     </td>
                   </tr>
@@ -1625,16 +1648,17 @@ export default function DeskPage() {
       {tab === "wordmap" && (
         <div className="panel desk-panel">
           <h2 style={{ marginTop: 0 }}>
-            Wordmap context <InfoTip termId="sentiment" />
+            {t("ui.DeskPage.wordmap.title")} <InfoTip termId="sentiment" />
           </h2>
           <p className="muted">
-            Entity vs sector-average themes from citeable corpus text when available
-            (seed fallback otherwise). Context only — not part of GCI math.
+            {t("ui.DeskPage.wordmap.lede")}
             {wordmap?.source ? (
               <>
                 {" "}
-                Source: <strong>{wordmap.source}</strong>
-                {wordmap.citeable ? " · citeable" : " · non-citeable stub"}
+                {t("ui.DeskPage.wordmap.source")} <strong>{wordmap.source}</strong>
+                {wordmap.citeable
+                  ? t("ui.DeskPage.wordmap.citeable")
+                  : t("ui.DeskPage.wordmap.nonCiteable")}
               </>
             ) : null}
           </p>
@@ -1646,20 +1670,20 @@ export default function DeskPage() {
                   left: wordmap.entity[k],
                   right: wordmap.industry[k],
                 }))}
-                ariaLabel="Entity vs industry wordmap"
+                ariaLabel={t("ui.DeskPage.wordmap.chartAria")}
               />
             </div>
           )}
           <p className="muted" style={{ marginTop: 8 }}>
-            Peers in sector: {wordmap?.peer_count ?? "—"}
+            {t("ui.DeskPage.wordmap.peers", { n: wordmap?.peer_count ?? "—" })}
           </p>
         </div>
       )}
 
       {tab === "vernacular" && (
         <div className="panel desk-panel">
-          <h2 style={{ marginTop: 0 }}>Vernacular blurbs + badge</h2>
-          <p className="muted">Factual GCI templates only — not investment advice.</p>
+          <h2 style={{ marginTop: 0 }}>{t("ui.DeskPage.vernacular.title")}</h2>
+          <p className="muted">{t("ui.DeskPage.vernacular.lede")}</p>
           <div className="desk-lang-row">
             {(vernacular?.supported_langs ?? ["en", "hi", "ta", "gu", "mr", "ja"]).map(
               (l) => (
@@ -1684,13 +1708,13 @@ export default function DeskPage() {
             <div className="desk-badge-box">
               <div className="field-label">{badge.label}</div>
               <div className="value score" style={{ fontFamily: "var(--serif)", fontSize: 28 }}>
-                {badge.trust_score ?? "n/a"}
+                {badge.gci_score ?? t("ui.DeskPage.common.na")}
               </div>
               <p className="muted">{badge.disclaimer}</p>
               <code className="inline-code">{badge.embed}</code>
               <p style={{ marginTop: 8 }}>
                 <a href={badge.svg_url} target="_blank" rel="noreferrer">
-                  Preview SVG badge →
+                  {t("ui.DeskPage.vernacular.previewBadge")}
                 </a>
               </p>
             </div>
@@ -1703,12 +1727,11 @@ export default function DeskPage() {
           {has("labeling") && <LabelWorkbench companyId={companyId} />}
         <div className="panel desk-panel" data-testid="labeling-queue-panel">
           <h2 style={{ marginTop: 0 }}>
-            Labeling priority queue <InfoTip termId="labeling_queue" />
+            {t("ui.DeskPage.labeling.title")} <InfoTip termId="labeling_queue" />
           </h2>
           <p className="muted">
-            One-Stop dedicated labeling path — request hand-label priority for a name.
-            Process SLA; does not invent actuals. Hand-label M3/M4 per{" "}
-            <code>docs/LABELING_PLAYBOOK.md</code> in the repo (no day-1 Nifty claim).
+            {t("ui.DeskPage.labeling.lede.before")}{" "}
+            <code>docs/LABELING_PLAYBOOK.md</code> {t("ui.DeskPage.labeling.lede.after")}
           </p>
           <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
             <input
@@ -1717,17 +1740,20 @@ export default function DeskPage() {
               onChange={(e) => setLabelNiftyOnly(e.target.checked)}
               data-testid="label-nifty-filter"
             />
-            <span className="muted">Show Nifty-extra queue only</span>
+            <span className="muted">{t("ui.DeskPage.labeling.niftyOnly")}</span>
           </label>
           {niftyMs && (
             <div style={{ marginBottom: 16 }}>
-              <h3 style={{ marginTop: 0 }}>Nifty deep GCI milestones</h3>
+              <h3 style={{ marginTop: 0 }}>{t("ui.DeskPage.labeling.milestonesTitle")}</h3>
               <p className="muted">{niftyMs.note}</p>
               <p className="muted">
-                Progress {niftyMs.progress.done}/{niftyMs.progress.total} · Sensex HL{" "}
-                {niftyMs.counts.sensex_hand_labeled ?? "—"} · Nifty HL{" "}
-                {niftyMs.counts.nifty_hand_labeled ?? 0} · queued{" "}
-                {niftyMs.counts.nifty_queued ?? 0}
+                {t("ui.DeskPage.labeling.progress", {
+                  done: niftyMs.progress.done,
+                  total: niftyMs.progress.total,
+                  sensex: niftyMs.counts.sensex_hand_labeled ?? "—",
+                  nifty: niftyMs.counts.nifty_hand_labeled ?? 0,
+                  queued: niftyMs.counts.nifty_queued ?? 0,
+                })}
               </p>
               <ul className="package-steps">
                 {niftyMs.milestones.map((m) => (
@@ -1743,7 +1769,7 @@ export default function DeskPage() {
                 onClick={async () => {
                   try {
                     const res = await postNiftyEnqueueLabeling();
-                    setMsg(`Enqueued ${res.enqueued} Nifty name(s) for labeling`);
+                    setMsg(t("ui.DeskPage.labeling.enqueuedToast", { n: res.enqueued }));
                     const q = await fetchLabelingQueue();
                     setLabelQueue(q.items || []);
                     const ms = await fetchNiftyMilestones();
@@ -1759,7 +1785,7 @@ export default function DeskPage() {
                   }
                 }}
               >
-                Enqueue Nifty-extra for labeling (M2)
+                {t("ui.DeskPage.labeling.enqueueNifty")}
               </button>
             </div>
           )}
@@ -1775,13 +1801,13 @@ export default function DeskPage() {
                 });
                 const q = await fetchLabelingQueue();
                 setLabelQueue(q.items || []);
-                setMsg("Queued for labeling priority");
+                setMsg(t("ui.DeskPage.labeling.queuedToast"));
               } catch (e) {
                 setMsg((e as Error).message);
               }
             }}
           >
-            Queue {companyId} (high priority)
+            {t("ui.DeskPage.labeling.queueBtn", { company: companyId })}
           </button>
           <ul className="package-steps" style={{ marginTop: 16 }}>
             {(labelQueue || [])
@@ -1799,10 +1825,10 @@ export default function DeskPage() {
                 {item.status} · {item.data_quality}
               </li>
             ))}
-            {!labelQueue?.length && <li className="muted">No queue items yet</li>}
+            {!labelQueue?.length && <li className="muted">{t("ui.DeskPage.labeling.empty")}</li>}
           </ul>
           <p className="muted" style={{ fontSize: 12 }}>
-            M3/M4 stay open until real hand_labels exist — enqueue only prepares the queue.
+            {t("ui.DeskPage.labeling.m3m4Note")}
           </p>
         </div>
         </>
@@ -1812,64 +1838,68 @@ export default function DeskPage() {
 
       {tab === "csm" && (
         <div className="panel desk-panel">
-          <h2 style={{ marginTop: 0 }}>Customer success (CSM)</h2>
+          <h2 style={{ marginTop: 0 }}>{t("ui.DeskPage.csm.title")}</h2>
           <p className="muted">
-            {csmDash?.note ||
-              "Named CSM, SLA meter, and VPC posture for Enterprise / One-Stop — commercial terms in MSA."}
+            {csmDash?.note || t("ui.DeskPage.csm.lede")}
           </p>
           {ssoStatus && (
             <div className="panel" style={{ marginBottom: 16 }} data-testid="sso-readiness">
-              <h3 style={{ marginTop: 0 }}>Enterprise SSO readiness</h3>
+              <h3 style={{ marginTop: 0 }}>{t("ui.DeskPage.csm.ssoTitle")}</h3>
               <p className="muted" style={{ fontSize: 13 }}>
-                Enabled: {ssoStatus.enabled ? "yes" : "no"} · Configured:{" "}
-                {ssoStatus.configured ? "yes" : "no"} · Production-ready:{" "}
-                {ssoStatus.production_ready || ssoStatus.ready ? "yes" : "not yet"}
+                {t("ui.DeskPage.csm.ssoStatus", {
+                  enabled: ssoStatus.enabled ? t("ui.DeskPage.common.yes") : t("ui.DeskPage.common.no"),
+                  configured: ssoStatus.configured ? t("ui.DeskPage.common.yes") : t("ui.DeskPage.common.no"),
+                  ready:
+                    ssoStatus.production_ready || ssoStatus.ready
+                      ? t("ui.DeskPage.common.yes")
+                      : t("ui.DeskPage.csm.notYet"),
+                })}
               </p>
               {ssoStatus.note && <p className="muted">{ssoStatus.note}</p>}
               {ssoStatus.checklist && (
                 <ul className="package-steps">
                   {Object.entries(ssoStatus.checklist).map(([k, v]) => (
                     <li key={k}>
-                      {k}: {v ? "ok" : "missing"}
+                      {k}: {v ? t("ui.DeskPage.csm.ok") : t("ui.DeskPage.csm.missing")}
                     </li>
                   ))}
                 </ul>
               )}
               <p className="muted" style={{ fontSize: 12 }}>
-                Register IdP → set <code>SSO=true</code> + <code>OIDC_*</code> → redirect{" "}
-                <code>https://citealpha.com/api/auth/sso/callback</code>. See{" "}
-                <Link to="/trust">Trust Center</Link>.
+                {t("ui.DeskPage.csm.ssoSteps.register")} <code>SSO=true</code> + <code>OIDC_*</code> {t("ui.DeskPage.csm.ssoSteps.redirect")}{" "}
+                <code>https://citealpha.com/api/auth/sso/callback</code>{t("ui.DeskPage.csm.ssoSteps.see")}{" "}
+                <Link to="/trust">{t("ui.DeskPage.csm.ssoSteps.trust")}</Link>.
               </p>
             </div>
           )}
           <div className="metrics">
             <div className="metric">
-              <div className="label">Org</div>
+              <div className="label">{t("ui.DeskPage.csm.org")}</div>
               <div className="value" style={{ fontSize: 20 }}>
                 {String(csmDash?.org?.name ?? org?.name ?? org?.id ?? "demo")}
               </div>
             </div>
             <div className="metric">
-              <div className="label">Plan</div>
+              <div className="label">{t("ui.DeskPage.csm.plan")}</div>
               <div className="value" style={{ fontSize: 20 }}>
                 {String(csmDash?.org?.plan ?? org?.plan ?? "pilot")}
               </div>
             </div>
             <div className="metric">
-              <div className="label">Seats</div>
+              <div className="label">{t("ui.DeskPage.csm.seats")}</div>
               <div className="value">
                 {String(csmDash?.org?.seats_used ?? org?.seats_used ?? 0)} /{" "}
                 {String(csmDash?.org?.seats ?? org?.seats ?? "—")}
               </div>
             </div>
             <div className="metric">
-              <div className="label">Named CSM</div>
+              <div className="label">{t("ui.DeskPage.csm.namedCsm")}</div>
               <div className="value" style={{ fontSize: 18 }}>
-                {String(csmDash?.csm?.named ?? org?.csm ?? "Assigned at convert")}
+                {String(csmDash?.csm?.named ?? org?.csm ?? t("ui.DeskPage.csm.assignedAtConvert"))}
               </div>
             </div>
             <div className="metric">
-              <div className="label">SLA target</div>
+              <div className="label">{t("ui.DeskPage.csm.slaTarget")}</div>
               <div className="value" style={{ fontSize: 18 }}>
                 {csmDash?.sla?.targets?.uptime_pct != null
                   ? `${csmDash.sla.targets.uptime_pct}%`
@@ -1877,49 +1907,55 @@ export default function DeskPage() {
               </div>
             </div>
             <div className="metric">
-              <div className="label">Observed uptime</div>
+              <div className="label">{t("ui.DeskPage.csm.observedUptime")}</div>
               <div className="value" style={{ fontSize: 18 }}>
                 {csmDash?.sla?.observed?.uptime_pct != null
                   ? `${csmDash.sla.observed.uptime_pct}%`
-                  : "n/a yet"}
+                  : t("ui.DeskPage.csm.naYet")}
               </div>
             </div>
           </div>
           <p className="muted" style={{ marginTop: 12 }}>
-            VPC: {csmDash?.vpc?.status ?? "msa_scoped"} · template{" "}
-            {csmDash?.vpc?.private_subnet_example ?? "deploy/aws/vpc-private.example.tf"}
+            {t("ui.DeskPage.csm.vpc", {
+              status: csmDash?.vpc?.status ?? "msa_scoped",
+              template: csmDash?.vpc?.private_subnet_example ?? "deploy/aws/vpc-private.example.tf",
+            })}
           </p>
           <ul className="package-steps" style={{ marginTop: 16 }}>
-            <li>Weekly: review alerts + one evidence citation in a draft note</li>
-            <li>Monthly: labeling feedback (wrong band / period / label)</li>
-            <li>Quarterly: QBR — coverage milestones Sensex → Nifty</li>
+            <li>{t("ui.DeskPage.csm.cadence.weekly")}</li>
+            <li>{t("ui.DeskPage.csm.cadence.monthly")}</li>
+            <li>{t("ui.DeskPage.csm.cadence.quarterly")}</li>
             <li>
-              Open labeling items: {csmDash?.labeling_open ?? "—"} · open tickets:{" "}
-              {csmDash?.tickets_open ?? 0}
+              {t("ui.DeskPage.csm.openItems", {
+                labeling: csmDash?.labeling_open ?? "—",
+                tickets: csmDash?.tickets_open ?? 0,
+              })}
             </li>
           </ul>
           {csmDash?.labeling_audit && csmDash.labeling_audit.length > 0 ? (
             <div data-testid="csm-labeling-audit" style={{ marginTop: 12 }}>
               <p className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
-                Recent label submitter / reviewer (ids only)
+                {t("ui.DeskPage.csm.auditTitle")}
               </p>
               <ul className="package-steps">
                 {csmDash.labeling_audit.slice(0, 8).map((row) => (
                   <li key={row.id || `${row.company_id}-${row.updated_at}`}>
                     {row.company_id} · {row.status}
-                    {row.submitter_id ? ` · labeled by ${row.submitter_id}` : ""}
-                    {row.reviewer_id ? ` · reviewed by ${row.reviewer_id}` : ""}
+                    {row.submitter_id
+                      ? t("ui.DeskPage.csm.labeledBy", { id: row.submitter_id })
+                      : ""}
+                    {row.reviewer_id ? t("ui.DeskPage.csm.reviewedBy", { id: row.reviewer_id }) : ""}
                   </li>
                 ))}
               </ul>
             </div>
           ) : null}
           <label className="desk-field" style={{ marginTop: 12 }}>
-            <span className="field-label">CSM ticket subject</span>
+            <span className="field-label">{t("ui.DeskPage.csm.ticketLabel")}</span>
             <input
               value={ticketSubject}
               onChange={(e) => setTicketSubject(e.target.value)}
-              placeholder="e.g. Need QBR slot"
+              placeholder={t("ui.DeskPage.csm.ticketPlaceholder")}
             />
           </label>
           <button
@@ -1931,28 +1967,28 @@ export default function DeskPage() {
                 await postCsmTicket("demo", { subject: ticketSubject, severity: "3" });
                 setTicketSubject("");
                 setCsmDash(await fetchCsmDashboard("demo"));
-                setMsg("Ticket filed with CSM queue");
+                setMsg(t("ui.DeskPage.csm.ticketToast"));
               } catch (e) {
                 setMsg((e as Error).message);
               }
             }}
           >
-            File CSM ticket
+            {t("ui.DeskPage.csm.fileTicket")}
           </button>
           <p className="cta-line">
-            Contact: <strong>{csmDash?.csm?.email ?? "csm@citealpha.com"}</strong> · sales:{" "}
+            {t("ui.DeskPage.csm.contact")} <strong>{csmDash?.csm?.email ?? "csm@citealpha.com"}</strong> {t("ui.DeskPage.csm.sales")}{" "}
             <strong>sales@citealpha.com</strong>
           </p>
           <Link className="btn" to="/package" style={{ marginTop: 12 }}>
-            View Package / One-Stop →
+            {t("ui.DeskPage.csm.viewPackage")}
           </Link>
           <div className="panel" style={{ marginTop: 24 }} data-testid="org-settings-cta">
-            <h3 style={{ marginTop: 0 }}>Team &amp; seats</h3>
+            <h3 style={{ marginTop: 0 }}>{t("ui.DeskPage.csm.teamTitle")}</h3>
             <p className="muted">
-              Invite analysts, revoke seats, and mint org API keys on the org settings page.
+              {t("ui.DeskPage.csm.teamLede")}
             </p>
             <Link to="/org/settings" className="btn-primary">
-              Open org settings →
+              {t("ui.DeskPage.csm.openOrgSettings")}
             </Link>
           </div>
           <PilotChecklistPanel orgId={String(org?.id || "demo")} />

@@ -1,0 +1,11 @@
+{
+  "file": "gci_levels_20260929.csv",
+  "parquet": "gci_levels_20260929.parquet",
+  "sha256": "8a8c96f9550e46dfb786ea83e9e8697609b401f95e8adcd4ecdb22faaa2b98ec",
+  "parquet_sha256": "dc46b73a19f7cb070d65c4df35cdea2a7e357ad6429aaa57010261c2d5b12c71",
+  "rows": 39,
+  "published_at": "2026-09-29T18:28:58.379791+00:00",
+  "s3": {
+    "status": "local_only"
+  }
+}

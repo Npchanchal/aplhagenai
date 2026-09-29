@@ -18,7 +18,7 @@ Every score links to period, metric, guided band, actual, label, and source.
 
 ## What’s included
 
-- Guidance Tracker workbench + company dossier
+- GCI Screener + company dossier
 - Outcome labels: met · exceeded · missed · dropped · pending
 - Peer rank, sector average, rankings surfaces
 - Alerts and trend / point-in-time history (shared spine)
@@ -38,7 +38,7 @@ Every score links to period, metric, guided band, actual, label, and source.
 
 ## Commercial sketch
 
-Sold via **Pilot / Desk / Enterprise API / One-Stop** — see [PRICING.md](../PRICING.md). Score is the default seat SKU.
+Sold via **Pilot / Desk / Enterprise API** — see [PRICING.md](../PRICING.md). Score is the default seat SKU.
 
 ## Contact
 

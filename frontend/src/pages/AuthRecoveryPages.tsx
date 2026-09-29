@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import { useI18n } from "../i18n";
 import {
   postPasswordResetConfirm,
   postPasswordResetRequest,
@@ -9,6 +10,7 @@ import {
 import { LEGAL_ENTITY } from "../lib/legal";
 
 export function ForgotPasswordPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +25,11 @@ export function ForgotPasswordPage() {
       const res = await postPasswordResetRequest(email);
       setMsg(
         res.dev_token
-          ? `Reset email queued (dev token: ${res.dev_token}). Open Reset with token below.`
-          : "If that email exists, a reset link was sent.",
+          ? t("ui.AuthRecoveryPages.devQueued", { token: res.dev_token })
+          : t("ui.AuthRecoveryPages.resetSent"),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("ui.AuthRecoveryPages.requestFailed"));
     } finally {
       setBusy(false);
     }
@@ -35,14 +37,14 @@ export function ForgotPasswordPage() {
 
   return (
     <section className="auth-page" data-testid="forgot-password-page">
-      <p className="page-kicker">Account</p>
-      <h1>Reset password</h1>
+      <p className="page-kicker">{t("common.account")}</p>
+      <h1>{t("ui.AuthRecoveryPages.resetTitle")}</h1>
       <p className="muted lede">
-        We email a one-time link. Product of {LEGAL_ENTITY}.
+        {t("ui.AuthRecoveryPages.resetLede", { entity: LEGAL_ENTITY })}
       </p>
       <form className="auth-form panel" onSubmit={onSubmit}>
         <label>
-          Email
+          {t("auth.email")}
           <input
             type="email"
             required
@@ -54,10 +56,10 @@ export function ForgotPasswordPage() {
         {error && <p className="error">{error}</p>}
         {msg && <p className="muted">{msg}</p>}
         <button type="submit" className="btn-primary" disabled={busy}>
-          Send reset link
+          {t("ui.AuthRecoveryPages.sendLink")}
         </button>
         <p className="muted">
-          <Link to="/login">Back to login</Link>
+          <Link to="/login">{t("ui.AuthRecoveryPages.backToLogin")}</Link>
         </p>
       </form>
       <Disclaimer />
@@ -66,6 +68,7 @@ export function ForgotPasswordPage() {
 }
 
 export function ResetPasswordPage() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [token, setToken] = useState(params.get("token") || "");
@@ -81,7 +84,7 @@ export function ResetPasswordPage() {
       await postPasswordResetConfirm(token, password);
       navigate("/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Reset failed");
+      setError(err instanceof Error ? err.message : t("ui.AuthRecoveryPages.resetFailed"));
     } finally {
       setBusy(false);
     }
@@ -89,11 +92,11 @@ export function ResetPasswordPage() {
 
   return (
     <section className="auth-page" data-testid="reset-password-page">
-      <p className="page-kicker">Account</p>
-      <h1>Choose a new password</h1>
+      <p className="page-kicker">{t("common.account")}</p>
+      <h1>{t("ui.AuthRecoveryPages.newPasswordTitle")}</h1>
       <form className="auth-form panel" onSubmit={onSubmit}>
         <label>
-          Reset token
+          {t("ui.AuthRecoveryPages.resetToken")}
           <input
             type="text"
             required
@@ -103,11 +106,11 @@ export function ResetPasswordPage() {
           />
         </label>
         <label>
-          New password
+          {t("ui.AuthRecoveryPages.newPassword")}
           <input
             type="password"
             required
-            minLength={6}
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             data-testid="reset-password"
@@ -115,7 +118,7 @@ export function ResetPasswordPage() {
         </label>
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn-primary" disabled={busy}>
-          Update password
+          {t("ui.AuthRecoveryPages.updatePassword")}
         </button>
       </form>
       <Disclaimer />
@@ -124,33 +127,34 @@ export function ResetPasswordPage() {
 }
 
 export function VerifyEmailPage() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
-  const [status, setStatus] = useState<string>("Verifying…");
+  const [status, setStatus] = useState<string>(() => t("ui.AuthRecoveryPages.verifying"));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = params.get("token");
     if (!token) {
-      setStatus("Missing token");
-      setError("Open the link from your verification email.");
+      setStatus(t("ui.AuthRecoveryPages.missingToken"));
+      setError(t("ui.AuthRecoveryPages.openLink"));
       return;
     }
     void postVerifyEmailConfirm(token)
-      .then(() => setStatus("Email verified. You can continue using CiteAlpha."))
+      .then(() => setStatus(t("ui.AuthRecoveryPages.verified")))
       .catch((err) => {
-        setStatus("Verification failed");
-        setError(err instanceof Error ? err.message : "Invalid token");
+        setStatus(t("ui.AuthRecoveryPages.verifyFailed"));
+        setError(err instanceof Error ? err.message : t("ui.AuthRecoveryPages.invalidToken"));
       });
   }, [params]);
 
   return (
     <section className="auth-page" data-testid="verify-email-page">
-      <p className="page-kicker">Account</p>
-      <h1>Email verification</h1>
+      <p className="page-kicker">{t("common.account")}</p>
+      <h1>{t("ui.AuthRecoveryPages.verifyTitle")}</h1>
       <p className="panel">{status}</p>
       {error && <p className="error">{error}</p>}
       <p className="muted">
-        <Link to="/tracker">Go to Tracker</Link> · <Link to="/login">Log in</Link>
+        <Link to="/tracker">{t("ui.AuthRecoveryPages.goTracker")}</Link> · <Link to="/login">{t("common.login")}</Link>
       </p>
       <Disclaimer />
     </section>

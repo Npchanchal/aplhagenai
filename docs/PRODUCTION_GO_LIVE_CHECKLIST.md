@@ -14,6 +14,8 @@
 
 **Bottom line:** citealpha.com is a **live pilot / preview**, not a durable production customer platform yet.
 
+**Engineering status 2026-09-29 (not a live re-verify).** The module can run on-demand Fargate, EFS for auth + `INTELLENS_DATA_DIR`, alarms, a daily EFS backup plan, and an index S3 bucket via `deploy/aws/production.overlay.tfvars`. `scripts/aws-idle.sh` refuses without `CITEALPHA_ALLOW_IDLE=1`. Rows B5–B8 and D1 below stay **FAIL** until that overlay is applied with `AWS_PROFILE=ocotillo` and checked against the live task. Postgres is opt-in when RDS exists; the overlay does not create a database.
+
 ---
 
 ## How to re-verify

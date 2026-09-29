@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { useI18n } from "../i18n";
 import { useAuth } from "../lib/auth";
 
 type Props = {
@@ -13,6 +14,8 @@ export default function WatchlistToggle({ companyId, compact = false, className 
   const { preferences, updatePreferences } = useAuth();
   const list = preferences?.watchlist ?? [];
   const on = list.includes(companyId);
+  const { t } = useI18n();
+  const label = t(on ? "ui.WatchlistToggle.remove" : "ui.WatchlistToggle.add");
 
   const toggle = (e: MouseEvent) => {
     e.preventDefault();
@@ -26,13 +29,13 @@ export default function WatchlistToggle({ companyId, compact = false, className 
       type="button"
       className={`watchlist-toggle${on ? " is-on" : ""}${className ? ` ${className}` : ""}`}
       aria-pressed={on}
-      aria-label={on ? "Remove from watchlist" : "Add to watchlist"}
-      title={on ? "Remove from watchlist" : "Add to watchlist"}
+      aria-label={label}
+      title={label}
       data-testid={`watchlist-toggle-${companyId}`}
       onClick={toggle}
     >
       <span aria-hidden="true">{on ? "★" : "☆"}</span>
-      {!compact && <span>{on ? "Watching" : "Watch"}</span>}
+      {!compact && <span>{t(on ? "ui.WatchlistToggle.watching" : "ui.WatchlistToggle.watch")}</span>}
     </button>
   );
 }

@@ -14,21 +14,39 @@ import {
 } from "../../lib/api";
 import { Link } from "react-router-dom";
 import { formatScore } from "../../lib/score";
+import { useI18n } from "../../i18n";
+
+function errorText(e: unknown, fallback: string): string {
+  return e instanceof Error ? e.message : fallback;
+}
 
 function useCompanyFocus() {
+  const { t } = useI18n();
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
   const [companyId, setCompanyId] = useState("");
+  const [focusError, setFocusError] = useState<string | null>(null);
   useEffect(() => {
-    fetchCompanies({ limit: 20 }).then((rows) => {
-      setCompanies(rows);
-      if (rows[0]) setCompanyId(rows[0].id);
-    });
+    let cancelled = false;
+    fetchCompanies({ limit: 20 })
+      .then((rows) => {
+        if (cancelled) return;
+        setCompanies(rows);
+        if (rows[0]) setCompanyId(rows[0].id);
+      })
+      .catch((e) => {
+        if (!cancelled) setFocusError(errorText(e, t("ui.SightsAdvancedPages.err.companies")));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return { companies, companyId, setCompanyId };
+  return { companies, companyId, setCompanyId, focusError };
 }
 
 export function SightsGridPage() {
-  const { companies, companyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, focusError } = useCompanyFocus();
   const [prompt, setPrompt] = useState("margin guidance");
   const [rows, setRows] = useState<
     { prompt: string; cells: { company_id: string; answer?: string; refused: boolean }[] }[]
@@ -47,7 +65,7 @@ export function SightsGridPage() {
       });
       setRows(res.rows || []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Grid failed");
+      setError(e instanceof Error ? e.message : t("ui.SightsAdvancedPages.err.grid"));
     } finally {
       setBusy(false);
     }
@@ -55,15 +73,15 @@ export function SightsGridPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-grid">
-      <h2>Compare Grid</h2>
-      <p className="muted">Same prompt across covered names — cite cells only.</p>
+      <h2>{t("ui.SightsAdvancedPages.grid.title")}</h2>
+      <p className="muted">{t("ui.SightsAdvancedPages.grid.subtitle")}</p>
       <div className="row gap">
         <input className="input" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
         <button type="button" className="btn" disabled={busy} onClick={() => void run()}>
-          {busy ? "Running…" : "Run grid"}
+          {busy ? t("ui.SightsAdvancedPages.grid.running") : t("ui.SightsAdvancedPages.grid.run")}
         </button>
       </div>
-      {error && <p className="error">{error}</p>}
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       {rows.map((r) => (
         <div key={r.prompt}>
           <h3>{r.prompt}</h3>
@@ -82,20 +100,25 @@ export function SightsGridPage() {
 }
 
 export function SightsDeepDivePage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const [topic, setTopic] = useState("guidance delivery");
   const [report, setReport] = useState<string | null>(null);
   const [refused, setRefused] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function run() {
     setBusy(true);
+    setError(null);
     try {
       const res = await postSightsDeepDive({ topic, company_id: companyId || undefined });
       setRefused(!!res.refused);
       setMessage(res.message || "");
       setReport(res.report || null);
+    } catch (e) {
+      setError(errorText(e, t("ui.SightsAdvancedPages.err.deepDive")));
     } finally {
       setBusy(false);
     }
@@ -103,14 +126,15 @@ export function SightsDeepDivePage() {
 
   return (
     <section className="sights-panel" data-testid="sights-deep-dive">
-      <h2>Deep Dive</h2>
+      <h2>{t("ui.SightsAdvancedPages.deepDive.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
       <div className="row gap">
         <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} />
         <button type="button" className="btn" disabled={busy} onClick={() => void run()}>
-          {busy ? "Synthesizing…" : "Run Deep Dive"}
+          {busy ? t("ui.SightsAdvancedPages.deepDive.running") : t("ui.SightsAdvancedPages.deepDive.run")}
         </button>
       </div>
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       {refused && <p className="callout warn">{message}</p>}
       {report && <pre className="code-block">{report}</pre>}
     </section>
@@ -118,50 +142,77 @@ export function SightsDeepDivePage() {
 }
 
 export function SightsFundamentalsPage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const [gci, setGci] = useState<number | null>(null);
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companyId) return;
-    fetchSightsFundamentals(companyId).then((r) => {
-      setNote(r.note);
-      const score = r.snapshot?.gci?.score;
-      setGci(typeof score === "number" ? score : null);
-    });
+    let cancelled = false;
+    setError(null);
+    fetchSightsFundamentals(companyId)
+      .then((r) => {
+        if (cancelled) return;
+        setNote(r.note);
+        const score = r.snapshot?.gci?.score;
+        setGci(typeof score === "number" ? score : null);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.fundamentals")));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [companyId]);
 
   return (
     <section className="sights-panel" data-testid="sights-fundamentals">
-      <h2>Fundamentals Strip</h2>
+      <h2>{t("ui.SightsAdvancedPages.fundamentals.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       <p className="muted">{note}</p>
       <p>
         GCI {formatScore(gci)} ·{" "}
-        <Link to={`/companies/${companyId}`}>Open dossier</Link>
+        <Link to={`/companies/${companyId}`}>{t("ui.SightsAdvancedPages.fundamentals.openDossier")}</Link>
       </p>
     </section>
   );
 }
 
 export function SightsAgentsPage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const [templates, setTemplates] = useState<{ id: string; name: string; description: string }[]>(
     [],
   );
   const [result, setResult] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchSightsAgents().then((r) => setTemplates(r.templates || []));
+    let cancelled = false;
+    fetchSightsAgents()
+      .then((r) => !cancelled && setTemplates(r.templates || []))
+      .catch((e) => {
+        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.agents")));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function run(templateId: string) {
     if (!companyId) return;
     setBusy(true);
+    setError(null);
     try {
       const res = await postSightsAgentRun({ template_id: templateId, company_id: companyId });
       setResult(JSON.stringify(res.body, null, 2));
+    } catch (e) {
+      setError(errorText(e, t("ui.SightsAdvancedPages.err.agentRun")));
     } finally {
       setBusy(false);
     }
@@ -169,14 +220,15 @@ export function SightsAgentsPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-agents">
-      <h2>Desk Agents</h2>
+      <h2>{t("ui.SightsAdvancedPages.agents.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       <ul className="doc-list">
-        {templates.map((t) => (
-          <li key={t.id}>
-            <strong>{t.name}</strong> — {t.description}{" "}
-            <button type="button" className="btn" disabled={busy} onClick={() => void run(t.id)}>
-              Run
+        {templates.map((tpl) => (
+          <li key={tpl.id}>
+            <strong>{tpl.name}</strong> — {tpl.description}{" "}
+            <button type="button" className="btn" disabled={busy} onClick={() => void run(tpl.id)}>
+              {t("ui.SightsAdvancedPages.agents.run")}
             </button>
           </li>
         ))}
@@ -187,26 +239,43 @@ export function SightsAgentsPage() {
 }
 
 export function SightsExportPage() {
-  const { companies, companyId, setCompanyId } = useCompanyFocus();
+  const { t } = useI18n();
+  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
   const [content, setContent] = useState("");
   const [pdfHint, setPdfHint] = useState("");
   const [hooks, setHooks] = useState<{ id: string; path: string; enabled?: boolean }[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchSightsHooks().then((r) => setHooks(r.channels || []));
+    let cancelled = false;
+    fetchSightsHooks()
+      .then((r) => !cancelled && setHooks(r.channels || []))
+      .catch((e) => {
+        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.hooks")));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function exportFmt(fmt: "markdown" | "csv") {
     if (!companyId) return;
-    const res = await fetchSightsExport(companyId, fmt);
-    setContent(res.content || JSON.stringify(res.payload, null, 2));
-    setPdfHint(res.pdf_hint || "");
+    setError(null);
+    try {
+      const res = await fetchSightsExport(companyId, fmt);
+      setContent(res.content || JSON.stringify(res.payload, null, 2));
+      setPdfHint(res.pdf_hint || "");
+    } catch (e) {
+      setError(errorText(e, t("ui.SightsAdvancedPages.err.export")));
+    }
   }
 
   return (
     <section className="sights-panel" data-testid="sights-export">
-      <h2>Cite Export & Notify Hooks</h2>
+      <h2>{t("ui.SightsAdvancedPages.export.title")}</h2>
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
+      {(error || focusError) && <p className="error">{error || focusError}</p>}
       <div className="row gap">
         <button type="button" className="btn" onClick={() => void exportFmt("markdown")}>
           Markdown
@@ -221,37 +290,54 @@ export function SightsExportPage() {
         </p>
       )}
       {content && <pre className="code-block">{content}</pre>}
-      <h3>Notify Hooks</h3>
+      <h3>{t("ui.SightsAdvancedPages.export.hooks")}</h3>
       <ul>
         {hooks.map((h) => (
           <li key={h.id}>
-            {h.id} → <code>{h.path}</code> {h.enabled === false ? "(flagged off)" : ""}
+            {h.id} → <code>{h.path}</code> {h.enabled === false ? t("ui.SightsAdvancedPages.export.flaggedOff") : ""}
           </li>
         ))}
       </ul>
-      <p className="muted">M365 / Slack / Salesforce deferred until MSA + OAuth registration.</p>
+      <p className="muted">{t("ui.SightsAdvancedPages.export.deferred")}</p>
     </section>
   );
 }
 
 export function SightsSettingsPage() {
+  const { t } = useI18n();
   const [links, setLinks] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [sso, setSso] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchSightsEnterprise().then((r) => {
-      setLinks(r.links || {});
-      setNote(r.note);
-      setSso(!!r.sso_configured_flag);
-    });
+    let cancelled = false;
+    fetchSightsEnterprise()
+      .then((r) => {
+        if (cancelled) return;
+        setLinks(r.links || {});
+        setNote(r.note);
+        setSso(!!r.sso_configured_flag);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.enterprise")));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <section className="sights-panel" data-testid="sights-settings">
-      <h2>Enterprise</h2>
+      <h2>{t("ui.SightsAdvancedPages.settings.title")}</h2>
+      {error && <p className="error">{error}</p>}
       <p className="muted">{note}</p>
-      <p>SSO flag: {sso ? "on" : "off"}</p>
+      <p>
+        {t("ui.SightsAdvancedPages.settings.sso", {
+          state: sso ? t("ui.SightsAdvancedPages.settings.on") : t("ui.SightsAdvancedPages.settings.off"),
+        })}
+      </p>
       <ul>
         {Object.entries(links).map(([k, v]) => (
           <li key={k}>

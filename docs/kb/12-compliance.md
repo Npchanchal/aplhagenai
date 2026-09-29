@@ -11,8 +11,9 @@ CiteAlpha is positioned as a **factual research / data product** on guidance del
 ## UI requirements
 
 - Short SEBI-oriented disclaimer on GCI and vernacular surfaces (`Disclaimer` component / `/api/compliance/sebi-note`).
-- Terms of Use + Privacy Notice (`/terms`, `/privacy`) with accept gate on register and guest. Show counsel status honestly (pending vs attested). Public contact: `sales@citealpha.com`.
-- Trust Center (`/trust`, `GET /api/trust`) — security (including CSP allowing GTM/GA/Plausible after consent), residency (`ap-south-1`), subprocessors, citation posture, labeling two-person ids; not marketing claims.
+- Terms of Use + Privacy Notice (`/terms`, `/privacy`) with accept gate on register and guest. Counsel status stays **pending** until counsel attests (do not self-attest). Public contact: `sales@citealpha.com`.
+- Individual (B2C) signup and checkout stay **off** until a written SEBI RA memo and `sebi_retail` attest (W8.1 / D1). Register is desk-only. Public rankings remain factual delivery records.
+- Trust Center (`/trust`, `GET /api/trust`) — security (including CSP allowing GTM/GA/Plausible after consent), residency (`ap-south-1`), subprocessors, citation posture, labeling status. Published scores are single-analyst review; a second reviewer applies to newly submitted rows. Not marketing claims.
 - Privacy copy covers DPDP-oriented rights, optional Plausible analytics, and optional LLM extract.
 - Site footer copyright: © Ocotillo Innovation Private Limited.
 - No Buy / Hold / Sell badges or “tips.”

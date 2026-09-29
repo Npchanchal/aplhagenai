@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useI18n } from "../i18n";
 
 type Props = {
   message: string | null;
@@ -14,10 +15,11 @@ export default function Toast({
   onDismiss,
   ms = 4200,
 }: Props) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!message) return;
-    const t = window.setTimeout(onDismiss, ms);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(onDismiss, ms);
+    return () => window.clearTimeout(timer);
   }, [message, ms, onDismiss]);
 
   if (!message) return null;
@@ -30,7 +32,7 @@ export default function Toast({
       data-testid="toast"
     >
       <span>{message}</span>
-      <button type="button" className="toast-dismiss" onClick={onDismiss} aria-label="Dismiss">
+      <button type="button" className="toast-dismiss" onClick={onDismiss} aria-label={t("ui.Toast.dismiss")}>
         ×
       </button>
     </div>

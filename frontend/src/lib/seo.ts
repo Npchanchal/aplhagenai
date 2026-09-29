@@ -4,8 +4,11 @@ import {
   blogSeoTitle,
   extraJsonLdForPath,
   websiteJsonLd,
+  dossierDatasetJsonLd,
+  breadcrumbJsonLd,
   SITE,
 } from "./seoJsonLd";
+import { formatDossierDate, formatScore } from "./score";
 
 export type SeoConfig = {
   path: string;
@@ -15,6 +18,7 @@ export type SeoConfig = {
   type?: "website" | "article";
   jsonLd?: Record<string, unknown>;
   extraJsonLd?: Record<string, unknown>[];
+  ogImage?: string;
   ogImageAlt?: string;
 };
 
@@ -35,12 +39,6 @@ const DEFAULT: SeoConfig = {
 const STATIC: Record<string, Omit<SeoConfig, "path">> = Object.fromEntries(
   (seoRoutes as SeoRouteEntry[]).map(({ path, ...rest }) => [path, rest]),
 );
-
-STATIC["/about/architecture"] = {
-  title: "Architecture & Design — CiteAlpha",
-  description:
-    "CiteAlpha system architecture: GCI pipeline, layering, scoring design, and AWS deployment for Indian equity desks.",
-};
 
 function blogIndexJsonLd(): Record<string, unknown> {
   return {
@@ -152,4 +150,47 @@ export function resolveSeo(pathname: string): SeoConfig {
   }
 
   return { ...DEFAULT, path: pathname };
+}
+
+/** Per-company SEO once the dossier payload is loaded (W5.1). */
+export function dossierSeo(input: {
+  id: string;
+  name: string;
+  gci: number | null;
+  asOf?: string | null;
+  dataQuality: string;
+  recordSentence: string;
+}): SeoConfig {
+  const path = `/companies/${input.id}`;
+  const asOfLabel = input.asOf ? formatDossierDate(input.asOf) : "";
+  const scoreBit =
+    input.gci == null ? "" : ` ${formatScore(input.gci)}`;
+  const title = asOfLabel
+    ? `${input.name} — Guidance Credibility Index (GCI)${scoreBit} · Data as of ${asOfLabel}`
+    : `${input.name} — Guidance Credibility Index (GCI)${scoreBit}`.trim();
+  const description = [
+    input.recordSentence,
+    asOfLabel ? `Data as of ${asOfLabel}.` : "",
+    "Not investment advice.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const indexable = input.dataQuality === "hand_labeled";
+  const crumbs = breadcrumbJsonLd(path, input.name);
+  return {
+    path,
+    title,
+    description,
+    robots: indexable ? "index,follow" : "noindex,follow",
+    ogImage: `${SITE}/api/og/${input.id}.png`,
+    ogImageAlt: title,
+    jsonLd: dossierDatasetJsonLd({
+      path,
+      name: input.name,
+      description,
+      asOf: input.asOf,
+      gci: input.gci,
+    }),
+    extraJsonLd: crumbs ? [crumbs] : [],
+  };
 }

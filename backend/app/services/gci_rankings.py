@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.services import repository
+from app.services.score_policy import RANKABLE_TIERS, is_rankable
+
+RANKED_THRESHOLD = 20
 
 
 def gci_rankings(
@@ -15,7 +18,9 @@ def gci_rankings(
     limit: int = 30,
     citeable_only: bool = True,
 ) -> Dict[str, Any]:
-    """Rank companies by GCI using citeable / hand_labeled rows only by default."""
+    """Rank companies by GCI — hand_labeled rows with an *established* or *deep*
+    confidence tier only (W1.3). Provisional scores are published on the dossier
+    but never ranked."""
     rows = repository.list_company_summaries(market=market, index=index)
     scored: List[Dict[str, Any]] = []
     for c in rows:
@@ -24,6 +29,8 @@ def gci_rankings(
             continue
         score = c.gci_score
         if score is None:
+            continue
+        if not is_rankable(c.confidence_tier):
             continue
         # Prefer companies with at least one citeable outcome when available
         try:
@@ -48,7 +55,11 @@ def gci_rankings(
                 "yoy_pct": getattr(c, "yoy_pct", None),
                 "data_quality": c.data_quality,
                 "citeable_outcomes": cite_n,
-                "peer_rank_in_sector": c.peer_rank_in_sector,
+                "confidence_tier": c.confidence_tier,
+                "closed_periods": c.closed_periods,
+                "metrics_scored": c.metrics_scored,
+                "as_of": c.as_of,
+                "algorithm_id": c.algorithm_id,
             }
         )
 
@@ -62,6 +73,8 @@ def gci_rankings(
         row["rank"] = i
 
     as_of = datetime.now(timezone.utc).date().isoformat()
+    records = _delivery_records(rows)
+    ranked = len(scored) >= RANKED_THRESHOLD
     return {
         "title": "Guidance Credibility Quarterly — citeable rankings",
         "as_of": as_of,
@@ -69,11 +82,16 @@ def gci_rankings(
         "index": index,
         "citeable_only": citeable_only,
         "universe_n": len(scored),
-        "top": top,
-        "bottom": bottom,
+        "mode": "ranked" if ranked else "record",
+        "ranked_threshold": RANKED_THRESHOLD,
+        "records": records,
+        "top": top if ranked else [],
+        "bottom": bottom if ranked else [],
+        "tiers_ranked": sorted(RANKABLE_TIERS),
         "methodology": (
-            "Ranks use hand_labeled GCI only. Provisional and demo_structured names are excluded. "
-            "Not investment advice; no Buy/Hold/Sell."
+            "Ranks use analyst-reviewed GCI with an established or deep confidence tier "
+            "(≥3 closed reporting periods across ≥2 metrics). Provisional scores and sample data "
+            "are excluded. Not investment advice; no Buy/Hold/Sell."
         ),
         "legal": (
             "© Ocotillo Innovation Private Limited. Factual research tooling — "
@@ -82,31 +100,84 @@ def gci_rankings(
     }
 
 
+def _delivery_records(summaries: List[Any]) -> List[Dict[str, Any]]:
+    """Scored hand-labeled names for the Snapshot record table (until ranked mode)."""
+    out: List[Dict[str, Any]] = []
+    for c in summaries:
+        if (c.data_quality or "").lower() != "hand_labeled":
+            continue
+        if c.gci_score is None:
+            continue
+        try:
+            detail = repository.get_company_gci(c.id)
+        except Exception:
+            continue
+        counts = detail.label_counts or {}
+        out.append(
+            {
+                "company_id": c.id,
+                "ticker": c.ticker,
+                "name": c.name,
+                "confidence_tier": c.confidence_tier,
+                "gci_score": c.gci_score,
+                "met": int(counts.get("met") or 0),
+                "exceeded": int(counts.get("exceeded") or 0),
+                "missed": int(counts.get("missed") or 0),
+                "as_of": c.as_of,
+                "closed_periods": c.closed_periods,
+            }
+        )
+    out.sort(key=lambda r: (-int(r.get("closed_periods") or 0), r["ticker"]))
+    return out
+
+
 def rankings_markdown(payload: Optional[Dict[str, Any]] = None, **kwargs: Any) -> str:
     data = payload or gci_rankings(**kwargs)
     lines = [
         f"# {data['title']}",
         "",
         f"**As of:** {data['as_of']} · **Universe:** {data['index']} ({data['market']}) · "
-        f"n={data['universe_n']} citeable",
+        f"n={data['universe_n']} established/deep · mode={data.get('mode')}",
         "",
         data["methodology"],
         "",
-        "## Top management delivery (GCI)",
-        "",
-        "| Rank | Ticker | Name | Sector | GCI | Citeable rows |",
-        "|---|---|---|---|---|---|",
     ]
-    for r in data["top"]:
-        lines.append(
-            f"| {r['rank']} | {r['ticker']} | {r['name']} | {r['sector']} | "
-            f"{r['gci_score']} | {r['citeable_outcomes']} |"
-        )
-    lines += ["", "## Lowest GCI (same citeable universe)", "", "| Rank | Ticker | Name | Sector | GCI | Citeable rows |", "|---|---|---|---|---|---|"]
-    for r in data["bottom"]:
-        lines.append(
-            f"| {r['rank']} | {r['ticker']} | {r['name']} | {r['sector']} | "
-            f"{r['gci_score']} | {r['citeable_outcomes']} |"
-        )
+    if data.get("mode") == "ranked":
+        lines += [
+            "## Top management delivery (GCI)",
+            "",
+            "| Rank | Ticker | Name | Sector | GCI | Citeable rows |",
+            "|---|---|---|---|---|---|",
+        ]
+        for r in data["top"]:
+            lines.append(
+                f"| {r['rank']} | {r['ticker']} | {r['name']} | {r['sector']} | "
+                f"{r['gci_score']} | {r['citeable_outcomes']} |"
+            )
+        lines += [
+            "",
+            "## Lowest GCI (same citeable universe)",
+            "",
+            "| Rank | Ticker | Name | Sector | GCI | Citeable rows |",
+            "|---|---|---|---|---|---|",
+        ]
+        for r in data["bottom"]:
+            lines.append(
+                f"| {r['rank']} | {r['ticker']} | {r['name']} | {r['sector']} | "
+                f"{r['gci_score']} | {r['citeable_outcomes']} |"
+            )
+    else:
+        lines += [
+            "## Delivery record (ranked view opens at 20 Established names)",
+            "",
+            "| Company | Tier | Met | Exceeded | Missed | Last filing |",
+            "|---|---|---|---|---|---|",
+        ]
+        for r in data.get("records") or []:
+            lines.append(
+                f"| {r['ticker']} {r['name']} | {r.get('confidence_tier') or ''} | "
+                f"{r.get('met', 0)} | {r.get('exceeded', 0)} | {r.get('missed', 0)} | "
+                f"{r.get('as_of') or ''} |"
+            )
     lines += ["", "---", data["legal"], ""]
     return "\n".join(lines)

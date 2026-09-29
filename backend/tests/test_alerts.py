@@ -49,6 +49,66 @@ def test_credibility_drift_fires_on_consecutive_gci_declines():
     assert drift[0].severity in ("medium", "high")
 
 
+def test_revision_alert_ignores_round_trip_to_the_same_band():
+    data = get_data()
+    data["outcomes"]["infy"] = [
+        _outcome(
+            period="FY24",
+            thread_id="infy-roundtrip",
+            guided_low=13.0,
+            guided_high=15.0,
+            guided_value=14.0,
+            as_of="2024-04-01",
+        ),
+        _outcome(
+            period="FY25",
+            thread_id="infy-roundtrip",
+            guided_low=16.0,
+            guided_high=18.0,
+            guided_value=17.0,
+            as_of="2025-04-01",
+        ),
+        _outcome(
+            period="FY26",
+            thread_id="infy-roundtrip",
+            guided_low=13.0,
+            guided_high=15.0,
+            guided_value=14.0,
+            as_of="2026-04-01",
+        ),
+    ]
+    save_data()
+    revised = [a for a in list_alerts() if a.kind == "guidance_revised" and a.ticker == "INFY"]
+    assert revised == []
+
+
+def test_revision_alert_reports_a_net_raise():
+    data = get_data()
+    data["outcomes"]["infy"] = [
+        _outcome(
+            period="FY24",
+            thread_id="infy-raise",
+            guided_low=9.0,
+            guided_high=11.0,
+            guided_value=10.0,
+            as_of="2024-04-01",
+        ),
+        _outcome(
+            period="FY26",
+            thread_id="infy-raise",
+            guided_low=15.0,
+            guided_high=17.0,
+            guided_value=16.0,
+            as_of="2026-04-01",
+        ),
+    ]
+    save_data()
+    revised = [a for a in list_alerts() if a.kind == "guidance_revised" and a.ticker == "INFY"]
+    assert len(revised) == 1
+    assert "raised" in revised[0].message
+    assert "10.0 → 16.0" in revised[0].message
+
+
 def test_thread_stale_fires_for_unreiterated_pending_promise():
     data = get_data()
     rows = data["outcomes"]["infy"]

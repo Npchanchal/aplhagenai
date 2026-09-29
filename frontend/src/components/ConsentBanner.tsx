@@ -6,9 +6,11 @@ import {
   writeAnalyticsConsent,
 } from "../lib/analytics";
 import { useAuth } from "../lib/auth";
+import { useI18n } from "../i18n";
 
 /** DPDP cookie banner — GA4/Plausible stay unloaded until Accept. */
 export default function ConsentBanner() {
+  const { t } = useI18n();
   const { user, updatePreferences, preferences } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -45,17 +47,14 @@ export default function ConsentBanner() {
   }
 
   return (
-    <div className="consent-banner" data-testid="consent-banner" role="dialog" aria-label="Analytics cookies">
-      <p>
-        CiteAlpha uses optional analytics (Google Analytics / Plausible) to understand funnel
-        traffic. No emails or evidence quotes are sent. You can decline.
-      </p>
+    <div className="consent-banner" data-testid="consent-banner" role="dialog" aria-label={t("ui.ConsentBanner.ariaLabel")}>
+      <p>{t("ui.ConsentBanner.body")}</p>
       <div className="consent-actions">
         <button type="button" className="btn-ghost" onClick={() => void choose(false)}>
-          Decline
+          {t("ui.ConsentBanner.decline")}
         </button>
         <button type="button" className="btn-primary" onClick={() => void choose(true)}>
-          Accept analytics
+          {t("ui.ConsentBanner.accept")}
         </button>
       </div>
     </div>

@@ -29,6 +29,8 @@ def enqueue(
     priority: str = "normal",
     note: str = "",
     requested_by: str = "api",
+    kind: str = "label",
+    flag: Optional[str] = None,
 ) -> Dict[str, Any]:
     from app.services import repository
 
@@ -50,12 +52,59 @@ def enqueue(
         "requested_by": requested_by,
         "status": "queued",
         "created_at": _now(),
+        "kind": kind or "label",
+        "flag": flag,
     }
     data = get_data()
     q = data.setdefault("labeling_queue", [])
     q.append(item)
     save_data()
     return item
+
+
+def _open_suggestion(company_id: str, flag: str) -> bool:
+    for row in list_queue():
+        if (
+            row.get("company_id") == company_id
+            and row.get("flag") == flag
+            and row.get("kind") == "audit_flag_suggestion"
+            and row.get("status") in ("queued", "in_progress")
+        ):
+            return True
+    return False
+
+
+def enqueue_flag_suggestions(
+    company_id: str,
+    *,
+    org_id: str = "demo",
+    requested_by: str = "heuristic",
+) -> List[Dict[str, Any]]:
+    """Keyword heuristics → review queue only. Never applies a GCI deduction (W2.6)."""
+    from app.data.seed import get_outcomes
+    from app.services.guidance_flags import applied_audit_flags, suggest_audit_flags
+
+    suggested = suggest_audit_flags(get_outcomes(company_id))
+    applied = set(applied_audit_flags(company_id))
+    created: List[Dict[str, Any]] = []
+    for flag in suggested:
+        if flag in applied or _open_suggestion(company_id, flag):
+            continue
+        created.append(
+            enqueue(
+                company_id=company_id,
+                org_id=org_id,
+                priority="high" if flag == "guidance_withdrawal" else "normal",
+                note=(
+                    f"Suggested audit flag `{flag}` (keyword heuristic). "
+                    "Not applied to GCI until an analyst sets it with a source."
+                ),
+                requested_by=requested_by,
+                kind="audit_flag_suggestion",
+                flag=flag,
+            )
+        )
+    return created
 
 
 def update_status(item_id: str, status: str, *, org_id: Optional[str] = None) -> Dict[str, Any]:

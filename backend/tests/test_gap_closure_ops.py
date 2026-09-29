@@ -38,30 +38,24 @@ def test_consensus_sample_and_demo_gate():
     assert stats.json()["row_count"] >= 1
 
 
-def test_billing_demo_gate_rejects_upi_demo(monkeypatch):
+def test_billing_quote_only_refuses_checkout(monkeypatch):
     monkeypatch.delenv("BILLING_DEMO", raising=False)
     monkeypatch.setenv("INTELLENS_RETAIL_MARKETING", "true")
     from fastapi import HTTPException
 
     from app.services import billing
 
-    order = billing.create_retail_checkout(org_id="demo-gate", user_email="gate@test.local")
     try:
-        billing.confirm_retail_payment(order["id"], payment_ref="upi-demo")
-        raise AssertionError("should reject")
+        billing.create_retail_checkout(org_id="demo-gate", user_email="gate@test.local")
+        raise AssertionError("checkout should stay closed")
     except HTTPException as e:
-        assert e.status_code == 400
-        assert "BILLING_DEMO" in e.detail or "Demo" in e.detail
-
-
-def test_billing_demo_allows_when_flag(monkeypatch):
-    monkeypatch.setenv("BILLING_DEMO", "1")
-    monkeypatch.setenv("INTELLENS_RETAIL_MARKETING", "true")
-    from app.services import billing
-
-    order = billing.create_retail_checkout(org_id="demo-ok", user_email="ok@test.local")
-    paid = billing.confirm_retail_payment(order["id"], payment_ref="upi-demo")
-    assert paid["status"] == "paid"
+        assert e.status_code == 403
+        assert "quote" in e.detail.lower()
+    try:
+        billing.confirm_retail_payment("ret-none", payment_ref="upi-demo")
+        raise AssertionError("confirm should stay closed")
+    except HTTPException as e:
+        assert e.status_code == 403
 
 
 def test_msa_from_pilot_path():

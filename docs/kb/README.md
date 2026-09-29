@@ -16,7 +16,7 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | QA / release | [10-testing](10-testing.md) |
 | AWS / ops | [11-deploy-aws](11-deploy-aws.md) |
 | Compliance | [12-compliance](12-compliance.md) |
-| Architecture | [02-architecture](02-architecture.md) · [ARCHITECTURE_AND_DESIGN](../ARCHITECTURE_AND_DESIGN.md) · UI `/about/architecture` |
+| Architecture | [02-architecture](02-architecture.md) · [ARCHITECTURE_AND_DESIGN](../ARCHITECTURE_AND_DESIGN.md) |
 | Sights SKU | [14-sights](14-sights.md) |
 | Platform admin portal | [15-admin-portal](15-admin-portal.md) |
 
@@ -24,6 +24,7 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 
 | Topic | Doc |
 |---|---|
+| **Current programme (Round-3 remediation)** | `docs/PLAN_WORLDCLASS_GCI.md` |
 | MVP scope | `docs/PRODUCT_DEFINITION.md` |
 | Portfolio SKUs | `docs/PRODUCT_PORTFOLIO.md` · `docs/PORTFOLIO_ROADMAP.md` |
 | Stories | `docs/USER_STORIES.md` |

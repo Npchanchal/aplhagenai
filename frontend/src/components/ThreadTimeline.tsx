@@ -1,6 +1,7 @@
 import InfoTip from "./InfoTip";
+import { useI18n } from "../i18n";
 import type { OutcomeView } from "../lib/api";
-import { tipForLabel } from "../lib/glossary";
+import { formatOutcomeLabel, tipForLabel } from "../lib/glossary";
 
 type Props = {
   threads: Record<string, OutcomeView[]>;
@@ -23,6 +24,13 @@ function bandText(o: OutcomeView): string {
 
 type Direction = "stated" | "raised" | "lowered" | "reiterated";
 
+const DIRECTION_KEY: Record<Direction, string> = {
+  stated: "ui.ThreadTimeline.dir.stated",
+  raised: "ui.ThreadTimeline.dir.raised",
+  lowered: "ui.ThreadTimeline.dir.lowered",
+  reiterated: "ui.ThreadTimeline.dir.reiterated",
+};
+
 function direction(prev: OutcomeView | null, cur: OutcomeView): Direction {
   if (!prev) return "stated";
   const a = midpoint(prev);
@@ -38,6 +46,7 @@ function direction(prev: OutcomeView | null, cur: OutcomeView): Direction {
  * and how it finally resolved (met / missed / exceeded / dropped / pending).
  */
 export default function ThreadTimeline({ threads, testId = "thread-timeline" }: Props) {
+  const { t } = useI18n();
   const entries = Object.entries(threads)
     .map(([id, rows]) => {
       const sorted = [...rows].sort((a, b) => {
@@ -50,7 +59,7 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
     .sort((a, b) => b.rows.length - a.rows.length);
 
   if (entries.length === 0) {
-    return <p className="muted">No guidance threads for this name yet.</p>;
+    return <p className="muted">{t("ui.ThreadTimeline.empty")}</p>;
   }
 
   return (
@@ -63,7 +72,7 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
               <span className="thread-metric">{last.metric.replaceAll("_", " ")}</span>
               <span className="muted thread-id">{id}</span>
               <span className={`pill ${last.label}`}>
-                {last.label}
+                {formatOutcomeLabel(last.label)}
               </span>{" "}
               <InfoTip termId={last.label.toLowerCase()} text={tipForLabel(last.label)} />
             </div>
@@ -78,7 +87,7 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
                         {o.as_of ? o.as_of.slice(0, 7) : o.period}
                       </div>
                       <div className="thread-node-band">{bandText(o)}</div>
-                      <span className={`thread-dir ${dir}`}>{dir}</span>
+                      <span className={`thread-dir ${dir}`}>{t(DIRECTION_KEY[dir])}</span>
                     </div>
                   </div>
                 );
@@ -88,7 +97,9 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
                 <div className="thread-node outcome">
                   <div className="thread-node-period">{last.period}</div>
                   <div className="thread-node-band">
-                    {last.actual_value != null ? `actual ${last.actual_value}` : "no actual"}
+                    {last.actual_value != null
+                      ? t("ui.ThreadTimeline.actual", { value: last.actual_value })
+                      : t("ui.ThreadTimeline.noActual")}
                   </div>
                   <span className={`pill ${last.label}`}>{last.label}</span>
                 </div>

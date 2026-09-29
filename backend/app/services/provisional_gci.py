@@ -19,6 +19,7 @@ from app.services.gci_scoring import (
     metric_breakdown,
     outcome_score,
 )
+from app.services.score_policy import NOT_SCORED_STATUS
 
 
 QUALITY = "listing_provisional"
@@ -187,15 +188,29 @@ def make_provisional_outcomes(
 def score_provisional(
     company_id: str, ticker: str, sector: str = "Equity"
 ) -> Dict[str, Any]:
-    outcomes = make_provisional_outcomes(company_id, ticker, sector)
-    score = compute_company_gci(outcomes)
-    trend = gci_trend_series(outcomes)
+    """Public score for a listing without reviewed evidence: always "not yet scored"."""
     return {
-        "gci_score": score,
+        "gci_score": None,
+        "status": NOT_SCORED_STATUS,
+        "data_quality": QUALITY,
+        "by_metric": {},
+        "label_counts": {},
+        "trend": [],
+        "outcome_count": 0,
+    }
+
+
+def score_provisional_internal(
+    company_id: str, ticker: str, sector: str = "Equity"
+) -> Dict[str, Any]:
+    """Placeholder outcomes run through the scorer — for tests and walkthroughs only."""
+    outcomes = make_provisional_outcomes(company_id, ticker, sector)
+    return {
+        "gci_score": compute_company_gci(outcomes),
         "data_quality": QUALITY,
         "by_metric": metric_breakdown(outcomes),
         "label_counts": label_counts(outcomes),
-        "trend": trend,
+        "trend": gci_trend_series(outcomes),
         "outcome_count": sum(1 for o in outcomes if outcome_score(o) is not None),
     }
 

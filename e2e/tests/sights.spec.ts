@@ -7,7 +7,7 @@ test.describe("Sights — India disclosure research", () => {
     await page.goto("/sights");
     await dismissOverlays(page);
     await expect(page.getByTestId("sights-hub")).toBeVisible();
-    for (const label of ["Search", "Ask", "Boards"]) {
+    for (const label of ["Search", "Ask", "Compare"]) {
       await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
     }
   });

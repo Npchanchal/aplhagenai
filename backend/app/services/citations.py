@@ -277,13 +277,16 @@ def enrich_outcome_citation(
     bound_doc = doc_id or _get("doc_id")
     span_start = _get("span_start")
     span_end = _get("span_end")
-    citeable, reason = assess_citeability(
-        data_quality=data_quality,
-        source_url=source_url,
-        quote_span=quote_span,
-        review_status=_get("review_status"),
-        doc_id=bound_doc,
-    )
+    if _get("source_verified") is False or _get("citeable") is False:
+        citeable, reason = False, "source_unverified"
+    else:
+        citeable, reason = assess_citeability(
+            data_quality=data_quality,
+            source_url=source_url,
+            quote_span=quote_span,
+            review_status=_get("review_status"),
+            doc_id=bound_doc,
+        )
     out_quote = None if reason == "provisional" else quote_span
     cid = None
     if citeable:

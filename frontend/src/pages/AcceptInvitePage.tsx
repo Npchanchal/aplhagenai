@@ -1,12 +1,14 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
+import { useI18n } from "../i18n";
 import TermsAccept from "../components/TermsAccept";
 import { postAcceptInvite } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { LEGAL_ENTITY } from "../lib/legal";
 
 export default function AcceptInvitePage() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { adoptToken } = useAuth();
@@ -20,7 +22,7 @@ export default function AcceptInvitePage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!acceptTerms) {
-      setError("Accept Terms to join the desk.");
+      setError(t("ui.AcceptInvitePage.acceptTerms"));
       return;
     }
     setBusy(true);
@@ -35,7 +37,7 @@ export default function AcceptInvitePage() {
       await adoptToken(res.token);
       navigate("/desk");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invite failed");
+      setError(err instanceof Error ? err.message : t("ui.AcceptInvitePage.failed"));
     } finally {
       setBusy(false);
     }
@@ -43,14 +45,14 @@ export default function AcceptInvitePage() {
 
   return (
     <section className="auth-page" data-testid="accept-invite-page">
-      <p className="page-kicker">B2B invite</p>
-      <h1>Join your desk</h1>
+      <p className="page-kicker">{t("ui.AcceptInvitePage.kicker")}</p>
+      <h1>{t("ui.AcceptInvitePage.title")}</h1>
       <p className="muted lede">
-        Accept a seat invite from your organization. Product of {LEGAL_ENTITY}.
+        {t("ui.AcceptInvitePage.lede", { entity: LEGAL_ENTITY })}
       </p>
       <form className="auth-form panel" onSubmit={onSubmit}>
         <label>
-          Invite token
+          {t("ui.AcceptInvitePage.token")}
           <input
             type="text"
             required
@@ -60,15 +62,15 @@ export default function AcceptInvitePage() {
           />
         </label>
         <label>
-          Display name
+          {t("auth.name")}
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <label>
-          Password
+          {t("auth.password")}
           <input
             type="password"
             required
-            minLength={6}
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             data-testid="invite-password"
@@ -77,10 +79,10 @@ export default function AcceptInvitePage() {
         <TermsAccept checked={acceptTerms} onChange={setAcceptTerms} id="invite-terms" />
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn-primary" disabled={busy || !acceptTerms}>
-          Join desk
+          {t("ui.AcceptInvitePage.submit")}
         </button>
         <p className="muted">
-          <Link to="/login">Already have an account?</Link>
+          <Link to="/login">{t("ui.AcceptInvitePage.haveAccount")}</Link>
         </p>
       </form>
       <Disclaimer />

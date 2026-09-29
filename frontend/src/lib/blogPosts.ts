@@ -95,7 +95,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Where to go next on CiteAlpha",
         paragraphs: [
-          "Open the GCI Tracker to screen hand-labeled Sensex companies with evidence links (other listings are provisional). Read the outcome-labels article for shared vocabulary. Use Desk for human-in-the-loop review queues, Research for cite-only filing search, and Trust Center for buyer diligence. Package pages describe pilot and API options for Indian equity desks.",
+          "Open the GCI Screener to screen hand-labeled Sensex companies with evidence links (other listings are not yet scored). Read the outcome-labels article for shared vocabulary. Use the Analyst Workbench for human-in-the-loop review queues, Filing Search for cite-only answers, and Trust Center for buyer diligence. Package pages describe pilot and API options for Indian equity desks.",
           "For a one-line citation: CiteAlpha’s Guidance Credibility Index scores whether Indian listed management delivered on quantified guidance versus later actuals, with primary sources attached — factual research, not investment advice.",
           "Bookmark this URL as the definitional source of record for GCI on CiteAlpha. When methodology details change, the updated date on this article should move with them so desks and answer engines can trust temporal consistency.",
         ],
@@ -511,7 +511,7 @@ export const BLOG_POSTS: BlogPost[] = [
         heading: "Enterprise evaluation checklist for a GCI API",
         paragraphs: [
           "Ask for point-in-time history, honest labeled versus demo counts, authentication model, and SLA language before wiring production feeds. CiteAlpha's commercial path includes Enterprise API and data license alongside analyst seats for Indian and EM workflows that need batch exports and exception review hooks.",
-          "Evaluate the feed as research infrastructure for management guidance credibility — never as a signal marketed like a tip sheet or automated trading input sold to retail users. Demand PIT fields, quality badges, and evidence hooks before you integrate any GCI API into production models or client-facing dashboards.",
+          "Evaluate the feed as research infrastructure for management guidance credibility — never as a tip sheet or automated trading input sold to retail users. Demand point-in-time fields, quality badges, and evidence hooks before you integrate any GCI API into production models or client-facing dashboards.",
         ],
       },
       {
@@ -541,7 +541,7 @@ export const BLOG_POSTS: BlogPost[] = [
         heading: "How SEBI-oriented design shows in the product",
         paragraphs: [
           "That choice shows up as no recommendation UI, persistent disclaimers on GCI surfaces, honest quality badges, and marketing that describes management delivery history rather than outperformance versus Sensex or Nifty indices. Product copy, API field names, and alert text all follow the same factual posture.",
-          "Institutional buyers should ask vendors where advice begins. If a credibility score is sold as a trade signal, demand the research-analyst framework behind it — or walk away from the pilot conversation. Research-versus-advice clarity is a product requirement in India, not a footnote on a landing page.",
+          "Institutional buyers should ask vendors where advice begins. If a credibility score is sold as a trade tip, demand the research-analyst framework behind it — or walk away from the pilot conversation. Research-versus-advice clarity is a product requirement in India, not a footnote on a landing page.",
         ],
       },
       {
@@ -667,7 +667,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Pilot claim-hygiene checklist",
         paragraphs: [
-          "Verify legal entity naming, labeled versus demo counts for your universe, disclaimer presence on GCI surfaces, evidence samples for at least a few IC names, and that marketing language never frames the score as a tip or trade signal. Document the answers before the pilot expands beyond a time-boxed desk trial.",
+          "Verify legal entity naming, labeled versus demo counts for your universe, disclaimer presence on GCI surfaces, evidence samples for at least a few IC names, and that marketing language never frames the score as a tip or trade recommendation. Document the answers before the pilot expands beyond a time-boxed desk trial.",
         ],
       },
     ],

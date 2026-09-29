@@ -22,6 +22,14 @@ class CompanySummary(BaseModel):
     yoy_pct: Optional[float] = None
     market_id: Optional[str] = None
     index_ids: Optional[List[str]] = None
+    # Index integrity (W1.3): every published number carries its confidence + provenance.
+    confidence_tier: Optional[str] = Field(
+        default=None, description="provisional | established | deep; null when not scored"
+    )
+    closed_periods: int = 0
+    metrics_scored: int = 0
+    as_of: Optional[str] = Field(default=None, description="Latest reviewed outcome date")
+    algorithm_id: Optional[str] = None
 
 
 class AuthRegisterRequest(BaseModel):
@@ -31,7 +39,7 @@ class AuthRegisterRequest(BaseModel):
     preferences: Optional[Dict[str, Any]] = None
     guest_token: Optional[str] = None
     accept_terms: bool = False
-    account_type: str = "retail"  # retail (B2C) | b2b
+    account_type: str = "b2b"  # b2b desk; retail only after sebi_retail attest
     org_name: Optional[str] = None
     org_id: Optional[str] = None
     challenge_id: Optional[str] = None
@@ -41,6 +49,11 @@ class AuthRegisterRequest(BaseModel):
 class AuthLoginRequest(BaseModel):
     email: str
     password: str
+    totp_code: Optional[str] = None
+
+
+class AuthMfaConfirmRequest(BaseModel):
+    code: str
 
 
 class AuthGuestRequest(BaseModel):
@@ -156,6 +169,12 @@ class PilotRequestReview(BaseModel):
     note: str = Field(default="", max_length=1000)
 
 
+class SetAuditFlagRequest(BaseModel):
+    flag: str
+    source_url: str = ""
+    note: str = ""
+
+
 class LabelDraftRequest(BaseModel):
     company_id: str
     ticker: Optional[str] = None
@@ -176,6 +195,10 @@ class LabelDraftRequest(BaseModel):
     thread_id: Optional[str] = None
     confidence: float = 0.85
     notes: Optional[str] = None
+    guidance_source_url: Optional[str] = None
+    guidance_source_ref: Optional[str] = None
+    guidance_quote: Optional[str] = None
+    guidance_as_of: Optional[str] = None
 
 
 class LabelImportRequest(BaseModel):
@@ -184,6 +207,15 @@ class LabelImportRequest(BaseModel):
 
 class LabelRejectRequest(BaseModel):
     comment: str = ""
+
+
+class GuidanceRevision(BaseModel):
+    as_of: str
+    guided_low: float
+    guided_high: float
+    source_url: Optional[str] = None
+    source_ref: Optional[str] = None
+    quote: Optional[str] = None
 
 
 class OutcomeView(BaseModel):
@@ -208,6 +240,15 @@ class OutcomeView(BaseModel):
     guidance_source_ref: Optional[str] = None
     guidance_quote: Optional[str] = None
     guidance_as_of: Optional[str] = None
+    revisions: List[GuidanceRevision] = Field(default_factory=list)
+    revision_direction: Optional[str] = Field(
+        default=None, description="raised | cut | unchanged — final vs opening band"
+    )
+    final_guided_low: Optional[float] = None
+    final_guided_high: Optional[float] = None
+    final_label: Optional[str] = Field(
+        default=None, description="Outcome against the last revised band (not scored)"
+    )
     dropped: bool = False
     actual_change_pct: Optional[float] = None
     actual_change_horizon: Optional[str] = None
@@ -219,6 +260,8 @@ class OutcomeView(BaseModel):
     cite_reason: Optional[str] = None
     span_start: Optional[int] = None
     span_end: Optional[int] = None
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None
 
 
 class CompanyGCIDetail(BaseModel):
@@ -229,15 +272,27 @@ class CompanyGCIDetail(BaseModel):
     gci_score: Optional[float]
     status: str = Field(description="ok | insufficient_data")
     data_quality: str
-    by_metric: Dict[str, float]
+    by_metric: Dict[str, float] = Field(description="Metrics in the composite")
+    context_metrics: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Metrics with < 2 closed periods — shown, not in the composite",
+    )
+    periods_by_metric: Dict[str, int] = Field(default_factory=dict)
+    composite_weights: Dict[str, float] = Field(default_factory=dict)
     label_counts: Dict[str, int]
     outcomes: List[OutcomeView]
     trend: List[Dict[str, Any]]
     peer_rank_in_sector: Optional[int] = None
     sector_avg_gci: Optional[float] = None
     threads: Dict[str, List[OutcomeView]] = Field(default_factory=dict)
-    sentiment: Dict[str, float] = Field(default_factory=dict)
     gci_change_pct: Optional[float] = None
+    # Index integrity (W1.3)
+    confidence_tier: Optional[str] = None
+    closed_periods: int = 0
+    metrics_scored: int = 0
+    as_of: Optional[str] = None
+    algorithm_id: Optional[str] = None
+    reviewed_at: Optional[str] = None
     gci_change_horizon: Optional[str] = None
     by_metric_changes: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     # Audit / red-alert layer (v3 deductions — not forensic Beneish)

@@ -4,7 +4,7 @@
 
 | Plan | Role |
 |---|---|
-| Retail (B2C) | Individual micro-tenant · tracker/research |
+| Retail (B2C) | **Not offered** until counsel memo (`sebi_retail`). Plan still exists in entitlements for a future attest. |
 | Pilot | Complimentary evaluation (B2B) |
 | Desk | Seat ARR for research teams |
 | Enterprise API | PIT / factor embed |
@@ -33,7 +33,7 @@ CiteAlpha is a product of **Ocotillo Innovation Private Limited**.
 
 ## GTM
 
-India PMS / AIF / sell-side / EM quant desks first; retail B2C as research tooling (not advice). See `docs/BUSINESS_PLAN.md` and `docs/MARKETING_PLAN.md` (SEO, blog, outbound).
+India PMS / AIF / sell-side / EM quant desks first; retail B2C is not sold until counsel attests. See `docs/BUSINESS_PLAN.md` and `docs/MARKETING_PLAN.md` (SEO, blog, outbound).
 
 ## Do not
 

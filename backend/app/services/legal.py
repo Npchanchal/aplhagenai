@@ -7,9 +7,10 @@ from typing import Any, Dict
 LEGAL_ENTITY = "Ocotillo Innovation Private Limited"
 PRODUCT_NAME = "CiteAlpha"
 COPYRIGHT_YEAR = "2026"
-TERMS_VERSION = "2026-08-26"
-PRIVACY_VERSION = "2026-08-26"
+TERMS_VERSION = "2026-09-29"
+PRIVACY_VERSION = "2026-09-29"
 CONTACT_EMAIL = "sales@citealpha.com"
+PRIVACY_EMAIL = "privacy@citealpha.com"
 PUBLIC_DOMAIN = "citealpha.com"
 
 COPYRIGHT_LINE = (
@@ -31,6 +32,7 @@ def copyright_meta() -> Dict[str, Any]:
         "terms_version": TERMS_VERSION,
         "privacy_version": PRIVACY_VERSION,
         "contact_email": CONTACT_EMAIL,
+        "privacy_email": PRIVACY_EMAIL,
         "domain": PUBLIC_DOMAIN,
         "counsel_status": snap["counsel_status"],
         "counsel_note": (
@@ -45,9 +47,9 @@ def copyright_meta() -> Dict[str, Any]:
         "retail_marketing_allowed": retail_mkt,
         "sebi_retail_status": snap["sebi_retail_status"],
         "retail_marketing_note": (
-            "Retail marketing / paywall enabled after SEBI counsel attestation."
+            "Individual plans are offered only after counsel attests sebi_retail."
             if retail_mkt
-            else "Attest kind=sebi_retail (admin) or set INTELLENS_RETAIL_MARKETING=true."
+            else "Individual plans are not offered. Access is Pilot, Desk, or Enterprise."
         ),
         "attestations": snap["attestations"],
     }
@@ -79,8 +81,9 @@ def terms_document() -> Dict[str, Any]:
                 "body": (
                     f"{PRODUCT_NAME} provides factual research tooling around management "
                     "guidance versus subsequent actuals (Guidance Credibility Index / GCI) "
-                    "and related surfaces (Tracker, Desk, Research, Sights, and commercial "
-                    "SKU bundles such as Score, Cite, Radar, Ledger, and Data). "
+                    "and related surfaces (GCI Screener, Analyst Workbench, Filing Search, "
+                    "Disclosure Explorer, and commercial SKU bundles such as Score, Cite, "
+                    "Radar, Ledger, and Data). "
                     "It does not provide Buy, Hold, or Sell recommendations, personalized "
                     "investment advice, or a SEBI-registered Research Analyst opinion unless "
                     "expressly stated in a separate engagement with a registered intermediary."
@@ -88,14 +91,13 @@ def terms_document() -> Dict[str, Any]:
             },
             {
                 "id": "accounts",
-                "heading": "3. Accounts — B2B, guest, and retail (B2C)",
+                "heading": "3. Accounts — guest and research desks",
                 "body": (
                     "Business (B2B) accounts are multi-tenant organizations with seat and "
-                    "plan entitlements. Guest sessions are ephemeral; preferences may be lost "
-                    "unless you register. Retail (B2C) accounts, if offered, are individual "
-                    "tenants for personal research use and remain gated until SEBI counsel "
-                    "attestation enables retail marketing. You are responsible for credentials "
-                    "and for activity under your tenant."
+                    "plan entitlements (Pilot, Desk, or Enterprise). Guest sessions are "
+                    "ephemeral; preferences may be lost unless you register a desk. "
+                    "Individual self-serve (B2C) accounts are not offered. You are "
+                    "responsible for credentials and for activity under your tenant."
                 ),
             },
             {
@@ -113,8 +115,8 @@ def terms_document() -> Dict[str, Any]:
                 "heading": "5. Data quality and evidence",
                 "body": (
                     "Scores and narratives must be read with their data_quality badge "
-                    "(hand_labeled, demo_structured, market_scaffold). Do not present "
-                    "demo or scaffold data as production-labeled coverage. Cite evidence "
+                    "(hand_labeled, sample data, listing-only). Do not present "
+                    "sample data as production-labeled coverage. Cite evidence "
                     "rows when publishing scores externally."
                 ),
             },
@@ -125,7 +127,7 @@ def terms_document() -> Dict[str, Any]:
                     "We grant a limited, non-exclusive, non-transferable right to use "
                     f"{PRODUCT_NAME} per your plan. Redistribution of API outputs, "
                     "bulk exports, or embeds outside licensed seats/systems requires "
-                    "Enterprise / One-Stop rights as documented in the commercial package."
+                    "Enterprise rights as documented in the commercial package."
                 ),
             },
             {
@@ -180,13 +182,24 @@ def terms_document() -> Dict[str, Any]:
                 ),
             },
             {
-                "id": "contact",
-                "heading": "12. Contact",
+                "id": "refund",
+                "heading": "12. Cancellation and refunds",
                 "body": (
-                    f"Legal and commercial notices: {CONTACT_EMAIL} — {LEGAL_ENTITY}, "
-                    f"product {PRODUCT_NAME} ({PUBLIC_DOMAIN}). "
-                    "A dedicated legal mailbox and registered office will be published "
-                    "when available. CSM contacts appear in your order form when applicable."
+                    "Pilot seats are complimentary and end on the agreed date. Paid Desk "
+                    "and Enterprise contracts cancel per the order form. Unused prepaid "
+                    "time after the notice period is refunded on a pro-rata basis unless "
+                    "the order form says otherwise. A subscription never changes how a "
+                    "company is scored."
+                ),
+            },
+            {
+                "id": "contact",
+                "heading": "13. Contact",
+                "body": (
+                    f"Legal and commercial notices: {CONTACT_EMAIL}. "
+                    f"Privacy: {PRIVACY_EMAIL}. {LEGAL_ENTITY}, product {PRODUCT_NAME} "
+                    f"({PUBLIC_DOMAIN}). A named Grievance Officer will be published after "
+                    "counsel review; until then write to {PRIVACY_EMAIL}."
                 ),
             },
         ],
@@ -248,9 +261,9 @@ def privacy_document() -> Dict[str, Any]:
                 "id": "analytics",
                 "heading": "5. Cookies and analytics",
                 "body": (
-                    "The product may use Plausible, a privacy-friendly analytics service, "
-                    "when enabled for a deployment. Plausible is designed not to use "
-                    "advertising cookies or cross-site tracking. Session cookies or "
+                    "The product may load Google Analytics 4 (and Google Tag Manager) "
+                    "and/or Plausible after you accept analytics cookies. Neither product "
+                    "receives evidence quotes or account passwords. Session cookies or "
                     "local storage may keep you signed in and remember language, market, "
                     "and tour progress."
                 ),
@@ -259,10 +272,10 @@ def privacy_document() -> Dict[str, Any]:
                 "id": "ai",
                 "heading": "6. Optional AI processing",
                 "body": (
-                    "If LLM extract is enabled, text you submit for extraction (for example "
-                    "pasted transcripts) may be sent to a contracted model provider to "
-                    "propose guidance statements. Heuristic fallback is used when the "
-                    "model is not configured. We do not train public models on your "
+                    "If extract is enabled, text you submit (for example pasted transcripts) "
+                    "may be sent to OpenAI or Anthropic, whichever is keyed for that "
+                    "deployment, to propose guidance statements. Heuristic fallback is used "
+                    "when no model is configured. We do not train public models on your "
                     "review comments without written consent."
                 ),
             },
@@ -270,9 +283,11 @@ def privacy_document() -> Dict[str, Any]:
                 "id": "retention",
                 "heading": "7. Retention",
                 "body": (
-                    "Account data for the life of the account plus a reasonable wind-down. "
-                    "Guest sessions may be purged periodically. Demo reset may wipe "
-                    "shared pilot corpora — not your production tenant."
+                    "Retention: account profile — life of the account plus 90 days; "
+                    "session tokens — 12 hours idle / 30 days absolute; auth-event audit — "
+                    "24 months; guest sessions — purged periodically; billing records — "
+                    "as required by Indian tax law. Demo reset may wipe shared pilot "
+                    "corpora, not your production tenant."
                 ),
             },
             {
@@ -281,7 +296,7 @@ def privacy_document() -> Dict[str, Any]:
                 "body": (
                     "Subject to Indian law including DPDP as applicable, you may request "
                     "access, correction, or deletion of personal data by contacting "
-                    f"{CONTACT_EMAIL}. Some records (billing, security logs) may be "
+                    f"{PRIVACY_EMAIL}. Some records (billing, security logs) may be "
                     "retained as required."
                 ),
             },
@@ -299,8 +314,9 @@ def privacy_document() -> Dict[str, Any]:
                 "id": "contact",
                 "heading": "10. Contact",
                 "body": (
-                    f"Privacy inquiries: {CONTACT_EMAIL} — {LEGAL_ENTITY}, "
-                    f"product {PRODUCT_NAME}."
+                    f"Privacy inquiries: {PRIVACY_EMAIL} — {LEGAL_ENTITY}, "
+                    f"product {PRODUCT_NAME}. A named Grievance Officer will be published "
+                    "after counsel review."
                 ),
             },
         ],

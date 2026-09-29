@@ -126,7 +126,7 @@ export default function PilotChecklistPanel({ orgId }: { orgId: string }) {
           <option value="">Target SKU…</option>
           <option value="desk">Desk</option>
           <option value="enterprise">Enterprise API</option>
-          <option value="onestop">One-Stop</option>
+          <option value="onestop">Enterprise bundle</option>
         </select>
         {data.conversion_ready && (
           <Link className="btn" to="/billing">

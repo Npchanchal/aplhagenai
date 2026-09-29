@@ -428,7 +428,7 @@ def promise_brief(company_id: str) -> Dict[str, Any]:
 
     closed_by_metric: Dict[str, Counter] = {}
     for o in detail.outcomes:
-        if o.label == "pending":
+        if o.label in ("pending", "pending_guidance_cite", "unmapped"):
             continue
         closed_by_metric.setdefault(o.metric, Counter())[o.label] += 1
 

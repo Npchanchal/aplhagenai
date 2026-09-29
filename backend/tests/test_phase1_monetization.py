@@ -70,18 +70,24 @@ def test_pilot_checklist_flow():
 
 
 def test_public_gci_rankings_citeable_only():
-    r = client.get("/api/public/gci-rankings?limit=5")
+    # W1.3: only established/deep tiers are ranked — use the index that has one.
+    r = client.get("/api/public/gci-rankings?limit=5&index=NIFTY50")
     assert r.status_code == 200
     body = r.json()
     assert body["citeable_only"] is True
     assert "top" in body and "bottom" in body
     for row in body["top"]:
         assert row["data_quality"] == "hand_labeled"
+        assert row["confidence_tier"] in ("established", "deep")
     rows = {r["company_id"]: r for r in body["top"] + body["bottom"]}
-    if "infy" in rows:
-        dossier = client.get("/api/companies/infy/gci").json()
+    if not rows:
+        assert body["universe_n"] == 0
+        return
+    for cid, row in rows.items():
+        dossier = client.get(f"/api/companies/{cid}/gci").json()
         expected = sum(1 for o in dossier["outcomes"] if o["citeable"])
-        assert rows["infy"]["citeable_outcomes"] == expected > 0
+        assert row["citeable_outcomes"] == expected
+        assert row["gci_score"] == dossier["gci_score"]
     assert any(r["citeable_outcomes"] > 0 for r in rows.values())
 
 

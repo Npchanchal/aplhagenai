@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import InfoTip from "./InfoTip";
+import { useI18n } from "../i18n";
 import {
   fetchSectorBenchmark,
   fetchSectorLeaderboard,
   type CompanySummary,
 } from "../lib/api";
-import { formatScore, scoreClass } from "../lib/score";
+import { formatScore, scoreClass, formatCompanyScore, NOT_SCORED_LABEL } from "../lib/score";
 
 type SectorRow = {
   sector: string;
@@ -34,6 +35,7 @@ export default function SectorLeaderboard({
   limit = 40,
   compact = false,
 }: Props) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<SectorRow[]>([]);
   const [openSector, setOpenSector] = useState<string | null>(null);
   const [peers, setPeers] = useState<CompanySummary[]>([]);
@@ -72,7 +74,7 @@ export default function SectorLeaderboard({
   if (error) {
     return (
       <div className="panel" data-testid="sector-leaderboard">
-        <p className="muted">Leaderboard unavailable: {error}</p>
+        <p className="muted">{t("ui.SectorLeaderboard.unavailable", { error })}</p>
       </div>
     );
   }
@@ -82,18 +84,17 @@ export default function SectorLeaderboard({
     <div className="panel" data-testid="sector-leaderboard">
       <div className="panel-head">
         <h2>
-          Sector credibility leaderboard <InfoTip termId="sector_avg" />
+          {t("ui.SectorLeaderboard.title")} <InfoTip termId="sector_avg" />
         </h2>
         {!compact && (
           <span className="muted" style={{ fontSize: 13 }}>
-            which sectors keep their word
+            {t("ui.SectorLeaderboard.subtitle")}
           </span>
         )}
       </div>
       {!compact && (
         <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
-          Sectors ranked by average GCI across the selected India cohort — delivery
-          screen, not sentiment.
+          {t("ui.SectorLeaderboard.lede")}
         </p>
       )}
       <div className="table-scroll">
@@ -101,14 +102,16 @@ export default function SectorLeaderboard({
           <thead>
             <tr>
               <th>#</th>
-              <th>Sector</th>
-              <th>Avg GCI</th>
-              <th>Names</th>
-              <th>Most credible</th>
+              <th>{t("ui.SectorLeaderboard.th.sector")}</th>
+              <th>{t("ui.SectorLeaderboard.th.avg")}</th>
+              <th>{t("ui.SectorLeaderboard.th.names")}</th>
+              <th>{t("ui.SectorLeaderboard.th.best")}</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((s, i) => (
+            {rows
+              .filter((s) => (s.count || 0) >= 3)
+              .map((s, i) => (
               <tr
                 key={s.sector}
                 className="row-link"
@@ -153,7 +156,7 @@ export default function SectorLeaderboard({
       </div>
       {openSector && (
         <div className="sector-peers" data-testid="sector-peers">
-          <h3 style={{ fontSize: 14 }}>{openSector} — peer ranking</h3>
+          <h3 style={{ fontSize: 14 }}>{t("ui.SectorLeaderboard.peerRanking", { sector: openSector })}</h3>
           <ul className="peer-list">
             {peers.slice(0, compact ? 8 : 15).map((c) => (
               <li key={c.id}>
@@ -161,11 +164,13 @@ export default function SectorLeaderboard({
                   {c.ticker} · {c.name}
                 </Link>{" "}
                 <span className={`score ${scoreClass(c.gci_score)}`}>
-                  {formatScore(c.gci_score)}
+                  {formatCompanyScore(c.gci_score) === NOT_SCORED_LABEL
+                    ? t("ui.ScoreReveal.notScored")
+                    : formatCompanyScore(c.gci_score)}
                 </span>
               </li>
             ))}
-            {peers.length === 0 && <li className="muted">Loading peers…</li>}
+            {peers.length === 0 && <li className="muted">{t("ui.SectorLeaderboard.loadingPeers")}</li>}
           </ul>
         </div>
       )}

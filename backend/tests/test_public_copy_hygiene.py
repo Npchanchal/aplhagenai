@@ -25,6 +25,24 @@ PUBLIC_COPY_FILES = [
     FRONTEND / "public/llms.txt",
 ]
 
+BANNED_VOICE = [
+    r"AlphaHunter",
+    r"intellens",
+    r"Trust Score",
+    r"Promoter",
+    r"\bOne-Stop\b",
+    r"corpus hits",
+    r"hybrid_pit",
+    r"pit\.v1",
+    r"Tier-1 gate",
+    r"INTELLENS_",
+    r"docs/",
+    r"Current access:",
+    r"\{o\.",
+    r"\bCSM\b",
+    r"\bsignal\b",
+]
+
 RECOMMENDATION_PATTERNS = [
     r"\b(buy|sell|accumulate|avoid|reduce|add)\s+(this|the|these)\s+(stock|stocks|share|shares|name|names)\b",
     r"\btop\s+picks?\b",
@@ -41,6 +59,9 @@ RETIRED_CLAIMS = [
     r"Sensex\s*(→|and|&amp;|&|/)\s*Nifty\s+(names|by)",
     r"research OS\b",
     r'href="\$\{SITE\}/api/meta"',
+    r"provisional scores?\b",
+    r"Versioned, unit-tested scorer",
+    r"pit\.v1",
 ]
 
 
@@ -104,3 +125,54 @@ def test_static_worked_example_matches_live_infosys_data():
             f"(reported {o['as_of']})"
         )
         assert line in static_html or line.replace("4–7%", "4.0–7.0%") in static_html, line
+
+
+@pytest.mark.parametrize("path", PUBLIC_COPY_FILES, ids=lambda p: p.name)
+def test_public_copy_bans_legacy_voice(path: Path):
+    text = _copy_text(path)
+    hits = [m.group(0) for pat in BANNED_VOICE for m in re.finditer(pat, text)]
+    assert not hits, f"{path.name}: banned voice {hits}"
+
+
+def test_badge_and_trust_api_strings_ban_legacy_voice():
+    badge = client.get("/api/badge/INFY").json()
+    svg = client.get("/api/badge/INFY/svg").text
+    trust = client.get("/api/trust").json()
+    blob = json.dumps(badge) + "\n" + svg + "\n" + json.dumps(trust)
+    for pat in (r"Trust Score", r"intellens", r"Promoter", r"One-Stop", r"AlphaHunter"):
+        assert not re.search(pat, blob), pat
+    assert trust["compliance"].get("prices_on_public") is False
+    assert trust["compliance"].get("link_out_policy")
+
+
+def test_methodology_names_promise_keeping_and_constants():
+    """Public methodology states the floor philosophy, δ=1 points, and single-analyst review."""
+    data = json.loads((FRONTEND / "src/i18n/locales/en.json").read_text(encoding="utf-8"))
+    philosophy = data["method.page.formula.philosophy"]
+    assert "promise-keeping discipline, not forecast accuracy" in philosophy
+    constants = data["method.page.formula.constants.text"]
+    assert "about 59" in constants
+    assert "about 88" in constants
+    assert "15 points" in constants
+    review = data["method.page.review.i4"]
+    assert "one analyst" in review
+    assert "single-analyst review" in review
+    comparable = data["method.page.company.comparable.text"]
+    assert "half-width" in comparable
+    assert "not adjusted by sector" in comparable
+    trust_note = client.get("/api/trust").json()["labeling_governance"]["note"]
+    assert trust_note == review
+    static_html = (FRONTEND / "scripts/seo-shared.mjs").read_text(encoding="utf-8")
+    assert "was well off" not in static_html
+    assert "promise-keeping discipline, not forecast accuracy" in static_html
+
+
+def test_badge_api_strings_ban_trust_score_and_intellens():
+    """W5.4: broker badge is GCI, not a Trust Score / intellens embed."""
+    badge = client.get("/api/badge/INFY").json()
+    svg = client.get("/api/badge/INFY/svg").text
+    blob = json.dumps(badge) + "\n" + svg
+    assert "Trust Score" not in blob
+    assert "intellens" not in blob.lower()
+    assert "Promoter" not in blob
+    assert badge["label"] == "Guidance Credibility Index (GCI)"

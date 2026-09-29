@@ -26,7 +26,9 @@ def _store() -> Dict[str, Any]:
 
 
 def retail_marketing_allowed() -> bool:
-    return os.environ.get("INTELLENS_RETAIL_MARKETING", "").lower() in ("1", "true", "yes")
+    from app.services.legal_attest import sebi_retail_status
+
+    return sebi_retail_status() == "counsel_approved"
 
 
 def create_msa_invoice(
@@ -98,59 +100,21 @@ def sign_msa(invoice_id: str, *, signer_email: str) -> Dict[str, Any]:
 
 
 def create_retail_checkout(*, org_id: str, user_email: str) -> Dict[str, Any]:
-    if not retail_marketing_allowed():
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "Retail paywall disabled until SEBI counsel approval "
-                "(set INTELLENS_RETAIL_MARKETING=true)"
-            ),
-        )
-    order = {
-        "id": f"ret-{uuid.uuid4().hex[:10]}",
-        "org_id": org_id,
-        "kind": "retail_paywall",
-        "amount_inr": RETAIL_PRICE_INR,
-        "currency": "INR",
-        "status": "pending_payment",
-        "user_email": user_email,
-        "upi_intent": f"upi://pay?pa=citealpha@ocotillo&pn=CiteAlpha&am={RETAIL_PRICE_INR:.2f}&cu=INR",
-        "created_at": _now(),
-    }
-    store = _store()
-    store["invoices"].append(order)
-    save_data()
-    return order
+    """Quote-only (W8.8). No PSP, including after a future retail attest."""
+    del org_id, user_email
+    raise HTTPException(
+        status_code=403,
+        detail="Paid plans are quote and order form only. There is no in-app checkout.",
+    )
 
 
 def confirm_retail_payment(order_id: str, *, payment_ref: str = "") -> Dict[str, Any]:
-    """Confirm retail paywall. Demo refs (`upi-demo`) only when BILLING_DEMO=1."""
-    ref = (payment_ref or "").strip()
-    demo = os.environ.get("BILLING_DEMO", "").lower() in ("1", "true", "yes")
-    if not ref:
-        raise HTTPException(status_code=400, detail="payment_ref required")
-    if ref.lower() in ("upi-demo", "demo", "test") and not demo:
-        raise HTTPException(
-            status_code=400,
-            detail="Demo payment_ref rejected — set BILLING_DEMO=1 for stubs, or use a real UPI/PSP reference",
-        )
-    if len(ref) < 6 and not demo:
-        raise HTTPException(status_code=400, detail="payment_ref too short")
-    store = _store()
-    for inv in store["invoices"]:
-        if inv["id"] == order_id and inv.get("kind") == "retail_paywall":
-            inv["status"] = "paid"
-            inv["payment_ref"] = ref
-            inv["paid_at"] = _now()
-            inv["billing_demo"] = demo and ref.lower() in ("upi-demo", "demo", "test")
-            store["subscriptions"][inv["org_id"]] = {
-                "plan": "retail",
-                "status": "active",
-                "order_id": inv["id"],
-            }
-            save_data()
-            return inv
-    raise HTTPException(status_code=404, detail="Retail order not found")
+    """Refused until a payment provider is wired (W8.8). Arguments kept for the route."""
+    del order_id, payment_ref
+    raise HTTPException(
+        status_code=403,
+        detail="Paid plans are quote and order form only. There is no in-app checkout.",
+    )
 
 
 def create_msa_from_pilot(
@@ -164,10 +128,10 @@ def create_msa_from_pilot(
     inv["conversion_path"] = "pilot_to_desk"
     inv["signer_hint"] = signer_hint
     inv["next_steps"] = [
-        "Complete pilot checklist on Desk → CSM",
-        "Sign MSA (e-sign or wet-ink via counsel)",
-        "Provision Desk seats; optional One-Stop upgrade",
-        "Wire live PSP (Razorpay) when merchant account is ready — not in-app yet",
+        "Complete the pilot checklist in the Analyst Workbench",
+        "Sign the order form (e-sign or wet-ink via counsel)",
+        "Provision Desk seats",
+        "Invoicing is by quote. There is no in-app payment.",
     ]
     save_data()
     return inv

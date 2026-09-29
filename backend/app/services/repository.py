@@ -7,21 +7,26 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
 
-from app.services.guidance_flags import audited_company_gci
+from app.services.guidance_flags import audited_company_gci, score_meta
 from app.data.seed import get_data, get_outcomes, list_companies, outcome_from_dict, save_data
 from app.models.schemas import (
     AlertItem,
     CompanyGCIDetail,
     CompanySummary,
+    GuidanceRevision,
     OutcomeView,
     PitPoint,
 )
 from app.services.changes import change_bundle, enrich_metric_rows, enrich_value_series
 from app.services.citations import enrich_outcome_citation
+from app.services.score_policy import NOT_SCORED_STATUS, is_scoreable, publishable_score
 from app.services.gci_scoring import (
     classify_outcome,
     compute_company_gci,
     delta_pct,
+    final_band,
+    final_band_label,
+    revision_direction,
     gci_trend_series,
     label_counts,
     metric_breakdown,
@@ -39,8 +44,10 @@ def _to_view(
     guided_change_pct=None,
     guided_change_horizon=None,
 ) -> OutcomeView:
-    score = outcome_score(o)
+    score = outcome_score(o) if is_scoreable(data_quality) else None
     cite = enrich_outcome_citation(o, company_id=company_id, data_quality=data_quality)
+    final = final_band(o)
+    final_lbl = final_band_label(o) if o.actual_value is not None else None
     return OutcomeView(
         period=o.period,
         metric=o.metric,
@@ -63,6 +70,11 @@ def _to_view(
         guidance_source_ref=o.guidance_source_ref,
         guidance_quote=o.guidance_quote,
         guidance_as_of=o.guidance_as_of,
+        revisions=[GuidanceRevision(**r) for r in o.revisions],
+        revision_direction=revision_direction(o),
+        final_guided_low=final[0] if final else None,
+        final_guided_high=final[1] if final else None,
+        final_label=final_lbl.value if final_lbl else None,
         dropped=o.dropped,
         actual_change_pct=actual_change_pct,
         actual_change_horizon=actual_change_horizon,
@@ -74,6 +86,8 @@ def _to_view(
         cite_reason=cite["cite_reason"],
         span_start=cite.get("span_start"),
         span_end=cite.get("span_end"),
+        reviewed_by=o.reviewed_by,
+        reviewed_at=o.reviewed_at,
     )
 
 
@@ -121,11 +135,20 @@ def _by_metric_changes(outcomes) -> Dict[str, Dict[str, Any]]:
     return out
 
 
+def _detail_status(score: Optional[float], data_quality: Optional[str]) -> str:
+    if not is_scoreable(data_quality):
+        return NOT_SCORED_STATUS
+    return "ok" if score is not None else "insufficient_data"
+
+
 def _sector_stats() -> Dict[str, Tuple[Optional[float], Dict[str, Optional[float]]]]:
     """sector -> (avg, {company_id: score}) for seed companies only."""
     by_sector: Dict[str, Dict[str, Optional[float]]] = defaultdict(dict)
     for c in list_companies():
-        score = audited_company_gci(get_outcomes(c["id"]))
+        score = publishable_score(
+            audited_company_gci(get_outcomes(c["id"]), company_id=c["id"]),
+            c.get("data_quality"),
+        )
         by_sector[c["sector"]][c["id"]] = score
     out: Dict[str, Tuple[Optional[float], Dict[str, Optional[float]]]] = {}
     for sector, mapping in by_sector.items():
@@ -200,8 +223,10 @@ def list_company_summaries(
         rows: List[CompanySummary] = []
         for c in list_companies():
             outcomes = get_outcomes(c["id"])
-            score = audited_company_gci(outcomes)
-            trend = gci_trend_series(outcomes)
+            scoreable = is_scoreable(c.get("data_quality"))
+            meta = score_meta(outcomes, scoreable=scoreable, company_id=c["id"])
+            score = meta["gci_score"]
+            trend = gci_trend_series(outcomes) if scoreable else []
             ch_pct, ch_h = _latest_trend_change(trend)
             avg, mapping = stats[c["sector"]]
             ranked = sorted(
@@ -242,6 +267,11 @@ def list_company_summaries(
                     gci_change_horizon=ch_h,
                     market_id="IN",
                     index_ids=["SENSEX", "NIFTY50"],
+                    confidence_tier=meta["confidence_tier"],
+                    closed_periods=meta["closed_periods"],
+                    metrics_scored=meta["metrics_scored"],
+                    as_of=meta["as_of"],
+                    algorithm_id=meta["algorithm_id"],
                     **hz,
                 )
             )
@@ -285,8 +315,10 @@ def list_company_summaries(
             # Prefer live seed outcomes for deep GCI names on small pages
             if seeded.get("data_quality") == "hand_labeled" or not large:
                 outcomes = get_outcomes(seeded["id"])
-                score = audited_company_gci(outcomes)
-                trend = gci_trend_series(outcomes)
+                scoreable = is_scoreable(seeded.get("data_quality"))
+                meta = score_meta(outcomes, scoreable=scoreable, company_id=seeded["id"])
+                score = meta["gci_score"]
+                trend = gci_trend_series(outcomes) if scoreable else []
                 ch_pct, ch_h = _latest_trend_change(trend)
                 sector = seeded["sector"]
                 if seed_stats:
@@ -318,6 +350,11 @@ def list_company_summaries(
                         yoy_pct=(cached or {}).get("yoy_pct"),
                         market_id=s.get("market_id", "IN"),
                         index_ids=s.get("index_ids"),
+                        confidence_tier=meta["confidence_tier"],
+                        closed_periods=meta["closed_periods"],
+                        metrics_scored=meta["metrics_scored"],
+                        as_of=meta["as_of"],
+                        algorithm_id=meta["algorithm_id"],
                     )
                 )
                 continue
@@ -345,6 +382,11 @@ def list_company_summaries(
                 yoy_pct=(cached or {}).get("yoy_pct"),
                 market_id=s.get("market_id"),
                 index_ids=s.get("index_ids"),
+                confidence_tier=(cached or {}).get("confidence_tier"),
+                closed_periods=int((cached or {}).get("closed_periods") or 0),
+                metrics_scored=int((cached or {}).get("metrics_scored") or 0),
+                as_of=(cached or {}).get("as_of"),
+                algorithm_id=(cached or {}).get("algorithm_id"),
             )
         )
     return rows
@@ -354,63 +396,32 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
     company = next((c for c in list_companies() if c["id"] == company_id), None)
     if company is None:
         from app.data.india_listings import find_listing
-        from app.services.provisional_gci import (
-            QUALITY,
-            make_provisional_outcomes,
-        )
+        from app.services.provisional_gci import QUALITY
 
         listing = find_listing(company_id)
         if listing is None:
             raise HTTPException(status_code=404, detail="Company not found")
 
-        outcomes = make_provisional_outcomes(
-            listing["id"], listing["ticker"], listing.get("sector") or "Equity"
-        )
-        from app.services.guidance_flags import collect_audit_flags
-
-        flags = collect_audit_flags(outcomes)
-        score = compute_company_gci(outcomes, audit_flags=flags)
-        chmap = _outcome_change_map(outcomes)
-        views = []
-        for o in outcomes:
-            meta = chmap.get((o.period, o.metric), {})
-            views.append(
-                _to_view(
-                    o,
-                    company_id=listing["id"],
-                    data_quality=QUALITY,
-                    actual_change_pct=meta.get("actual_change_pct"),
-                    actual_change_horizon=meta.get("actual_change_horizon"),
-                    guided_change_pct=meta.get("management_guidance_change_pct"),
-                    guided_change_horizon=meta.get("management_guidance_change_horizon"),
-                )
-            )
-        threads: Dict[str, List[OutcomeView]] = defaultdict(list)
-        for v in views:
-            if v.thread_id:
-                threads[v.thread_id].append(v)
-        trend = gci_trend_series(outcomes)
-        ch_pct, ch_h = _latest_trend_change(trend)
-        audit = _audit_payload(outcomes, company_id=listing["id"], ticker=listing["ticker"])
+        audit = _audit_payload([], company_id=listing["id"], ticker=listing["ticker"])
         return CompanyGCIDetail(
             id=listing["id"],
             name=listing["name"],
             ticker=listing["ticker"],
             sector=listing.get("sector") or "Equity",
-            gci_score=score,
-            status="ok" if score is not None else "insufficient_data",
+            gci_score=None,
+            status=NOT_SCORED_STATUS,
             data_quality=QUALITY,
-            by_metric=metric_breakdown(outcomes),
-            label_counts=label_counts(outcomes),
-            outcomes=views,
-            trend=trend,
+            by_metric={},
+            label_counts={},
+            outcomes=[],
+            trend=[],
             peer_rank_in_sector=None,
             sector_avg_gci=None,
-            threads=dict(threads),
-            sentiment={},
-            gci_change_pct=ch_pct,
-            gci_change_horizon=ch_h,
-            by_metric_changes=_by_metric_changes(outcomes),
+            threads={},
+            gci_change_pct=None,
+            gci_change_horizon=None,
+            by_metric_changes={},
+            algorithm_id=score_meta([], scoreable=False)["algorithm_id"],
             **audit,
         )
 
@@ -432,10 +443,9 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         if missing_bind or not accepted:
             ensure_company_citation_corpus(company_id)
     outcomes = get_outcomes(company_id)
-    from app.services.guidance_flags import collect_audit_flags
-
-    flags = collect_audit_flags(outcomes)
-    score = compute_company_gci(outcomes, audit_flags=flags)
+    scoreable = is_scoreable(quality)
+    smeta = score_meta(outcomes, scoreable=scoreable, company_id=company_id)
+    score = smeta["gci_score"]
     chmap = _outcome_change_map(outcomes)
     views = []
     for o in outcomes:
@@ -464,8 +474,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         reverse=True,
     )
     rank = next((i + 1 for i, (cid, _) in enumerate(ranked) if cid == company_id), None)
-    sentiment = get_data().get("sentiment", {}).get(company_id, {})
-    trend = gci_trend_series(outcomes)
+    trend = gci_trend_series(outcomes) if scoreable else []
     ch_pct, ch_h = _latest_trend_change(trend)
     audit = _audit_payload(outcomes, company_id=company_id, ticker=company["ticker"])
 
@@ -475,39 +484,44 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         ticker=company["ticker"],
         sector=company["sector"],
         gci_score=score,
-        status="ok" if score is not None else "insufficient_data",
+        status=_detail_status(score, quality),
         data_quality=company.get("data_quality", "demo_structured"),
-        by_metric=metric_breakdown(outcomes),
+        by_metric=smeta["by_metric"],
+        context_metrics=smeta["context_metrics"],
+        periods_by_metric=smeta["periods_by_metric"],
+        composite_weights=smeta["composite_weights"],
         label_counts=label_counts(outcomes),
         outcomes=views,
         trend=trend,
         peer_rank_in_sector=rank,
         sector_avg_gci=avg,
         threads=dict(threads),
-        sentiment=sentiment,
         gci_change_pct=ch_pct,
         gci_change_horizon=ch_h,
         by_metric_changes=_by_metric_changes(outcomes),
+        confidence_tier=smeta["confidence_tier"],
+        closed_periods=smeta["closed_periods"],
+        metrics_scored=smeta["metrics_scored"],
+        as_of=smeta["as_of"],
+        reviewed_at=smeta.get("reviewed_at"),
+        algorithm_id=smeta["algorithm_id"],
         **audit,
     )
 
 
 def pit_history(company_id: str) -> List[PitPoint]:
+    company = next((c for c in list_companies() if c["id"] == company_id), None)
+    if company is None:
+        from app.data.india_listings import find_listing
+
+        if find_listing(company_id) is None:
+            raise HTTPException(status_code=404, detail="Company not found")
+        return []
+    if not is_scoreable(company.get("data_quality")):
+        return []
     outcomes = get_outcomes(company_id)
     if not outcomes:
-        company = next((c for c in list_companies() if c["id"] == company_id), None)
-        if company is None:
-            from app.data.india_listings import find_listing
-            from app.services.provisional_gci import make_provisional_outcomes
-
-            listing = find_listing(company_id)
-            if listing is None:
-                raise HTTPException(status_code=404, detail="Company not found")
-            outcomes = make_provisional_outcomes(
-                listing["id"], listing["ticker"], listing.get("sector") or "Equity"
-            )
-        else:
-            return []
+        return []
     # Prefer explicit as_of; else use period labels as chronological proxy (still citeable outcomes).
     dates = sorted({o.as_of for o in outcomes if o.as_of})
     if len(dates) < 2:
@@ -515,7 +529,7 @@ def pit_history(company_id: str) -> List[PitPoint]:
         raw = []
         for i, period in enumerate(periods):
             subset = [o for o in outcomes if o.period in periods[: i + 1]]
-            score = audited_company_gci(subset)
+            score = audited_company_gci(subset, company_id=company_id)
             if score is None:
                 continue
             raw.append({"as_of": period, "gci_score": score})
@@ -523,7 +537,12 @@ def pit_history(company_id: str) -> List[PitPoint]:
         raw = []
         for d in dates:
             subset = [o for o in outcomes if o.as_of and o.as_of <= d]
-            raw.append({"as_of": d, "gci_score": audited_company_gci(subset)})
+            raw.append(
+                {
+                    "as_of": d,
+                    "gci_score": audited_company_gci(subset, company_id=company_id),
+                }
+            )
     enriched = enrich_value_series(raw, period_key="as_of", value_key="gci_score")
     return [
         PitPoint(
@@ -549,7 +568,7 @@ def _audit_payload(
         revision_timeline,
     )
 
-    summary = audit_summary(outcomes)
+    summary = audit_summary(outcomes, company_id=company_id)
     return {
         "audit_flags": summary["flags"],
         "audit_deduction": summary["deduction"],
@@ -563,6 +582,7 @@ def _audit_payload(
 
 
 def list_alerts() -> List[AlertItem]:
+    from app.data.metric_catalog import display_name_for
     from app.services.guidance_flags import collect_audit_flags, AUDIT_LABELS, AUDIT_SEVERITY
     from app.services.gci_scoring import AUDIT_PENALTY_PTS
 
@@ -588,7 +608,7 @@ def list_alerts() -> List[AlertItem]:
                     kind="docs_pending_review",
                     message=(
                         f"{c['ticker']}: {n} IR/transcript document(s) awaiting review "
-                        f"— open Desk → Review queue"
+                        f"— open the Analyst Workbench review queue"
                     ),
                     severity="medium",
                 )
@@ -600,7 +620,7 @@ def list_alerts() -> List[AlertItem]:
         outs = get_outcomes(c["id"])
 
         # Audit flags → red rail (withdrawal / restatement / definition shift)
-        for flag in collect_audit_flags(outs):
+        for flag in collect_audit_flags(outs, company_id=c["id"]):
             pts = AUDIT_PENALTY_PTS.get(flag, 0.0)
             alerts.append(
                 AlertItem(
@@ -666,7 +686,7 @@ def list_alerts() -> List[AlertItem]:
                             ticker=c["ticker"],
                             kind="thread_stale",
                             message=(
-                                f"{c['ticker']} has not reiterated {last.metric} guidance "
+                                f"{c['ticker']} has not reiterated {display_name_for(last.metric)} guidance "
                                 f"({last.period}) since {last.as_of} — quietly shelved?"
                             ),
                             severity="medium",
@@ -679,12 +699,17 @@ def list_alerts() -> List[AlertItem]:
         for o in outs:
             label = classify_outcome(o).value
             if label == "missed":
+                lo = o.guided_low if o.guided_low is not None else o.guided_value
+                hi = o.guided_high if o.guided_high is not None else o.guided_value
                 alerts.append(
                     AlertItem(
                         company_id=c["id"],
                         ticker=c["ticker"],
                         kind="large_miss",
-                        message=f"{c['ticker']} missed {o.metric} guidance for {o.period}",
+                        message=(
+                            f"{c['ticker']} missed {display_name_for(o.metric)} guidance "
+                            f"for {o.period} (guided {lo}–{hi}, reported {o.actual_value})"
+                        ),
                         severity="high",
                         period=o.period,
                         metric=o.metric,
@@ -697,7 +722,7 @@ def list_alerts() -> List[AlertItem]:
                         company_id=c["id"],
                         ticker=c["ticker"],
                         kind="guidance_dropped",
-                        message=f"{c['ticker']} dropped {o.metric} guidance ({o.period})",
+                        message=f"{c['ticker']} dropped {display_name_for(o.metric)} guidance ({o.period})",
                         severity="high",
                         period=o.period,
                         metric=o.metric,
@@ -714,8 +739,8 @@ def list_alerts() -> List[AlertItem]:
                             vals.append((x.guided_low + x.guided_high) / 2.0)
                         else:
                             vals.append(float(x.guided_value))
-                    if max(vals) - min(vals) >= 2:
-                        prev_m, cur_m = vals[0], vals[-1]
+                    prev_m, cur_m = vals[0], vals[-1]
+                    if abs(cur_m - prev_m) >= 2:
                         direction = "raised" if cur_m > prev_m else "lowered"
                         alerts.append(
                             AlertItem(
@@ -723,7 +748,7 @@ def list_alerts() -> List[AlertItem]:
                                 ticker=c["ticker"],
                                 kind="guidance_revised",
                                 message=(
-                                    f"{c['ticker']} {direction} {o.metric} guidance "
+                                    f"{c['ticker']} {direction} {display_name_for(o.metric)} guidance "
                                     f"{prev_m:.1f} → {cur_m:.1f}"
                                 ),
                                 severity="medium",
@@ -830,6 +855,12 @@ def merge_matched(company_id: str, matched: List[Dict[str, Any]]) -> int:
         cleaned.append(row)
     data["outcomes"][company_id] = data["outcomes"].get(company_id, []) + cleaned
     save_data()
+    try:
+        from app.services.labeling_queue import enqueue_flag_suggestions
+
+        enqueue_flag_suggestions(company_id)
+    except Exception:
+        pass
     return len(cleaned)
 
 
@@ -964,8 +995,10 @@ def search_entities(
         citeable_n = 0
         if seeded:
             outs = get_outcomes(seeded["id"])
-            score = audited_company_gci(outs)
             quality = seeded.get("data_quality", quality)
+            score = publishable_score(
+                audited_company_gci(outs, company_id=seeded["id"]), quality
+            )
             if quality in CITEABLE_QUALITIES:
                 citeable_n = sum(
                     1
@@ -1274,11 +1307,22 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
     for c in list_companies():
         if (c.get("ticker") or "").upper() == key:
             outcomes = get_outcomes(c["id"])
+            quality = c.get("data_quality", "demo_structured")
+            from app.services.guidance_flags import score_meta
+            from app.services.score_policy import is_scoreable
+
+            meta = score_meta(
+                outcomes, scoreable=is_scoreable(quality), company_id=c["id"]
+            )
             return {
                 "id": c["id"],
+                "name": c.get("name"),
                 "ticker": c["ticker"],
-                "gci_score": audited_company_gci(outcomes),
-                "data_quality": c.get("data_quality", "demo_structured"),
+                "gci_score": meta["gci_score"],
+                "data_quality": quality,
+                "confidence_tier": meta.get("confidence_tier"),
+                "as_of": meta.get("as_of"),
+                "algorithm_id": meta.get("algorithm_id"),
             }
 
     from app.data.gci_score_cache import get_listing_score
@@ -1300,67 +1344,58 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
         quality = scored.get("data_quality") or QUALITY
     return {
         "id": listing["id"],
+        "name": listing.get("name"),
         "ticker": listing["ticker"],
-        "gci_score": score,
+        "gci_score": publishable_score(score, quality),
         "data_quality": quality,
+        "confidence_tier": (cached or {}).get("confidence_tier"),
+        "as_of": (cached or {}).get("as_of"),
+        "algorithm_id": (cached or {}).get("algorithm_id"),
     }
 
 
+MIN_CITEABLE_PIT_FOR_DELTAS = 4
+
+
 def gci_change_bundle_for(company_id: str) -> Dict[str, Any]:
-    from app.services.changes import change_bundle, multi_horizon_gci_series
-    from app.services.pit_warehouse import get_pit_series, ensure_pit_series
+    """Score changes over time — only from the citeable outcome-as-of PIT series.
+
+    Rule `index-integrity`: a Δ is published only when ``series_kind == "citeable_pit"``
+    (≥4 analyst-reviewed as-of points). Otherwise every horizon is ``None`` and the
+    bundle says why. No synthetic (`demo_*` / `hybrid_*`) path is ever blended in.
+    """
+    from app.services.changes import change_bundle
 
     detail = get_company_gci(company_id)
     anchor = detail.gci_score
-    series = [
-        (str(p.get("period") or p.get("as_of") or ""), p.get("gci_score"))
-        for p in (detail.trend or [])
-    ]
-    series_kind = "seed_pit"
-    citeable = False
+    if anchor is None:
+        bundle = change_bundle(None, [])
+        bundle["series_kind"] = NOT_SCORED_STATUS
+        bundle["series_n"] = 0
+        bundle["citeable"] = False
+        return bundle
 
-    # Prefer citeable outcome as_of PIT when deep enough (≥4 for deltas; ≥12 for Granger).
     pit = pit_history(company_id)
-    if len(pit) >= 4:
+    if len(pit) >= MIN_CITEABLE_PIT_FOR_DELTAS:
         series = [(p.as_of, p.gci_score) for p in pit]
-        series_kind = "citeable_pit"
-        citeable = True
-    else:
-        wh = get_pit_series(company_id) or ensure_pit_series(company_id)
-        if wh and (wh.get("n") or 0) >= 2:
-            series = [
-                (str(p.get("as_of")), p.get("gci_score"))
-                for p in (wh.get("points") or [])
-                if p.get("gci_score") is not None
-            ]
-            series_kind = (wh or {}).get("series_kind") or "demo_pit_extension"
-            citeable = False
-        elif len(pit) >= 2:
-            series = [(p.as_of, p.gci_score) for p in pit]
-            series_kind = "citeable_pit_short"
-            citeable = True
+        bundle = change_bundle(anchor, series)
+        bundle["series_kind"] = "citeable_pit"
+        bundle["series_n"] = len(series)
+        bundle["citeable"] = True
+        return bundle
 
-    bundle = change_bundle(anchor, series)
-    # If calendar horizons still thin (FY-only citeable series), overlay weekly demo path
-    # for analytics chips — marked non-citeable / hybrid.
-    need = [bundle.get("wow_pct"), bundle.get("mom_pct"), bundle.get("qoq_pct"), bundle.get("yoy_pct")]
-    if anchor is not None and sum(1 for x in need if x is not None) < 3:
-        mh = multi_horizon_gci_series(company_id, float(anchor))
-        filled = change_bundle(anchor, mh)
-        for key in ("wow_pct", "mom_pct", "qoq_pct", "yoy_pct"):
-            if bundle.get(key) is None:
-                bundle[key] = filled.get(key)
-        if series_kind.startswith("citeable"):
-            series_kind = "hybrid_pit_horizons"
-            citeable = False
-        elif series_kind == "seed_pit":
-            series_kind = "demo_multi_horizon"
-        bundle["history"] = filled.get("history") or bundle.get("history")
-        bundle["pop_pct"] = filled.get("pop_pct", bundle.get("pop_pct"))
-        bundle["pop_horizon"] = filled.get("pop_horizon", bundle.get("pop_horizon"))
-        series = mh
-
-    bundle["series_kind"] = series_kind
-    bundle["series_n"] = len(series)
-    bundle["citeable"] = citeable
+    # Too few reviewed as-of points for a defensible delta — publish nothing.
+    bundle = change_bundle(None, [])
+    bundle["value"] = anchor
+    bundle["series_kind"] = "citeable_pit_short" if len(pit) >= 2 else "insufficient_history"
+    bundle["series_n"] = len(pit)
+    bundle["citeable"] = len(pit) >= 2
+    bundle["history"] = [
+        {"period": p.as_of, "value": p.gci_score, "change_pct": None, "change_horizon": None}
+        for p in pit
+    ]
+    bundle["note"] = (
+        f"Score changes appear after {MIN_CITEABLE_PIT_FOR_DELTAS} reviewed reporting dates "
+        f"({len(pit)} so far)."
+    )
     return bundle

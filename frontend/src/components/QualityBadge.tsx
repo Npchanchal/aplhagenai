@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 type Props = {
   quality?: string | null;
   testId?: string;
@@ -5,6 +7,7 @@ type Props = {
 
 /** Hand-labeled vs Demo / listing / scaffold honesty badge. */
 export default function QualityBadge({ quality, testId }: Props) {
+  const { t } = useI18n();
   const hand = quality === "hand_labeled";
   const scaffold = quality === "market_scaffold";
   const listing =
@@ -12,23 +15,23 @@ export default function QualityBadge({ quality, testId }: Props) {
   const provisional = quality === "listing_provisional";
   const cls = hand ? "hand" : scaffold || listing ? "scaffold" : "demo";
   const label = hand
-    ? "Hand-labeled"
+    ? t("ui.QualityBadge.hand.label")
     : provisional
-      ? "Provisional"
+      ? t("ui.QualityBadge.provisional.label")
       : listing
-        ? "Listing"
+        ? t("ui.QualityBadge.listing.label")
         : scaffold
-          ? "Scaffold"
-          : "Demo";
+          ? t("ui.QualityBadge.scaffold.label")
+          : t("ui.QualityBadge.demo.label");
   const title = hand
-    ? "Curated from public IR / guidance tables"
+    ? t("ui.QualityBadge.hand.title")
     : provisional
-      ? "GCI v2 on deterministic provisional guidance/actuals — not for external citation"
+      ? t("ui.QualityBadge.provisional.title")
       : listing
-        ? "NSE/BSE equity master — no GCI until guidance vs actuals are labeled"
+        ? t("ui.QualityBadge.listing.title")
         : scaffold
-          ? "Market scaffolding — not labeled GCI"
-          : "Demo structured seed — not for external citation";
+          ? t("ui.QualityBadge.scaffold.title")
+          : t("ui.QualityBadge.demo.title");
   return (
     <span className={`quality-badge ${cls}`} data-testid={testId} title={title}>
       {label}

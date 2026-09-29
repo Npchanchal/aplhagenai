@@ -1,0 +1,40 @@
+---
+description: Public copy voice for domain experts — plain finance English, canonical surface names, no engineering jargon
+globs: "{frontend/src/i18n/**,frontend/src/pages/**,frontend/src/components/**,frontend/src/lib/{glossary,blogPosts,tours,seoRoutes}.*,frontend/public/llms.txt,docs/customer/**}"
+alwaysApply: false
+---
+
+# Public copy voice
+
+Reader = Head of Research, PM, sell-side analyst, IR officer, financial journalist. They know what guidance and constant-currency growth are. They do not know our internals. Write like a results release, not a README.
+
+## Canonical names (display; URLs unchanged)
+
+GCI Screener (`/tracker`) · Analyst Workbench (`/desk`) · Filing Search (`/research`) · Disclosure Explorer (`/sights`) · Public Snapshot (`/rankings`). "Desk" is a **plan** name only. Brand lead: **GCI by CiteAlpha**.
+
+## Never in user-visible strings
+
+- Internal ids/terms: `revenue_growth_cc_pct`-style metric ids (use `metricDisplayName()`), `citeable corpus hits`, `PIT scaffold`, `hybrid_pit`, `series_kind`, `pit.v1`, `Tier-1 gate`, `demo_structured` (say "sample data"), `listing_provisional`.
+- Legacy/loaded names: `intellens`, `AlphaHunter` (say "Facts import"), `Promoter/Management Trust Score`, `Trust Score`, `One-Stop`, `CSM`, `OS`.
+- Advice-adjacent: `signal`, `alpha`, `outperform`, `target`, `avoid`, `undervalued`, Buy/Hold/Sell.
+- Ops leakage: env flags (`INTELLENS_*`, `BILLING_DEMO`), repo paths (`docs/customer/ORDER_FORM.md`), counsel/attestation status, `Current access: guest / guest`, "scaffold", "stub".
+- Unrendered templates (`{o.span_end}`) — add a test if a locator string is built by hand.
+
+## Density budget
+
+- ≤ 2 ⓘ tooltips per panel; prefer one clear sentence over a tooltip.
+- One primary button per panel; secondary actions are text links.
+- Every number: unit, "as of" date, and what it is a % *of* ("YoY of a growth rate" is not a metric — show the level).
+- Public dossier ≤ 6 panels (see `citealpha-expert-ux` skill). Workflow chrome (Run extract, Accept/reject, review queue) only behind a seat.
+
+## Examples
+
+```text
+❌ ADANIPORTS missed production_volume_mmt guidance for FY25
+✅ Adani Ports missed its FY25 cargo-volume guidance (guided 460–480 MMT, reported 450 MMT)
+
+❌ INDIA-DEEP; OTHER MARKETS ARE SCAFFOLDS
+✅ Covers Indian listed companies. Sensex scored; Nifty 50 in progress.
+```
+
+Copy hygiene test: `backend/tests/test_public_copy_hygiene.py` — extend its banned list when adding a term here.

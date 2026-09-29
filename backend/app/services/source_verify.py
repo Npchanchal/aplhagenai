@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -103,3 +105,220 @@ def verify_source_binding(source_url: Optional[str], quote_span: Optional[str]) 
     if not normalize_text(text):
         return None
     return quote_in_text(quote, text)
+
+
+# HTML press pages whose body does not contain the recorded quote on fetch (W2.7).
+# Excluded from citeable until an analyst re-cites a filing PDF / transcript.
+KNOWN_UNVERIFIED: tuple[tuple[str, str, str], ...] = (
+    ("hcltech", "FY26", "revenue_growth_cc_pct"),
+    ("maruti", "FY25", "wholesale_volume_growth_pct"),
+    ("jswsteel", "FY25", "revenue_growth_pct"),
+    ("grasim", "FY25", "underlying_volume_growth_pct"),
+)
+
+REPORT_PATH = Path(__file__).resolve().parent.parent / "data" / "source_verify_report.json"
+
+
+def iter_source_bindings() -> List[Dict[str, Any]]:
+    """Every actual + guidance URL/quote pair on hand-labeled outcomes."""
+    from app.data.seed import get_data, list_companies
+
+    quality = {c["id"]: c.get("data_quality") for c in list_companies()}
+    out: List[Dict[str, Any]] = []
+    for cid, rows in (get_data().get("outcomes") or {}).items():
+        if quality.get(cid) != "hand_labeled":
+            continue
+        for row in rows or []:
+            period = str(row.get("period") or "")
+            metric = str(row.get("metric") or "")
+            url = (row.get("source_url") or "").strip()
+            quote = (row.get("quote_span") or "").strip()
+            if url and quote:
+                out.append(
+                    {
+                        "company_id": cid,
+                        "period": period,
+                        "metric": metric,
+                        "kind": "actual",
+                        "url": url,
+                        "quote": quote,
+                    }
+                )
+            gurl = (row.get("guidance_source_url") or "").strip()
+            gquote = (row.get("guidance_quote") or "").strip()
+            if gurl and gquote:
+                out.append(
+                    {
+                        "company_id": cid,
+                        "period": period,
+                        "metric": metric,
+                        "kind": "guidance",
+                        "url": gurl,
+                        "quote": gquote,
+                    }
+                )
+    return out
+
+
+def load_report() -> Dict[str, Any]:
+    if not REPORT_PATH.exists():
+        return {
+            "as_of": None,
+            "checked": 0,
+            "verified": 0,
+            "failed": 0,
+            "fetch_failed": 0,
+            "failures": [],
+            "note": "Verification job has not run yet. python -m app.jobs.verify_sources",
+        }
+    try:
+        return json.loads(REPORT_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {
+            "as_of": None,
+            "checked": 0,
+            "verified": 0,
+            "failed": 0,
+            "fetch_failed": 0,
+            "failures": [],
+            "note": "Verification report unreadable.",
+        }
+
+
+def save_report(report: Dict[str, Any]) -> None:
+    REPORT_PATH.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+
+def _enqueue_verify_fail(
+    company_id: str, period: str, metric: str, kind: str, url: str
+) -> None:
+    from app.services.labeling_queue import enqueue, list_queue
+
+    token = f"{period}:{metric}:{kind}"
+    for row in list_queue():
+        if (
+            row.get("company_id") == company_id
+            and row.get("kind") == "source_verify_fail"
+            and row.get("flag") == token
+            and row.get("status") in ("queued", "in_progress")
+        ):
+            return
+    enqueue(
+        company_id=company_id,
+        org_id="demo",
+        priority="high",
+        note=(
+            f"Recorded {kind} quote for {period} {metric} is not on the source page. "
+            f"Row is not citeable until re-cited. {url}"
+        ),
+        requested_by="source_verify",
+        kind="source_verify_fail",
+        flag=token,
+    )
+
+
+def _mark_unverified(company_id: str, period: str, metric: str, kind: str) -> None:
+    from app.data.seed import get_data, save_data
+
+    data = get_data()
+    changed = False
+    for row in data.get("outcomes", {}).get(company_id) or []:
+        if str(row.get("period") or "") == period and str(row.get("metric") or "") == metric:
+            row["citeable"] = False
+            row["source_verified"] = False
+            row["source_verify_fail"] = kind
+            changed = True
+    if changed:
+        save_data()
+
+
+def verify_all_bindings(
+    *,
+    write: bool = False,
+    limit: Optional[int] = None,
+    verify_fn=None,
+) -> Dict[str, Any]:
+    """Check every hand-labeled source URL for quote presence.
+
+    ``verify_fn(url, quote) -> True | False | None`` (None = fetch failed).
+    """
+    from datetime import datetime, timezone
+
+    fn = verify_fn or verify_source_binding
+    bindings = iter_source_bindings()
+    if limit is not None and limit > 0:
+        bindings = bindings[:limit]
+    verified = 0
+    failed = 0
+    fetch_failed = 0
+    failures: List[Dict[str, Any]] = []
+    for b in bindings:
+        result = fn(b["url"], b["quote"])
+        if result is True:
+            verified += 1
+            continue
+        if result is None:
+            fetch_failed += 1
+            continue
+        failed += 1
+        failures.append(
+            {
+                "company_id": b["company_id"],
+                "period": b["period"],
+                "metric": b["metric"],
+                "kind": b["kind"],
+                "url": b["url"],
+            }
+        )
+        if write:
+            _mark_unverified(b["company_id"], b["period"], b["metric"], b["kind"])
+            try:
+                _enqueue_verify_fail(
+                    b["company_id"], b["period"], b["metric"], b["kind"], b["url"]
+                )
+            except Exception:
+                pass
+    report = {
+        "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "checked": len(bindings),
+        "verified": verified,
+        "failed": failed,
+        "fetch_failed": fetch_failed,
+        "failures": failures[:50],
+        "note": (
+            "A link is verified when the recorded quote appears on the filing. "
+            "Missing quotes are not citeable and are queued for re-cite. "
+            "Fetch failures are retried on the next run."
+        ),
+    }
+    save_report(report)
+    return report
+
+
+def report_stale(*, max_age_hours: float = 24.0) -> bool:
+    from datetime import datetime, timezone
+
+    raw = load_report().get("as_of")
+    if not raw:
+        return True
+    try:
+        as_of = datetime.strptime(str(raw).replace("Z", ""), "%Y-%m-%dT%H:%M:%S")
+        as_of = as_of.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return True
+    age = (datetime.now(timezone.utc) - as_of).total_seconds() / 3600.0
+    return age >= max_age_hours
+
+
+def maybe_run_nightly_verify(*, write: bool = True, live: bool = False) -> Optional[Dict[str, Any]]:
+    """Used by the 6h refresh loop: run at most once per 24h when enabled and live."""
+    import os
+
+    if not live:
+        return None
+    raw = (os.environ.get("INTELLENS_VERIFY_SOURCES") or "").strip().lower()
+    if raw not in ("1", "true", "yes", "on"):
+        return None
+    if not report_stale():
+        return None
+    return verify_all_bindings(write=write)

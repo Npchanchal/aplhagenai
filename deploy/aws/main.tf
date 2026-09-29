@@ -710,7 +710,18 @@ resource "aws_ecs_task_definition" "app" {
           { name = "RADAR_DIGEST", value = var.radar_digest ? "1" : "0" },
           { name = "IR_MIRROR", value = var.ir_mirror ? "1" : "0" },
           { name = "PORTFOLIO_STRETCH", value = var.portfolio_stretch ? "1" : "0" }
-        ]
+        ],
+        var.enable_auth_efs && var.use_db_auth ? [
+          { name = "INTELLENS_DATA_DIR", value = "/data/citealpha" }
+        ] : [],
+        var.enable_index_bucket ? [
+          { name = "INTELLENS_INDEX_S3_BUCKET", value = aws_s3_bucket.index[0].bucket },
+          { name = "INTELLENS_INDEX_S3_PREFIX", value = "index" },
+          { name = "INTELLENS_LEDGER_DIGEST", value = "1" }
+        ] : [],
+        var.ledger_digest_to != "" ? [
+          { name = "INTELLENS_LEDGER_DIGEST_TO", value = var.ledger_digest_to }
+        ] : []
       )
       secrets = local.secrets_enabled ? local.api_secret_refs : []
       logConfiguration = {

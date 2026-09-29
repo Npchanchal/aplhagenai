@@ -6,10 +6,10 @@
 
 | Priority | Item | Status |
 |---|---|---|
-| Legal | Counsel sign-off on Terms/Privacy | **Shipped** — `POST /api/legal/attest` (admin) + `/api/legal/meta` counsel_status |
+| Legal | Counsel sign-off on Terms/Privacy | **Pending** — API exists (`POST /api/legal/attest kind=terms_privacy`); do not self-attest. Brief: `docs/customer/COMPLIANCE.md` |
 | Infra | Postgres/SQL auth, HTTPS, secrets, backups | **Shipped** — `USE_DB_AUTH` / `USE_POSTGRES_AUTH`, HSTS middleware, `scripts/backup-intellens.sh`, `scripts/check-production-secrets.sh`, `.env.production.example` |
 | B2B | OIDC per org, invite/revoke, MSA billing | **Shipped** — org OIDC + `email_domain`, seat admin, `POST /api/billing/msa` + e-sign |
-| B2C | SEBI counsel, paywall, abuse controls | **Shipped** — SEBI attest unlocks paywall; `/billing` UPI checkout; `/api/auth/abuse-challenge` |
+| B2C | SEBI counsel, paywall, abuse controls | **Off** — W8.1 / D1 (2026-09-29): individual signup 403 until `sebi_retail` attest; abuse challenge still on guest/register |
 | Auth | Email verify + password reset | **Shipped** |
 | Ops | Platform admin portal (role-based) | **Shipped** — `/admin` · `/api/admin/portal/*` · see `docs/ADMIN_PORTAL.md` |
 

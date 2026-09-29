@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 type Point = { label: string; value: number | null | undefined };
 
 type LineChartProps = {
@@ -42,12 +44,13 @@ export function LineChart({
   height = 160,
   color = "var(--accent)",
   yDomain,
-  ariaLabel = "Line chart",
+  ariaLabel,
   maxXTicks = 6,
 }: LineChartProps) {
+  const { t } = useI18n();
   const usable = points.filter((p) => p.value != null) as { label: string; value: number }[];
   if (usable.length < 2) {
-    return <p className="muted chart-empty">Not enough points to chart.</p>;
+    return <p className="muted chart-empty">{t("ui.Charts.notEnoughPoints")}</p>;
   }
   const padL = 36;
   const padR = 12;
@@ -80,7 +83,7 @@ export function LineChart({
       className="chart-svg"
       viewBox={`0 0 ${w} ${h}`}
       role="img"
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? t("ui.Charts.lineChart")}
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
@@ -89,11 +92,11 @@ export function LineChart({
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[0, 0.5, 1].map((t) => {
-        const y = padT + t * innerH;
-        const v = ymax - t * span;
+      {[0, 0.5, 1].map((tick) => {
+        const y = padT + tick * innerH;
+        const v = ymax - tick * span;
         return (
-          <g key={t}>
+          <g key={tick}>
             <line
               x1={padL}
               x2={w - padR}
@@ -137,13 +140,14 @@ type BarChartProps = {
 };
 
 /** Horizontal bars — good for metric usage / family counts. Supports signed values. */
-export function BarChart({ rows, max, unit = "", ariaLabel = "Bar chart" }: BarChartProps) {
+export function BarChart({ rows, max, unit = "", ariaLabel }: BarChartProps) {
+  const { t } = useI18n();
   if (!rows.length) {
-    return <p className="muted chart-empty">No data.</p>;
+    return <p className="muted chart-empty">{t("ui.Charts.noData")}</p>;
   }
   const peak = max ?? Math.max(...rows.map((r) => Math.abs(r.value)), 1);
   return (
-    <div className="bar-chart" role="img" aria-label={ariaLabel}>
+    <div className="bar-chart" role="img" aria-label={ariaLabel ?? t("ui.Charts.barChart")}>
       {rows.map((r) => {
         const signed = r.value;
         const fill =
@@ -189,18 +193,19 @@ export function DualLineChart({
   left,
   right,
   leftName = "GCI",
-  rightName = "Price",
+  rightName,
   height = 160,
-  ariaLabel = "Dual series",
+  ariaLabel,
 }: DualLineProps) {
+  const { t } = useI18n();
   const n = Math.min(left.length, right.length);
-  if (n < 2) return <p className="muted chart-empty">Need ≥2 aligned points.</p>;
+  if (n < 2) return <p className="muted chart-empty">{t("ui.Charts.needAligned")}</p>;
   const L = left.slice(-n);
   const R = right.slice(-n);
   const lnums = L.map((p) => p.value).filter((v): v is number => v != null);
   const rnums = R.map((p) => p.value).filter((v): v is number => v != null);
   if (lnums.length < 2 || rnums.length < 2) {
-    return <p className="muted chart-empty">Insufficient series.</p>;
+    return <p className="muted chart-empty">{t("ui.Charts.insufficientSeries")}</p>;
   }
   const lmin = Math.min(...lnums);
   const lmax = Math.max(...lnums);
@@ -227,13 +232,13 @@ export function DualLineChart({
       .filter(Boolean)
       .join(" ");
   return (
-    <div className="dual-line" role="img" aria-label={ariaLabel}>
+    <div className="dual-line" role="img" aria-label={ariaLabel ?? t("ui.Charts.dualSeries")}>
       <div className="compare-legend">
         <span>
           <i className="swatch entity" /> {leftName}
         </span>
         <span>
-          <i className="swatch industry" /> {rightName} (norm.)
+          <i className="swatch industry" /> {t("ui.Charts.normalized", { name: rightName ?? t("ui.Charts.price") })}
         </span>
       </div>
       <svg width="100%" viewBox={`0 0 ${w} ${height}`} height={height}>
@@ -261,16 +266,17 @@ type CompareBarProps = {
 };
 
 /** Dual horizontal bars (entity vs industry). */
-export function CompareBars({ rows, ariaLabel = "Comparison chart" }: CompareBarProps) {
+export function CompareBars({ rows, ariaLabel }: CompareBarProps) {
+  const { t } = useI18n();
   const peak = Math.max(1, ...rows.flatMap((r) => [r.left, r.right ?? 0]));
   return (
-    <div className="compare-bars" role="img" aria-label={ariaLabel}>
+    <div className="compare-bars" role="img" aria-label={ariaLabel ?? t("ui.Charts.comparisonChart")}>
       <div className="compare-legend">
         <span>
-          <i className="swatch entity" /> Entity
+          <i className="swatch entity" /> {t("ui.Charts.entity")}
         </span>
         <span>
-          <i className="swatch industry" /> Industry
+          <i className="swatch industry" /> {t("ui.Charts.industry")}
         </span>
       </div>
       {rows.map((r) => (
@@ -281,14 +287,14 @@ export function CompareBars({ rows, ariaLabel = "Comparison chart" }: CompareBar
               <div
                 className="bar-fill entity"
                 style={{ width: `${(r.left / peak) * 100}%` }}
-                title={`Entity ${r.left}`}
+                title={t("ui.Charts.entityValue", { value: r.left })}
               />
             </div>
             <div className="bar-track">
               <div
                 className="bar-fill industry"
                 style={{ width: `${((r.right ?? 0) / peak) * 100}%` }}
-                title={`Industry ${r.right ?? "—"}`}
+                title={t("ui.Charts.industryValue", { value: r.right ?? "—" })}
               />
             </div>
           </div>
@@ -312,8 +318,9 @@ export function DonutChart({
   slices,
   size = 140,
   centerLabel,
-  ariaLabel = "Donut chart",
+  ariaLabel,
 }: DonutProps) {
+  const { t } = useI18n();
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   const r = 52;
   const c = 2 * Math.PI * r;
@@ -327,7 +334,7 @@ export function DonutChart({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         role="img"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? t("ui.Charts.donutChart")}
       >
         {slices.map((sl) => {
           const len = (sl.value / total) * c;

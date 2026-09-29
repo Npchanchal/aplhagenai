@@ -1,12 +1,14 @@
 /**
- * Capture Tier 1–3 feature screenshots from a live IntelLens URL.
+ * Capture Tier 1–3 feature screenshots from a live CiteAlpha URL.
+ * Writes to docs/screenshots/tiers and frontend/public/screenshots/tiers (served by /about/tiers).
  *
  * Usage (from repo root or e2e — needs Playwright deps from e2e/):
- *   cd e2e && NODE_PATH=./node_modules BASE_URL=$(../scripts/aws-app-url.sh) \
+ *   cd e2e && NODE_PATH=./node_modules BASE_URL=https://citealpha.com \
  *     node ../scripts/capture-tier-screenshots.mjs
+ * Desk (Analyst Workbench) panels require a Pilot/Desk session: set AUTH_TOKEN to a bearer token.
  */
 import { createRequire } from "module";
-import { mkdirSync } from "fs";
+import { copyFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -15,21 +17,42 @@ const requireFromE2e = createRequire(join(__dirname, "../e2e/package.json"));
 const { chromium } = requireFromE2e("@playwright/test");
 
 const OUT = join(__dirname, "../docs/screenshots/tiers");
+const PUBLIC_OUT = join(__dirname, "../frontend/public/screenshots/tiers");
 const BASE = process.env.BASE_URL || process.env.E2E_BASE_URL || "http://127.0.0.1:8080";
 
 mkdirSync(OUT, { recursive: true });
+mkdirSync(PUBLIC_OUT, { recursive: true });
 
 async function shot(page, name, locator, pad = 8) {
+  await capture(page, name, locator, pad);
+  copyFileSync(join(OUT, `${name}.png`), join(PUBLIC_OUT, `${name}.png`));
+}
+
+async function capture(page, name, locator, pad) {
   const path = join(OUT, `${name}.png`);
   if (locator) {
     const el = typeof locator === "string" ? page.locator(locator).first() : locator;
+    await el.waitFor({ state: "attached", timeout: 20000 }).catch(() => {});
     if (await el.count()) {
       await el.scrollIntoViewIfNeeded();
       await page.waitForTimeout(350);
-      const box = await el.boundingBox();
-      if (box) {
+      const box = await el.evaluate((node) => {
+        const r = node.getBoundingClientRect();
+        return { x: r.left + window.scrollX, y: r.top + window.scrollY, width: r.width, height: r.height };
+      });
+      if (box && box.width > 0 && box.height > 0) {
+        // Sticky/fixed chrome would otherwise overlay the panel in a full-page clip.
+        await el.evaluate((target) => {
+          for (const n of document.querySelectorAll("body *")) {
+            if (target.contains(n) || n.contains(target)) continue;
+            const pos = getComputedStyle(n).position;
+            if (pos === "sticky" || pos === "fixed") n.setAttribute("data-shot-hidden", n.style.visibility || "-");
+          }
+          for (const n of document.querySelectorAll("[data-shot-hidden]")) n.style.visibility = "hidden";
+        });
         await page.screenshot({
           path,
+          fullPage: true,
           clip: {
             x: Math.max(0, box.x - pad),
             y: Math.max(0, box.y - pad),
@@ -37,16 +60,32 @@ async function shot(page, name, locator, pad = 8) {
             height: Math.min(900, Math.max(box.height + pad * 2, 200)),
           },
         });
+        await page.evaluate(() => {
+          for (const n of document.querySelectorAll("[data-shot-hidden]")) {
+            const prev = n.getAttribute("data-shot-hidden");
+            n.style.visibility = prev === "-" ? "" : prev;
+            n.removeAttribute("data-shot-hidden");
+          }
+        });
         console.log("saved", name);
         return;
       }
     }
   }
   await page.screenshot({ path });
-  console.log("saved", name, "(full viewport)");
+  console.log("saved", name, locator ? `(full viewport — ${locator} not found)` : "(full viewport)");
 }
 
 async function dismissTours(page) {
+  const consent = page.locator('[data-testid="consent-banner"] button', { hasText: "Decline" }).first();
+  const bannerShown = await consent
+    .waitFor({ state: "visible", timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (bannerShown) {
+    await consent.click().catch(() => {});
+    await page.waitForTimeout(300);
+  }
   if (await page.locator('[data-testid="tour-welcome-dismiss"]').count()) {
     await page.locator('[data-testid="tour-welcome-dismiss"]').click();
   }
@@ -62,15 +101,20 @@ async function main() {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
   });
+  if (process.env.AUTH_TOKEN) {
+    await page.addInitScript((tkn) => {
+      localStorage.setItem("intellens.auth.token", tkn);
+    }, process.env.AUTH_TOKEN);
+  }
 
-  await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: 90000 });
-  await page.waitForTimeout(1000);
+  await page.goto(`${BASE}/tracker`, { waitUntil: "domcontentloaded", timeout: 90000 });
+  await page.waitForTimeout(2000);
   await dismissTours(page);
-
-  await page.locator('[data-testid="entity-search"]').fill("INFY");
-  await page.waitForTimeout(800);
-  await shot(page, "01-entity-search");
   await shot(page, "00-tracker-overview");
+
+  await page.locator('[data-testid="universe-search"]').fill("INFY");
+  await page.waitForTimeout(1500);
+  await shot(page, "01-entity-search");
 
   await page.goto(`${BASE}/companies/infy`, { waitUntil: "domcontentloaded", timeout: 90000 });
   await page.waitForTimeout(2000);
@@ -106,12 +150,12 @@ async function main() {
   } catch {
     /* optional */
   }
-  await shot(page, "11-report-templates-desk");
+  await shot(page, "11-report-templates-desk", '.panel:has([data-testid="generate-report"])');
 
   await page.goto(`${BASE}/about`, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForTimeout(600);
-  await page.locator("#tiers").scrollIntoViewIfNeeded().catch(() => {});
-  await shot(page, "00-about-tiers");
+  await dismissTours(page);
+  await shot(page, "00-about-tiers", "#layers");
 
   await browser.close();
   console.log("done →", OUT);

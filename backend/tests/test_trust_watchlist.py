@@ -1,5 +1,7 @@
 """Trust Center + editable watchlist prefs."""
 
+import json
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -19,7 +21,8 @@ def test_trust_center_payload():
     assert "sso" in body
     assert "security" in body
     assert body["residency"]["region"] == "ap-south-1"
-    assert body["compliance"]["counsel_status"]
+    assert "counsel_status" not in body["compliance"]
+    assert "counsel_status" not in (body.get("copyright") or {})
     assert body["compliance"]["contact_email"] == "sales@citealpha.com"
     assert any(p["name"] == "Amazon Web Services" for p in body["subprocessors"])
     assert "DPA" in body["incident"]["note"] or "dpa" in body["incident"]["note"].lower()
@@ -27,6 +30,15 @@ def test_trust_center_payload():
     assert body["labeling_governance"]["two_person_review"] is True
     assert "googletagmanager" in (body["security"].get("csp") or "")
     assert "googletagmanager.com" in (r.headers.get("content-security-policy") or "")
+
+
+def test_public_trust_strips_internal_keys():
+    """W8.2: public Trust JSON must not leak counsel, env flags, or SSO readiness."""
+    blob = json.dumps(client.get("/api/trust").json())
+    assert "counsel_" not in blob
+    assert "INTELLENS_" not in blob
+    assert "production_ready" not in blob
+    assert "ops-dependent" not in blob
 
 
 def test_watchlist_ids_query():

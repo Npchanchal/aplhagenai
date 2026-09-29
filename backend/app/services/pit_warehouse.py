@@ -41,11 +41,31 @@ def _quarter_labels(n: int = TARGET_POINTS) -> List[str]:
 
 
 def build_company_pit_series(company_id: str, *, n: int = TARGET_POINTS) -> Dict[str, Any]:
-    """Deterministic quarterly GCI path anchored on current seed GCI."""
+    """Deterministic quarterly GCI path anchored on current seed GCI.
+
+    Workbench-only analytics scaffolding (never served on public routes — rule
+    `index-integrity`). Returns an empty series when the company has no
+    published GCI: we never anchor a synthetic path on an invented level.
+    """
+    from app.services.score_policy import publishable_score
+
+    company = next((c for c in list_companies() if c["id"] == company_id), None)
     outcomes = get_outcomes(company_id)
-    anchor = audited_company_gci(outcomes)
+    anchor = publishable_score(
+        audited_company_gci(outcomes, company_id=company_id),
+        (company or {}).get("data_quality"),
+    )
     if anchor is None:
-        anchor = 70.0
+        return {
+            "company_id": company_id,
+            "series_kind": SERIES_KIND,
+            "n": 0,
+            "anchor_gci": None,
+            "citeable": False,
+            "note": "No published GCI — synthetic extension not built.",
+            "points": [],
+            "gci_values": [],
+        }
     labels = _quarter_labels(n)
     scores: List[float] = []
     gci = float(anchor)
@@ -213,7 +233,7 @@ def _citeable_points(company_id: str) -> List[Dict[str, Any]]:
     if len(dates) >= 2:
         for d in dates:
             subset = [o for o in outcomes if o.as_of and o.as_of <= d]
-            score = audited_company_gci(subset)
+            score = audited_company_gci(subset, company_id=company_id)
             if score is None:
                 continue
             raw.append(
@@ -228,7 +248,7 @@ def _citeable_points(company_id: str) -> List[Dict[str, Any]]:
         periods = sorted({o.period for o in outcomes if o.period})
         for i, period in enumerate(periods):
             subset = [o for o in outcomes if o.period in periods[: i + 1]]
-            score = audited_company_gci(subset)
+            score = audited_company_gci(subset, company_id=company_id)
             if score is None:
                 continue
             raw.append(

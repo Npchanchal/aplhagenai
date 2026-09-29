@@ -69,6 +69,8 @@ VERIFIED_SENSEX_SOURCES: Dict[str, List[Dict[str, Any]]] = {
             "quote_span": "guidance of 2%-5% revenue growth YoY (CC)",
             "as_of": "2025-04-22",
             "speaker": "CEO",
+            "citeable": False,
+            "source_verified": False,
         },
     ],
     "itc": [
@@ -117,6 +119,8 @@ VERIFIED_SENSEX_SOURCES: Dict[str, List[Dict[str, Any]]] = {
             "quote_span": "aggregate growth of 4.6% for the year",
             "as_of": "2025-04-25",
             "speaker": "MD",
+            "citeable": False,
+            "source_verified": False,
         },
     ],
     # --- Fake IR-curated cohort ---
@@ -276,6 +280,8 @@ VERIFIED_SENSEX_SOURCES: Dict[str, List[Dict[str, Any]]] = {
             "quote_span": "Highest ever Saleable Steel Sales: 26.452 million tonnes",
             "as_of": "2025-05-16",
             "speaker": "MD",
+            "citeable": False,
+            "source_verified": False,
         },
     ],
     "kotakbank": [
@@ -633,6 +639,8 @@ VERIFIED_SENSEX_SOURCES: Dict[str, List[Dict[str, Any]]] = {
             "quote_span": "higher sales volumes, up 17% YoY to 41.02 million tons",
             "as_of": "2025-05-14",
             "speaker": "Management",
+            "citeable": False,
+            "source_verified": False,
         },
     ],
     "hero_motocorp": [

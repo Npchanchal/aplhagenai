@@ -42,11 +42,14 @@ export const SIGHTS_ROUTES: RouteSpec[] = [
   { path: "/sights", testId: "sights-hub" },
   { path: "/sights/search", testId: "sights-search" },
   { path: "/sights/ask", testId: "sights-ask" },
+  { path: "/sights/grid", testId: "sights-grid" },
+];
+
+export const SIGHTS_ADVANCED_ROUTES: RouteSpec[] = [
   { path: "/sights/boards", testId: "sights-boards" },
   { path: "/sights/themes", testId: "sights-themes" },
   { path: "/sights/street", testId: "sights-street" },
   { path: "/sights/field", testId: "sights-field" },
-  { path: "/sights/grid", testId: "sights-grid" },
   { path: "/sights/deep-dive", testId: "sights-deep-dive" },
   { path: "/sights/fundamentals", testId: "sights-fundamentals" },
   { path: "/sights/agents", testId: "sights-agents" },
@@ -61,6 +64,8 @@ export const CORE_ROUTES: RouteSpec[] = [
   { path: "/desk", testId: "desk-page" },
   { path: "/research", testId: "research-page" },
   { path: "/products", testId: "products-page" },
+  { path: "/developers", testId: "developers-page" },
+  { path: "/status", testId: "status-page" },
   { path: "/package", testId: "package-page" },
   { path: "/pilot", testId: "pilot-request-page" },
   { path: "/rankings", testId: "gci-rankings-page" },

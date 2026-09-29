@@ -14,7 +14,7 @@ describe("glossary", () => {
   it("describes scorer v4 for dropped and listings", () => {
     expect(GLOSSARY.dropped.tip).toMatch(/v4/i);
     expect(GLOSSARY.dropped.tip).toMatch(/−15|-15/);
-    expect(GLOSSARY.nse_bse.tip).toMatch(/v4/);
+    expect(GLOSSARY.nse_bse.tip).toMatch(/Not yet scored/);
     expect(GLOSSARY.exceeded.tip).toMatch(/v4/);
     expect(GLOSSARY.exceeded.tip).toMatch(/60/);
   });

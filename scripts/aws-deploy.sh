@@ -233,10 +233,13 @@ docker push "${ECR_WEB}:${TAG}"
 
 echo "== Terraform apply (ECS task env — skip ACM wait) =="
 cd "$AWS_DIR"
+# production.overlay.tfvars wins over terraform.tfvars for the keys it sets
+# (on-demand Fargate, index bucket). Auto-loaded terraform.tfvars still supplies VPC and secrets.
+TF_VAR_FILES=(-var-file=production.overlay.tfvars)
 # Full apply can block 10m+ on ACM DNS validation until Hostinger NS cutover.
 # Default deploy only refreshes the task definition (and service when safe).
 if [[ "${TF_FULL_APPLY:-}" == "1" ]]; then
-  terraform apply -input=false -auto-approve
+  terraform apply -input=false -auto-approve "${TF_VAR_FILES[@]}"
 else
   # Task def + service + persistent auth EFS + secrets + alarms when enabled
   TF_TARGETS=(
@@ -260,10 +263,16 @@ else
     -target=aws_backup_vault.auth
     -target=aws_backup_plan.auth_efs
     -target=aws_backup_selection.auth_efs
+    -target=aws_ecs_cluster_capacity_providers.main
+    -target=aws_s3_bucket.index
+    -target=aws_s3_bucket_versioning.index
+    -target=aws_s3_bucket_server_side_encryption_configuration.index
+    -target=aws_s3_bucket_public_access_block.index
+    -target=aws_iam_role_policy.ecs_task_index_s3
     -target=aws_ecs_task_definition.app
     -target=aws_ecs_service.app
   )
-  terraform apply -input=false -auto-approve "${TF_TARGETS[@]}"
+  terraform apply -input=false -auto-approve "${TF_VAR_FILES[@]}" "${TF_TARGETS[@]}"
   echo "== Tip: TF_FULL_APPLY=1 for ALB/HTTPS/ACM; needs Route53 NS live =="
 fi
 

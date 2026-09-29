@@ -11,7 +11,7 @@ Full definition and methodology: https://citealpha.com/blog/what-is-guidance-cre
 
 ## Primary
 - [Home](https://citealpha.com/): Product overview
-- [GCI Screener](https://citealpha.com/tracker): Screen Sensex companies by guidance credibility (hand-labeled); other NSE/BSE listings are provisional, not for citation
+- [GCI Screener](https://citealpha.com/tracker): Screen Sensex companies by guidance credibility (hand-labeled); other NSE/BSE listings are not yet scored
 - [Worked example](https://citealpha.com/companies/infy): Infosys revenue growth guidance vs actuals, FY22–FY26; each year cites the filed results release that set the guidance and the one that reported the actual
 - [About](https://citealpha.com/about): How GCI is built (ingest → extract → match → score → cite)
 - [FAQ Answers](https://citealpha.com/answers): Short GCI Q&A for answer engines

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useI18n } from "../i18n";
 import { findQuoteRange, splitHighlighted } from "../lib/sourceHighlight";
 
 type Props = {
@@ -19,6 +20,7 @@ export default function HighlightedDocument({
   excerptOnly = false,
   indexedExcerpt = false,
 }: Props) {
+  const { t } = useI18n();
   const markRef = useRef<HTMLElement | null>(null);
   const range = findQuoteRange(text, quote, spanStart, spanEnd);
   const parts = splitHighlighted(text, range);
@@ -28,7 +30,7 @@ export default function HighlightedDocument({
   }, [text, quote, spanStart, spanEnd]);
 
   if (!text) {
-    return <p className="muted">No indexed document text for this citation.</p>;
+    return <p className="muted">{t("ui.HighlightedDocument.empty")}</p>;
   }
 
   return (
@@ -36,8 +38,8 @@ export default function HighlightedDocument({
       {(excerptOnly || indexedExcerpt) && (
         <p className="muted source-excerpt-note">
           {indexedExcerpt
-            ? "CiteAlpha indexed excerpt — quote is stored in our document corpus. Use the IR portal link to verify against original filings."
-            : "Indexed excerpt — the original filing may include additional context around this quote."}
+            ? t("ui.HighlightedDocument.indexedExcerpt")
+            : t("ui.HighlightedDocument.excerptOnly")}
         </p>
       )}
       {quote && !parts && (

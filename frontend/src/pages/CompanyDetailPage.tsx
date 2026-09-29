@@ -7,6 +7,9 @@ import Disclaimer from "../components/Disclaimer";
 import EvidenceTable from "../components/EvidenceTable";
 import InfoTip from "../components/InfoTip";
 import QualityBadge from "../components/QualityBadge";
+import RecordSentence from "../components/RecordSentence";
+import ScoreCalcPanel from "../components/ScoreCalcPanel";
+import TierBadge from "../components/TierBadge";
 import RevisionTimeline from "../components/RevisionTimeline";
 import ScoreReveal from "../components/ScoreReveal";
 import Skeleton from "../components/Skeleton";
@@ -39,42 +42,52 @@ import {
   postGenerateReport,
   postNote,
   postReview,
+  recordCiteCopy,
   ApiError,
   type CompanyGCIDetail,
   type StockHistory,
   type VernacularPayload,
   type WordmapPayload,
 } from "../lib/api";
-import { tipForLabel } from "../lib/glossary";
-import { scoreClass } from "../lib/score";
+import { formatOutcomeLabel, tipForLabel } from "../lib/glossary";
+import { formatDossierDate, formatScore, metricDisplayName, scoreClass, buildRecordParts, englishRecordSentence } from "../lib/score";
+import { dossierSeo } from "../lib/seo";
+import { setSeoOverride } from "../lib/seoOverride";
 import { severityLabel } from "../lib/severity";
+import { CONTACT_EMAIL } from "../lib/legal";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
 import { trackEvent } from "../lib/analytics";
 
+const TOC_PUBLIC = [
+  { id: "record", labelKey: "ui.CompanyDetailPage.toc.record" },
+  { id: "evidence", labelKey: "ui.CompanyDetailPage.toc.evidence" },
+  { id: "revisions", labelKey: "ui.CompanyDetailPage.toc.revisions" },
+  { id: "calc", labelKey: "ui.CompanyDetailPage.toc.calc" },
+] as const;
+
 const TOC_PRIMARY = [
-  { id: "evidence", label: "Evidence" },
-  { id: "ledger", label: "Ledger" },
-  { id: "docs", label: "Docs" },
-  { id: "trend", label: "Trend" },
-  { id: "report", label: "Report" },
+  { id: "ledger", labelKey: "ui.CompanyDetailPage.toc.ledger" },
+  { id: "docs", labelKey: "ui.CompanyDetailPage.toc.docs" },
+  { id: "trend", labelKey: "ui.CompanyDetailPage.toc.trend" },
+  { id: "report", labelKey: "ui.CompanyDetailPage.toc.report" },
 ] as const;
 
 const TOC_MORE = [
-  { id: "radar-diff", label: "Radar" },
-  { id: "revisions", label: "Revisions" },
-  { id: "analytics", label: "Analytics" },
-  { id: "threads", label: "Threads" },
-  { id: "metrics", label: "Metrics" },
-  { id: "notes", label: "Notes" },
-  { id: "pit", label: "PIT" },
-  { id: "context", label: "Context" },
+  { id: "radar-diff", labelKey: "ui.CompanyDetailPage.toc.radar_diff" },
+  { id: "revisions", labelKey: "ui.CompanyDetailPage.toc.revisions" },
+  { id: "analytics", labelKey: "ui.CompanyDetailPage.toc.analytics" },
+  { id: "threads", labelKey: "ui.CompanyDetailPage.toc.threads" },
+  { id: "metrics", labelKey: "ui.CompanyDetailPage.toc.metrics" },
+  { id: "notes", labelKey: "ui.CompanyDetailPage.toc.notes" },
+  { id: "pit", labelKey: "ui.CompanyDetailPage.toc.pit" },
+  { id: "context", labelKey: "ui.CompanyDetailPage.toc.context" },
 ] as const;
 
 export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
-  const { has } = useEntitlements();
+  const { has, entitlements } = useEntitlements();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [history, setHistory] = useState<
@@ -102,6 +115,10 @@ export default function CompanyDetailPage() {
     yoy_pct?: number | null;
     pop_pct?: number | null;
     pop_horizon?: string | null;
+    series_kind?: string | null;
+    series_n?: number | null;
+    citeable?: boolean;
+    note?: string | null;
   } | null>(null);
   const [analytics, setAnalytics] = useState<Awaited<
     ReturnType<typeof fetchCompanyAnalytics>
@@ -162,18 +179,29 @@ export default function CompanyDetailPage() {
   const [paywall, setPaywall] = useState<ApiError | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
 
+  // W1.2 (rule index-integrity): price tape, correlation / lead–lag, wordmap and
+  // narrative-consistency use synthetic inputs. Workbench seats only; never guests.
+  const canAnalytics = has("analytics_experimental");
+  const canWordmap = has("wordmap");
+  const showWorkbench = has("desk");
+  const isGuest = entitlements.plan === "guest" || entitlements.kind === "guest";
+  const [citeCopied, setCiteCopied] = useState(false);
+
   const reload = useCallback(() => {
     if (!id) return;
     setError(null);
     setPaywall(null);
+    const nothing = <T,>(): Promise<T | null> => Promise.resolve(null);
     Promise.all([
       fetchCompanyGci(id),
       fetchHistory(id).catch(() => []),
-      fetchWordmap(id).catch(() => null),
+      canWordmap ? fetchWordmap(id).catch(() => null) : nothing<WordmapPayload>(),
       fetchVernacular(id, lang).catch(() => null),
-      fetchStockHistory(id, 5).catch(() => null),
+      canAnalytics ? fetchStockHistory(id, 5).catch(() => null) : nothing<StockHistory>(),
       fetchCompanyChanges(id).catch(() => null),
-      fetchCompanyAnalytics(id).catch(() => null),
+      canAnalytics
+        ? fetchCompanyAnalytics(id).catch(() => null)
+        : nothing<Awaited<ReturnType<typeof fetchCompanyAnalytics>>>(),
       fetchCompanyDocs(id).catch(() => ({
         documents: [] as Array<Record<string, unknown>>,
         completeness: undefined as
@@ -203,7 +231,9 @@ export default function CompanyDetailPage() {
       fetchRadarDiffBrief(id).catch(() => ({ diffs: [] })),
       fetchCompanyLedger(id, { creditOnly }).catch(() => null),
       fetchVernacularDigest(id, lang === "hi" ? "hi" : "en").catch(() => null),
-      fetchNarrativeConsistency(id).catch(() => null),
+      canAnalytics
+        ? fetchNarrativeConsistency(id).catch(() => null)
+        : nothing<Awaited<ReturnType<typeof fetchNarrativeConsistency>>>(),
     ])
       .then(([d, h, w, v, ph, ch, an, dc, nt, tpl, diff, led, vdig, nciRow]) => {
         setDetail(d);
@@ -250,18 +280,35 @@ export default function CompanyDetailPage() {
         }
         setError(e.message);
       });
-  }, [id, lang, creditOnly]);
+  }, [id, lang, creditOnly, canAnalytics, canWordmap]);
 
   useEffect(() => {
     setDetail(null);
     reload();
   }, [reload]);
 
+  useEffect(() => {
+    if (!detail || !id) {
+      setSeoOverride(null);
+      return;
+    }
+    const next = dossierSeo({
+      id: detail.id,
+      name: detail.name,
+      gci: detail.gci_score,
+      asOf: detail.as_of,
+      dataQuality: detail.data_quality,
+      recordSentence: englishRecordSentence(buildRecordParts(detail.outcomes)),
+    });
+    setSeoOverride(next);
+    return () => setSeoOverride(null);
+  }, [detail, id]);
+
   if (paywall) {
     return (
       <section>
         <Link className="back" to="/tracker">
-          ← Universe
+          {t("common.back")}
         </Link>
         <GuestPaywallModal error={paywall} cap={15} />
       </section>
@@ -272,7 +319,7 @@ export default function CompanyDetailPage() {
     return (
       <section>
         <Link className="back" to="/tracker">
-          ← Universe
+          {t("common.back")}
         </Link>
         <p className="error">{error}</p>
       </section>
@@ -286,7 +333,7 @@ export default function CompanyDetailPage() {
           {t("common.back")}
         </Link>
         <p className="page-kicker">{t("company.kicker")}</p>
-        <h1 className="muted">Loading dossier…</h1>
+        <h1 className="muted">{t("ui.CompanyDetailPage.loading")}</h1>
         <Skeleton rows={10} className="panel" />
       </section>
     );
@@ -295,6 +342,8 @@ export default function CompanyDetailPage() {
   const hasThreads = detail.threads && Object.keys(detail.threads).length > 0;
   const hasMetricChanges =
     detail.by_metric_changes && Object.keys(detail.by_metric_changes).length > 0;
+  // Score deltas are shown only from the reviewed point-in-time series (≥ 4 dates).
+  const hasCiteableDeltas = !!changes && changes.series_kind === "citeable_pit";
 
   return (
     <section className="dossier-page">
@@ -313,19 +362,34 @@ export default function CompanyDetailPage() {
               <strong>{detail.ticker}</strong> · {detail.sector}
             </span>
             <QualityBadge quality={detail.data_quality} />
-            {detail.peer_rank_in_sector != null && (
-              <span>
-                Peer #{detail.peer_rank_in_sector} <InfoTip termId="peer_rank" />
+            {detail.confidence_tier && (
+              <span data-testid="confidence-tier">
+                <TierBadge tier={detail.confidence_tier} />
                 {" · "}
-                sector avg {detail.sector_avg_gci} <InfoTip termId="sector_avg" />
+                {t("tier.depth", {
+                  periods: detail.closed_periods ?? 0,
+                  metrics: detail.metrics_scored ?? 0,
+                })}
+              </span>
+            )}
+            {detail.as_of && (
+              <span data-testid="dossier-as-of">
+                {t("dossier.asOf", { date: formatDossierDate(detail.as_of) })}
+              </span>
+            )}
+            {detail.reviewed_at && (
+              <span data-testid="dossier-reviewed">
+                {t("dossier.reviewed", { date: formatDossierDate(detail.reviewed_at) })}
               </span>
             )}
           </div>
         </div>
         <div className="dossier-score-block">
-          <div className="dossier-watch-row">
-            <WatchlistToggle companyId={detail.id} />
-          </div>
+          {!isGuest ? (
+            <div className="dossier-watch-row">
+              <WatchlistToggle companyId={detail.id} />
+            </div>
+          ) : null}
           <span className="field-label">
             GCI <InfoTip termId="gci" />
           </span>
@@ -335,21 +399,21 @@ export default function CompanyDetailPage() {
             deduction={detail.audit_deduction}
             note={detail.audit_note}
           />
+          <RecordSentence outcomes={detail.outcomes} />
           <div style={{ marginTop: 6 }}>
-            {changes ? (
+            {hasCiteableDeltas ? (
               <ChangeTriple
-                wow={changes.wow_pct}
-                mom={changes.mom_pct}
-                qoq={changes.qoq_pct}
-                yoy={changes.yoy_pct}
-                pop={changes.pop_pct}
-                popHorizon={changes.pop_horizon}
+                wow={changes!.wow_pct}
+                mom={changes!.mom_pct}
+                qoq={changes!.qoq_pct}
+                yoy={changes!.yoy_pct}
+                pop={changes!.pop_pct}
+                popHorizon={changes!.pop_horizon}
               />
             ) : (
-              <ChangeChip
-                value={detail.gci_change_pct}
-                horizon={detail.gci_change_horizon}
-              />
+              <span className="muted" style={{ fontSize: 12 }} data-testid="deltas-pending">
+                {t("dossier.deltasPending", { n: changes?.series_n ?? 0 })}
+              </span>
             )}
           </div>
         </div>
@@ -357,10 +421,10 @@ export default function CompanyDetailPage() {
 
       <Disclaimer compact />
 
-      {(detail.red_alerts?.length ?? 0) > 0 && (
+      {showWorkbench && (detail.red_alerts?.length ?? 0) > 0 && (
         <details className="panel dossier-red-alerts" data-testid="dossier-red-alerts">
           <summary className="panel-head">
-            <h2>Guidance flags ({detail.red_alerts!.length})</h2>
+            <h2>{t("ui.CompanyDetailPage.redAlerts", { n: detail.red_alerts!.length })}</h2>
           </summary>
           <ul className="alert-list">
             {detail.red_alerts!.map((a) => (
@@ -373,69 +437,117 @@ export default function CompanyDetailPage() {
         </details>
       )}
 
-      <nav className="dossier-toc" aria-label="Dossier sections">
-        {TOC_PRIMARY.map((s) => (
+      <nav className="dossier-toc" aria-label={t("ui.CompanyDetailPage.tocAria")}>
+        {TOC_PUBLIC.map((s) => (
           <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
-            {s.label}
+            {t(s.labelKey)}
           </a>
         ))}
-        <details className="dossier-toc-more">
-          <summary>More</summary>
-          {TOC_MORE.filter((s) => {
-            if (s.id === "threads") return hasThreads;
-            if (s.id === "metrics") return hasMetricChanges;
-            return true;
-          }).map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
-              {s.label}
-            </a>
-          ))}
-        </details>
+        {showWorkbench ? (
+          <>
+            {TOC_PRIMARY.map((s) => (
+              <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
+                {t(s.labelKey)}
+              </a>
+            ))}
+            <details className="dossier-toc-more">
+              <summary>{t("ui.CompanyDetailPage.tocMore")}</summary>
+              {TOC_MORE.filter((s) => {
+                if (s.id === "threads") return hasThreads;
+                if (s.id === "metrics") return hasMetricChanges;
+                if (s.id === "analytics") return canAnalytics;
+                if (s.id === "revisions") return false;
+                return true;
+              }).map((s) => (
+                <a key={s.id} href={`#${s.id}`} className="dossier-toc-link">
+                  {t(s.labelKey)}
+                </a>
+              ))}
+            </details>
+          </>
+        ) : null}
       </nav>
 
-      <div className="panel" id="evidence">
-        <div className="panel-head">
-          <h2>
-            Evidence trail <InfoTip termId="evidence" />
-          </h2>
-          <button
-            type="button"
-            className="btn ghost small"
-            onClick={async () => {
-              try {
-                const res = await postExtract(detail.id);
-                setToast(
-                  `Extracted ${res.count} statement(s) — review in Desk → Review queue`
-                );
-              } catch (e) {
-                setToast((e as Error).message);
-              }
-            }}
-          >
-            Run extract
-          </button>
-        </div>
-        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Every score point traces to guided vs actual. Accept / reject before
-          citing externally.{" "}
-          <Link to="/desk?tab=review" className="inline-link">
-            Open review queue
+      {showWorkbench ? (
+        <p className="muted" data-testid="dossier-workbench-link">
+          <Link to={`/desk?tab=review&company=${encodeURIComponent(detail.id)}`} className="inline-link">
+            {t("dossier.workbench")}
           </Link>
         </p>
+      ) : null}
+
+      <div className="panel" id="record" data-testid="delivery-record">
+        <div className="panel-head">
+          <h2>{t("dossier.delivery.title")}</h2>
+        </div>
         <div className="metrics">
           {Object.entries(detail.label_counts).map(([label, n]) => (
             <div className="metric" key={label}>
               <div className="label">
-                {label}{" "}
+                {formatOutcomeLabel(label)}{" "}
                 <InfoTip termId={label.toLowerCase()} text={tipForLabel(label)} />
               </div>
               <div className="value">{n}</div>
             </div>
           ))}
         </div>
-        {detail.status === "insufficient_data" || detail.outcomes.length === 0 ? (
+        <ul className="about-list" data-testid="delivery-metrics">
+          {Object.entries(detail.by_metric).map(([m, s]) => (
+            <li key={m}>
+              {metricDisplayName(m)} · {detail.periods_by_metric?.[m] ?? 0} closed · {formatScore(s)}
+            </li>
+          ))}
+          {Object.entries(detail.context_metrics ?? {}).map(([m, s]) => (
+            <li key={m} className="muted">
+              {metricDisplayName(m)} · {detail.periods_by_metric?.[m] ?? 0} closed · {formatScore(s)}{" "}
+              ({t("dossier.delivery.context")})
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="panel" id="evidence">
+        <div className="panel-head">
+          <h2>
+            {t("ui.CompanyDetailPage.evidence.title")} <InfoTip termId="evidence" />
+          </h2>
+          {showWorkbench ? (
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={async () => {
+                try {
+                  const res = await postExtract(detail.id);
+                  setToast(
+                    t("ui.CompanyDetailPage.evidence.extracted", { count: res.count })
+                  );
+                } catch (e) {
+                  setToast((e as Error).message);
+                }
+              }}
+            >
+              {t("ui.CompanyDetailPage.evidence.runExtract")}
+            </button>
+          ) : null}
+        </div>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          {t("ui.CompanyDetailPage.evidence.lede")}
+          {showWorkbench ? (
+            <>
+              {" "}
+              <Link to="/desk?tab=review" className="inline-link">
+                {t("ui.CompanyDetailPage.evidence.openQueue")}
+              </Link>
+            </>
+          ) : null}
+        </p>
+        {detail.status === "not_yet_scored" && detail.outcomes.length === 0 ? (
           <div className="empty" data-testid="empty-state">
-            Insufficient data — no matched guidance outcomes yet.
+            {t("ui.CompanyDetailPage.evidence.notScored")}
+          </div>
+        ) : detail.status === "insufficient_data" || detail.outcomes.length === 0 ? (
+          <div className="empty" data-testid="empty-state">
+            {t("ui.CompanyDetailPage.evidence.insufficient")}
           </div>
         ) : (
           <EvidenceTable
@@ -443,7 +555,7 @@ export default function CompanyDetailPage() {
             companyId={detail.id}
             testId="evidence-table"
             onReview={
-              has("desk_write")
+              showWorkbench && has("desk_write")
                 ? async (outcomeIndex, action) => {
                     await postReview({
                       company_id: detail.id,
@@ -453,15 +565,15 @@ export default function CompanyDetailPage() {
                     });
                     setToast(
                       action === "accept"
-                        ? `Accepted outcome #${outcomeIndex}`
-                        : `Rejected outcome #${outcomeIndex}`,
+                        ? t("ui.CompanyDetailPage.toast.accepted", { n: outcomeIndex })
+                        : t("ui.CompanyDetailPage.toast.rejected", { n: outcomeIndex }),
                     );
                     reload();
                   }
                 : undefined
             }
             onEdit={
-              has("desk_write")
+              showWorkbench && has("desk_write")
                 ? async (outcomeIndex, edits) => {
                     await postReview({
                       company_id: detail.id,
@@ -470,13 +582,13 @@ export default function CompanyDetailPage() {
                       comment: "edit from UI",
                       edits,
                     });
-                    setToast(`Edited outcome #${outcomeIndex}`);
+                    setToast(t("ui.CompanyDetailPage.toast.edited", { n: outcomeIndex }));
                     reload();
                   }
                 : undefined
             }
             onFlag={
-              has("feedback")
+              showWorkbench && has("feedback")
                 ? async (o) => {
                     await postFeedback({
                       company_id: detail.id,
@@ -486,7 +598,7 @@ export default function CompanyDetailPage() {
                       comment: "Flagged from dossier evidence table",
                     });
                     trackEvent("feedback_submit");
-                    setToast("Flagged for CiteAlpha reviewers — GCI is unchanged");
+                    setToast(t("ui.CompanyDetailPage.toast.flagged"));
                   }
                 : undefined
             }
@@ -494,18 +606,43 @@ export default function CompanyDetailPage() {
         )}
       </div>
 
-      <div className="panel" id="ledger" data-testid="ledger-panel">
+      <div className="panel" id="revisions" data-testid="revision-panel">
         <div className="panel-head">
-          <h2>Promise ledger</h2>
+          <h2>
+            {t("ui.CompanyDetailPage.revisions.title")} <InfoTip termId="delta" />
+          </h2>
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Accountability dossier — closed and open promises with sources. GCI is optional
-          context. Not a credit rating.
+          {t("ui.CompanyDetailPage.revisions.lede")}
+        </p>
+        <RevisionTimeline events={detail.revision_timeline} />
+      </div>
+
+      <div className="panel" id="calc" data-testid="dossier-calc">
+        <div className="panel-head">
+          <h2>{t("dossier.calc.title")}</h2>
+        </div>
+        <ScoreCalcPanel detail={detail} testId="example-calc" />
+      </div>
+
+      {showWorkbench && (
+        <>
+      <div className="panel" id="ledger" data-testid="ledger-panel">
+        <div className="panel-head">
+          <h2>{t("ui.CompanyDetailPage.ledger.title")}</h2>
+        </div>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          {t("ui.CompanyDetailPage.ledger.lede")}
         </p>
         {ledgerSummary && (
           <p>
-            {ledgerSummary.closed_count} closed · {ledgerSummary.open_promise_count} open
-            {ledgerSummary.filter ? ` · filter: ${ledgerSummary.filter}` : ""}
+            {t("ui.CompanyDetailPage.ledger.summary", {
+              closed: ledgerSummary.closed_count,
+              open: ledgerSummary.open_promise_count,
+            })}
+            {ledgerSummary.filter
+              ? t("ui.CompanyDetailPage.ledger.filter", { filter: ledgerSummary.filter })
+              : ""}
           </p>
         )}
         <div className="queue-ingest-row" style={{ flexWrap: "wrap", gap: 8 }}>
@@ -516,7 +653,7 @@ export default function CompanyDetailPage() {
               onChange={(e) => setCreditOnly(e.target.checked)}
               data-testid="ledger-credit-only"
             />
-            Credit-adjacent metrics only
+            {t("ui.CompanyDetailPage.ledger.creditOnly")}
           </label>
           <button
             type="button"
@@ -531,13 +668,13 @@ export default function CompanyDetailPage() {
                 a.download = `ledger-${detail.ticker}${creditOnly ? "-credit" : ""}.pdf`;
                 a.click();
                 URL.revokeObjectURL(url);
-                setToast("Ledger PDF downloaded");
+                setToast(t("ui.CompanyDetailPage.ledger.pdfDownloaded"));
               } catch (e) {
-                setToast(e instanceof Error ? e.message : "PDF failed");
+                setToast(e instanceof Error ? e.message : t("ui.CompanyDetailPage.ledger.pdfFailed"));
               }
             }}
           >
-            Download PDF
+            {t("ui.CompanyDetailPage.ledger.downloadPdf")}
           </button>
           <button
             type="button"
@@ -547,7 +684,10 @@ export default function CompanyDetailPage() {
               try {
                 const m = await fetchLedgerMirror(detail.id);
                 setMirrorNote(
-                  `${m.mirror_note || ""} · peers: ${m.peer_context?.sector_avg_gci ?? "—"} sector avg`,
+                  t("ui.CompanyDetailPage.ledger.mirrorNote", {
+                    note: m.mirror_note || "",
+                    avg: m.peer_context?.sector_avg_gci ?? "—",
+                  }),
                 );
                 setLedgerSummary({
                   closed_count: m.summary.closed_count,
@@ -555,19 +695,19 @@ export default function CompanyDetailPage() {
                   by_status: m.summary.by_status,
                   filter: "ir_mirror",
                 });
-                setToast("IR Mirror loaded");
+                setToast(t("ui.CompanyDetailPage.ledger.mirrorLoaded"));
               } catch (e) {
                 setToast(
                   e instanceof Error
                     ? e.message.includes("403") || e.message.includes("IR_MIRROR")
-                      ? "IR Mirror needs IR_MIRROR=1"
+                      ? t("ui.CompanyDetailPage.ledger.mirrorNeedsFlag")
                       : e.message
-                    : "IR Mirror unavailable",
+                    : t("ui.CompanyDetailPage.ledger.mirrorUnavailable"),
                 );
               }
             }}
           >
-            IR Mirror
+            {t("ui.CompanyDetailPage.ledger.mirror")}
           </button>
         </div>
         {mirrorNote && <p className="muted" style={{ fontSize: 13 }}>{mirrorNote}</p>}
@@ -590,7 +730,7 @@ export default function CompanyDetailPage() {
                         })
                       }
                     >
-                      source
+                      {t("ui.CompanyDetailPage.ledger.source")}
                     </button>
                   </>
                 )}
@@ -600,9 +740,9 @@ export default function CompanyDetailPage() {
         )}
         {nci && (
           <div style={{ marginTop: 16 }} data-testid="nci-block">
-            <h3 style={{ marginBottom: 4 }}>Narrative consistency (beta)</h3>
+            <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.nci.title")}</h3>
             <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
-              NCI {nci.nci_score} · {nci.status} — audit/revision flags only, not GCI.
+              {t("ui.CompanyDetailPage.nci.summary", { score: nci.nci_score, status: nci.status })}
             </p>
             {nci.conflicts.length > 0 && (
               <ul className="radar-list">
@@ -620,13 +760,13 @@ export default function CompanyDetailPage() {
 
       <div className="panel" id="radar-diff" data-testid="radar-diff-panel">
         <div className="panel-head">
-          <h2>Guidance diff brief</h2>
+          <h2>{t("ui.CompanyDetailPage.radar.title")}</h2>
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          QoQ guided band / language changes — CiteAlpha Radar. Factual change log, not a forecast.
+          {t("ui.CompanyDetailPage.radar.lede")}
         </p>
         {radarDiffs.length === 0 ? (
-          <p className="muted">No material band revisions in the current seed.</p>
+          <p className="muted">{t("ui.CompanyDetailPage.radar.empty")}</p>
         ) : (
           <ul className="radar-list">
             {radarDiffs.slice(0, 8).map((d, i) => (
@@ -641,36 +781,24 @@ export default function CompanyDetailPage() {
         )}
       </div>
 
-      <div className="panel" id="revisions" data-testid="revision-panel">
-        <div className="panel-head">
-          <h2>
-            Revision &amp; restatement trail <InfoTip termId="delta" />
-          </h2>
-        </div>
-        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Guidance stated → raised / lowered → resolved (met / missed / withdrawn). Audit flags
-          feed GCI deductions — not a forensic accruals score.
-        </p>
-        <RevisionTimeline events={detail.revision_timeline} />
-      </div>
-
       <div className="panel" id="docs" data-testid="period-docs">
         <h2>
-          Period documents <InfoTip termId="source" />
+          {t("ui.CompanyDetailPage.docs.title")} <InfoTip termId="source" />
         </h2>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Automatic corpus first (IR crawl every 6h). Paste on Desk is the{" "}
-          <strong>exception</strong> path. Pending until Accept — never auto-scored into citeable GCI.
+          {t("ui.CompanyDetailPage.docs.lede.before")}{" "}
+          <strong>{t("ui.CompanyDetailPage.docs.lede.strong")}</strong>
+          {t("ui.CompanyDetailPage.docs.lede.after")}
         </p>
         {completeness && (
           <div className="period-matrix" data-testid="period-completeness">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Period</th>
-                  <th>Status</th>
-                  <th>Types</th>
-                  <th>Docs</th>
+                  <th>{t("ui.CompanyDetailPage.docs.th.period")}</th>
+                  <th>{t("ui.CompanyDetailPage.docs.th.status")}</th>
+                  <th>{t("ui.CompanyDetailPage.docs.th.types")}</th>
+                  <th>{t("ui.CompanyDetailPage.docs.th.docs")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -682,7 +810,7 @@ export default function CompanyDetailPage() {
                     </td>
                     <td style={{ fontSize: 12 }}>
                       {p.types_complete
-                        ? "transcript · results · IR"
+                        ? t("ui.CompanyDetailPage.docs.typesComplete")
                         : p.expected_types?.join(" · ") || "—"}
                     </td>
                     <td>{p.doc_count}</td>
@@ -697,27 +825,31 @@ export default function CompanyDetailPage() {
             )}
             {completeness.summary && (
               <p style={{ fontSize: 12 }} data-testid="tier1-gate">
-                Tier 1 gate:{" "}
+                {t("ui.CompanyDetailPage.docs.tier1Gate")}{" "}
                 {completeness.summary.tier1_gate ? (
-                  <span className="score good">pass</span>
+                  <span className="score good">{t("ui.CompanyDetailPage.docs.gatePass")}</span>
                 ) : (
-                  <span className="score bad">open</span>
+                  <span className="score bad">{t("ui.CompanyDetailPage.docs.gateOpen")}</span>
                 )}
                 {" · "}
-                accepted {completeness.summary.accepted_periods}/
-                {completeness.summary.total_periods}
+                {t("ui.CompanyDetailPage.docs.accepted", {
+                  accepted: completeness.summary.accepted_periods,
+                  total: completeness.summary.total_periods,
+                })}
                 {completeness.summary.types_complete_periods != null && (
                   <>
                     {" "}
-                    · types {completeness.summary.types_complete_periods}/
-                    {completeness.summary.total_periods}
+                    {t("ui.CompanyDetailPage.docs.types", {
+                      done: completeness.summary.types_complete_periods,
+                      total: completeness.summary.total_periods,
+                    })}
                   </>
                 )}
                 {completeness.summary.citeable_pct != null && (
-                  <> · citeable {completeness.summary.citeable_pct}%</>
+                  <>{t("ui.CompanyDetailPage.docs.citeable", { pct: completeness.summary.citeable_pct })}</>
                 )}
                 {completeness.summary.citeable_bound_outcomes != null && (
-                  <> · bound {completeness.summary.citeable_bound_outcomes}</>
+                  <>{t("ui.CompanyDetailPage.docs.bound", { n: completeness.summary.citeable_bound_outcomes })}</>
                 )}
               </p>
             )}
@@ -725,15 +857,15 @@ export default function CompanyDetailPage() {
         )}
         {docs.length === 0 ? (
           <p className="muted">
-            No documents yet — wait for IR crawl or use Desk exception ingest.
+            {t("ui.CompanyDetailPage.docs.empty")}
           </p>
         ) : (
           <ul className="doc-list">
             {docs.slice(0, 12).map((d) => (
               <li key={String(d.doc_id)}>
-                <strong>{String(d.title || d.doc_type || "Document")}</strong>{" "}
+                <strong>{String(d.title || d.doc_type || t("ui.CompanyDetailPage.docs.documentFallback"))}</strong>{" "}
                 <span className="muted">
-                  · {String(d.review_status || "pending")} ·{" "}
+                  · {String(d.review_status || t("ui.CompanyDetailPage.docs.pendingFallback"))} ·{" "}
                   {String(d.source || d.source_type || "")}
                 </span>
               </li>
@@ -744,27 +876,27 @@ export default function CompanyDetailPage() {
 
       <div className="panel" id="trend">
         <h2>
-          GCI trend <InfoTip termId="trend" />
+          {t("ui.CompanyDetailPage.trend.title")} <InfoTip termId="trend" />
         </h2>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Period levels and incremental Δ — both matter for desk work.
+          {t("ui.CompanyDetailPage.trend.lede")}
         </p>
-        {changes && (
+        {hasCiteableDeltas && (
           <div className="chart-block" data-testid="delta-horizon-chart">
-            <h3 style={{ marginBottom: 4 }}>Δ horizons</h3>
+            <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.trend.horizons")}</h3>
             <BarChart
               rows={[
-                { label: "WoW", value: Number(changes.wow_pct ?? 0) },
-                { label: "MoM", value: Number(changes.mom_pct ?? 0) },
-                { label: "QoQ", value: Number(changes.qoq_pct ?? 0) },
-                { label: "YoY", value: Number(changes.yoy_pct ?? 0) },
+                { label: "WoW", value: Number(changes!.wow_pct ?? 0) },
+                { label: "MoM", value: Number(changes!.mom_pct ?? 0) },
+                { label: "QoQ", value: Number(changes!.qoq_pct ?? 0) },
+                { label: "YoY", value: Number(changes!.yoy_pct ?? 0) },
               ].filter((_, i) =>
-                [changes.wow_pct, changes.mom_pct, changes.qoq_pct, changes.yoy_pct][
+                [changes!.wow_pct, changes!.mom_pct, changes!.qoq_pct, changes!.yoy_pct][
                   i
                 ] != null
               )}
               unit="%"
-              ariaLabel="GCI change by horizon"
+              ariaLabel={t("ui.CompanyDetailPage.trend.horizonAria")}
             />
           </div>
         )}
@@ -776,18 +908,21 @@ export default function CompanyDetailPage() {
                 value: pt.gci_score,
               }))}
               yDomain={[0, 100]}
-              ariaLabel="GCI trend line"
+              ariaLabel={t("ui.CompanyDetailPage.trend.lineAria")}
             />
           </div>
         )}
-        {priceHistory &&
+        {canAnalytics &&
+          priceHistory &&
           priceHistory.points.length >= 2 &&
           detail.trend.length >= 2 && (
             <div className="chart-block" data-testid="gci-price-overlay">
-              <h3 style={{ marginBottom: 4 }}>GCI ↔ stock tape (historical pattern)</h3>
+              <p className="pill experimental-banner">{t("dossier.experimentalBanner")}</p>
+              <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.overlay.title")}</h3>
               <p className="muted" style={{ fontSize: 12, marginTop: 0 }}>
-                Observed co-movement only — <strong>not a forecast</strong>, not causation,
-                not investment advice. No future trend is extrapolated.
+                {t("ui.CompanyDetailPage.overlay.lede.before")}
+                <strong>{t("ui.CompanyDetailPage.overlay.lede.strong")}</strong>
+                {t("ui.CompanyDetailPage.overlay.lede.after")}
                 {analytics?.sample_n != null && (
                   <>
                     {" "}
@@ -798,7 +933,7 @@ export default function CompanyDetailPage() {
               </p>
               {analytics?.pit_as_of && analytics.pit_as_of.length > 0 && (
                 <p className="muted" style={{ fontSize: 11, marginTop: 0 }}>
-                  GCI as_of (PIT): {analytics.pit_as_of.slice(-6).join(" · ")}
+                  {t("ui.CompanyDetailPage.overlay.pitAsOf", { dates: analytics.pit_as_of.slice(-6).join(" · ") })}
                   {analytics.pit_as_of.length > 6 ? "…" : ""}
                 </p>
               )}
@@ -815,11 +950,11 @@ export default function CompanyDetailPage() {
                   }))}
                 leftName="GCI"
                 rightName={priceHistory.ticker}
-                ariaLabel="GCI versus price historical overlay"
+                ariaLabel={t("ui.CompanyDetailPage.overlay.aria")}
               />
             </div>
           )}
-        {priceHistory && priceHistory.points.length >= 2 && (
+        {canAnalytics && priceHistory && priceHistory.points.length >= 2 && (
           <div className="chart-block" data-testid="stock-history">
             <h3 style={{ marginBottom: 4 }}>
               {t("common.history")} · {priceHistory.ticker}{" "}
@@ -836,7 +971,10 @@ export default function CompanyDetailPage() {
                 value: p.close,
               }))}
               height={140}
-              ariaLabel={`${priceHistory.ticker} 5 year price (${priceHistory.kind || "demo"})`}
+              ariaLabel={t("ui.CompanyDetailPage.trend.priceAria", {
+                ticker: priceHistory.ticker,
+                kind: priceHistory.kind || "demo",
+              })}
             />
             {priceHistory.note ? (
               <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>
@@ -858,44 +996,53 @@ export default function CompanyDetailPage() {
         </div>
       </div>
 
+      {canAnalytics && (
       <div className="panel" id="analytics" data-testid="analytics-panel">
         <h2>
-          Analytics · lead / lag · impact{" "}
-          <span className="pill" title="Methodology incomplete">
-            Experimental
+          {t("ui.CompanyDetailPage.analytics.title")}{" "}
+          <span className="pill" title={t("ui.CompanyDetailPage.analytics.experimentalTitle")}>
+            {t("ui.CompanyDetailPage.analytics.experimental")}
           </span>
         </h2>
+        <p className="pill experimental-banner" data-testid="experimental-banner">
+          {t("dossier.experimentalBanner")}
+        </p>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Dependent variable = <strong>GCI</strong>. Independents = metrics & price
-          tape. <strong>Descriptive only — not a forecast.</strong> Granger v1 uses
-          LASSO → F-test on PIT series (≥12 quarters); proxy corr is optional.
+          {t("ui.CompanyDetailPage.analytics.lede.a")}
+          <strong>GCI</strong>
+          {t("ui.CompanyDetailPage.analytics.lede.b")}
+          <strong>{t("ui.CompanyDetailPage.analytics.lede.strong")}</strong>
+          {t("ui.CompanyDetailPage.analytics.lede.c")}
           {analytics?.series_kind ? (
             <>
               {" "}
-              Series: <strong>{String(analytics.series_kind)}</strong>
-              {analytics.citeable ? " · citeable" : " · non-citeable / hybrid scaffold"}
+              {t("ui.CompanyDetailPage.analytics.series")}
+              <strong>{String(analytics.series_kind)}</strong>
+              {analytics.citeable
+                ? t("ui.CompanyDetailPage.analytics.citeable")
+                : t("ui.CompanyDetailPage.analytics.nonCiteable")}
             </>
           ) : null}
         </p>
         {analytics?.granger && (analytics.granger as { enabled?: boolean }).enabled !== false && (
           <div data-testid="granger-panel" style={{ marginBottom: 16 }}>
-            <h3>Granger precedence (LASSO → F-test)</h3>
+            <h3>{t("ui.CompanyDetailPage.granger.title")}</h3>
             <p className="muted" style={{ fontSize: 12 }}>
               {(analytics.granger as { disclaimer?: string }).disclaimer ||
-                "Statistical precedence only — not causation, not a forecast."}
+                t("ui.CompanyDetailPage.granger.disclaimer")}
               {(analytics.granger as { sample_n?: number }).sample_n != null && (
                 <> · N={(analytics.granger as { sample_n?: number }).sample_n}</>
               )}
               {(analytics.granger as { var_ready?: boolean }).var_ready ? (
-                <> · VAR-ready sample</>
+                <>{t("ui.CompanyDetailPage.granger.varReady")}</>
               ) : (
-                <> · VAR held (need ≥24)</>
+                <>{t("ui.CompanyDetailPage.granger.varHeld")}</>
               )}
             </p>
             {Array.isArray((analytics.granger as { lasso_selected?: unknown[] }).lasso_selected) &&
               ((analytics.granger as { lasso_selected: Array<{ factor: string; coef?: number; corr?: number }> }).lasso_selected.length > 0) && (
                 <p style={{ fontSize: 13 }}>
-                  LASSO selected:{" "}
+                  {t("ui.CompanyDetailPage.granger.lassoSelected")}{" "}
                   {(
                     analytics.granger as {
                       lasso_selected: Array<{ factor: string; coef?: number }>;
@@ -910,11 +1057,11 @@ export default function CompanyDetailPage() {
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Factor</th>
+                      <th>{t("ui.CompanyDetailPage.granger.th.factor")}</th>
                       <th>F</th>
                       <th>p</th>
-                      <th>Best lag</th>
-                      <th>Sig</th>
+                      <th>{t("ui.CompanyDetailPage.granger.th.bestLag")}</th>
+                      <th>{t("ui.CompanyDetailPage.granger.th.sig")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -930,17 +1077,17 @@ export default function CompanyDetailPage() {
                           significant_0_05?: boolean;
                         }>;
                       }
-                    ).granger_tests.map((t) => (
-                      <tr key={t.factor || t.reason}>
-                        <td>{t.factor || "—"}</td>
-                        <td>{t.ok === false ? t.reason || "—" : t.f_stat ?? "—"}</td>
-                        <td>{t.p_value ?? "—"}</td>
+                    ).granger_tests.map((gt) => (
+                      <tr key={gt.factor || gt.reason}>
+                        <td>{gt.factor || "—"}</td>
+                        <td>{gt.ok === false ? gt.reason || "—" : gt.f_stat ?? "—"}</td>
+                        <td>{gt.p_value ?? "—"}</td>
                         <td>
-                          {t.best?.lag != null
-                            ? `${t.best.lag} (corr ${t.best.corr ?? "—"})`
+                          {gt.best?.lag != null
+                            ? t("ui.CompanyDetailPage.granger.lagCorr", { lag: gt.best.lag, corr: gt.best.corr ?? "—" })
                             : "—"}
                         </td>
-                        <td>{t.significant_0_05 ? "yes" : "no"}</td>
+                        <td>{gt.significant_0_05 ? t("ui.CompanyDetailPage.granger.yes") : t("ui.CompanyDetailPage.granger.no")}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -950,7 +1097,7 @@ export default function CompanyDetailPage() {
             {Array.isArray((analytics.granger as { impact_map?: unknown[] }).impact_map) &&
               ((analytics.granger as { impact_map: Array<{ from?: string; to?: string; weight?: number; p_value?: number }> }).impact_map.length > 0) && (
                 <>
-                  <h3>Impact map (FDR edges)</h3>
+                  <h3>{t("ui.CompanyDetailPage.granger.impactMap")}</h3>
                   <BarChart
                     rows={(
                       analytics.granger as {
@@ -961,20 +1108,22 @@ export default function CompanyDetailPage() {
                       value: e.weight ?? 0,
                     }))}
                     unit=""
-                    ariaLabel="Granger impact map edges"
+                    ariaLabel={t("ui.CompanyDetailPage.granger.impactMapAria")}
                   />
                 </>
               )}
           </div>
         )}
         {analytics && analytics.show_experimental_ui === false && !(analytics.granger as { enabled?: boolean } | undefined)?.enabled ? (
-          <p className="muted">Experimental proxy analytics UI disabled.</p>
+          <p className="muted">{t("ui.CompanyDetailPage.analytics.disabled")}</p>
         ) : analytics && analytics.show_experimental_ui !== false ? (
           <>
             <p>
-              Dependent = <strong>{analytics.dependent || "gci"}</strong>
+              {t("ui.CompanyDetailPage.analytics.dependent")}
+              <strong>{analytics.dependent || "gci"}</strong>
               {" · "}
-              GCI ↔ price corr: <strong>{analytics.gci_price_corr ?? "—"}</strong>
+              {t("ui.CompanyDetailPage.analytics.priceCorr")}
+              <strong>{analytics.gci_price_corr ?? "—"}</strong>
               {analytics.sample_n != null && (
                 <>
                   {" "}
@@ -985,8 +1134,10 @@ export default function CompanyDetailPage() {
               {analytics.lead_lag_gci_vs_price?.best && (
                 <>
                   {" "}
-                  · best lag {analytics.lead_lag_gci_vs_price.best.lag} (corr{" "}
-                  {analytics.lead_lag_gci_vs_price.best.corr})
+                  {t("ui.CompanyDetailPage.analytics.bestLag", {
+                    lag: analytics.lead_lag_gci_vs_price.best.lag,
+                    corr: analytics.lead_lag_gci_vs_price.best.corr ?? "",
+                  })}
                 </>
               )}
             </p>
@@ -997,7 +1148,7 @@ export default function CompanyDetailPage() {
             )}
             {analytics.correlation_matrix?.variables?.length ? (
               <div className="table-scroll" data-testid="corr-matrix">
-                <h3>Correlation matrix (proxy)</h3>
+                <h3>{t("ui.CompanyDetailPage.analytics.corrMatrix")}</h3>
                 <table className="table corr-matrix">
                   <thead>
                     <tr>
@@ -1039,14 +1190,14 @@ export default function CompanyDetailPage() {
                 </table>
               </div>
             ) : null}
-            <h3>Impact factors → GCI (score proxy)</h3>
+            <h3>{t("ui.CompanyDetailPage.analytics.impactFactors")}</h3>
             <BarChart
               rows={(analytics.impact_factors || []).slice(0, 8).map((f) => ({
                 label: f.factor.replaceAll("_", " "),
                 value: f.impact_vs_gci,
               }))}
               unit=""
-              ariaLabel="Impact factors versus GCI"
+              ariaLabel={t("ui.CompanyDetailPage.analytics.impactFactorsAria")}
             />
             <p className="muted" style={{ fontSize: 12 }}>
               {analytics.note}
@@ -1057,20 +1208,21 @@ export default function CompanyDetailPage() {
             {analytics.methodology || analytics.note}
           </p>
         ) : (
-          <p className="muted">Analytics unavailable for this name.</p>
+          <p className="muted">{t("ui.CompanyDetailPage.analytics.unavailable")}</p>
         )}
       </div>
+      )}
 
       <div className="panel" id="notes" data-testid="private-notes">
-        <h2>Private analyst notes</h2>
+        <h2>{t("ui.CompanyDetailPage.notes.title")}</h2>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Visible only to your API key / session — not shared org-wide.
+          {t("ui.CompanyDetailPage.notes.lede")}
         </p>
         <textarea
           value={noteDraft}
           onChange={(e) => setNoteDraft(e.target.value)}
           rows={3}
-          placeholder="Your insight…"
+          placeholder={t("ui.CompanyDetailPage.notes.placeholder")}
           style={{ width: "100%" }}
         />
         <button
@@ -1081,11 +1233,11 @@ export default function CompanyDetailPage() {
           onClick={async () => {
             await postNote({ company_id: detail.id, body: noteDraft.trim(), title: "Insight" });
             setNoteDraft("");
-            setToast("Private note saved");
+            setToast(t("ui.CompanyDetailPage.notes.saved"));
             reload();
           }}
         >
-          Save note
+          {t("ui.CompanyDetailPage.notes.save")}
         </button>
         <ul>
           {notes.map((n) => (
@@ -1097,9 +1249,9 @@ export default function CompanyDetailPage() {
       </div>
 
       <div className="panel" id="report" data-testid="report-panel">
-        <h2>IC audit dossier</h2>
+        <h2>{t("ui.CompanyDetailPage.report.title")}</h2>
         <p className="muted" style={{ fontSize: 13 }}>
-          One-click cite-only pack for investment committee notes — Markdown, JSON, or PDF.
+          {t("ui.CompanyDetailPage.report.lede")}
         </p>
         <div className="queue-ingest-row">
           <select
@@ -1122,7 +1274,7 @@ export default function CompanyDetailPage() {
                 format: "markdown",
               });
               setReportMd(r.markdown || "");
-              setToast(`Report: ${r.template_name}`);
+              setToast(t("ui.CompanyDetailPage.report.toast", { name: r.template_name }));
             }}
           >
             Markdown
@@ -1137,7 +1289,7 @@ export default function CompanyDetailPage() {
                 format: "json",
               });
               setReportMd(JSON.stringify(r.dossier || r, null, 2));
-              setToast(`IC JSON · citeable ${r.citeable_count ?? "—"}`);
+              setToast(t("ui.CompanyDetailPage.report.jsonToast", { n: r.citeable_count ?? "—" }));
             }}
           >
             JSON
@@ -1153,7 +1305,7 @@ export default function CompanyDetailPage() {
               a.download = `ic-audit-${detail.ticker}.pdf`;
               a.click();
               URL.revokeObjectURL(url);
-              setToast("IC PDF downloaded");
+              setToast(t("ui.CompanyDetailPage.report.pdfDownloaded"));
             }}
           >
             PDF
@@ -1177,11 +1329,10 @@ export default function CompanyDetailPage() {
       {hasThreads && (
         <div className="panel" id="threads" data-testid="promise-threads">
           <h2>
-            Promise threads <InfoTip termId="thread" />
+            {t("ui.CompanyDetailPage.threads.title")} <InfoTip termId="thread" />
           </h2>
           <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-            How each guidance commitment was first stated, then raised / lowered /
-            reiterated over time, and how it finally resolved.
+            {t("ui.CompanyDetailPage.threads.lede")}
           </p>
           <ThreadTimeline threads={detail.threads!} />
         </div>
@@ -1190,7 +1341,7 @@ export default function CompanyDetailPage() {
       {hasMetricChanges && (
         <div className="panel" id="metrics">
           <h2>
-            Metric change trends <InfoTip termId="change_trend" />
+            {t("ui.CompanyDetailPage.metrics.title")} <InfoTip termId="change_trend" />
           </h2>
           <div className="chart-block">
             <BarChart
@@ -1203,10 +1354,10 @@ export default function CompanyDetailPage() {
                     : "var(--bad)",
               }))}
               unit="%"
-              ariaLabel="Metric YoY or PoP change bars"
+              ariaLabel={t("ui.CompanyDetailPage.metrics.aria")}
             />
             <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-              Bars show YoY when available, else QoQ / PoP (%). Absolute levels below.
+              {t("ui.CompanyDetailPage.metrics.note")}
             </p>
           </div>
           <div className="metrics">
@@ -1230,7 +1381,7 @@ export default function CompanyDetailPage() {
 
       <div className="panel" id="pit">
         <h2>
-          PIT history <InfoTip termId="pit" />
+          {t("ui.CompanyDetailPage.pit.title")} <InfoTip termId="pit" />
         </h2>
         {history.length >= 2 && (
           <div className="chart-block">
@@ -1240,7 +1391,7 @@ export default function CompanyDetailPage() {
                 value: h.gci_score,
               }))}
               yDomain={[0, 100]}
-              ariaLabel="PIT GCI history"
+              ariaLabel={t("ui.CompanyDetailPage.pit.aria")}
             />
           </div>
         )}
@@ -1268,7 +1419,7 @@ export default function CompanyDetailPage() {
               {history.length === 0 && (
                 <tr>
                   <td colSpan={3} className="muted">
-                    No PIT points.
+                    {t("ui.CompanyDetailPage.pit.empty")}
                   </td>
                 </tr>
               )}
@@ -1279,32 +1430,26 @@ export default function CompanyDetailPage() {
 
       <div className="panel" id="context">
         <h2>
-          Wordmap context <InfoTip termId="sentiment" />
+          {t("ui.CompanyDetailPage.context.title")} <InfoTip termId="sentiment" />
         </h2>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Entity vs industry tone themes — stub only; not part of GCI math.
+          {t("ui.CompanyDetailPage.context.lede")}
         </p>
-        {wordmap ? (
-          <CompareBars
-            rows={Object.keys(wordmap.entity).map((k) => ({
-              label: k,
-              left: wordmap.entity[k],
-              right: wordmap.industry[k],
-            }))}
-            ariaLabel="Entity vs industry wordmap"
-          />
-        ) : (
-          <div className="metrics">
-            {Object.entries(detail.sentiment).map(([k, v]) => (
-              <div className="metric" key={k}>
-                <div className="label">{k.replaceAll("_", " ")}</div>
-                <div className="value">{v}</div>
-              </div>
-            ))}
-          </div>
+        {canWordmap && wordmap && (
+          <>
+            <p className="pill experimental-banner">{t("dossier.experimentalBanner")}</p>
+            <CompareBars
+              rows={Object.keys(wordmap.entity).map((k) => ({
+                label: k,
+                left: wordmap.entity[k],
+                right: wordmap.industry[k],
+              }))}
+              ariaLabel={t("ui.CompanyDetailPage.context.wordmapAria")}
+            />
+          </>
         )}
 
-        <h3 style={{ marginTop: 24 }}>Vernacular blurb</h3>
+        <h3 style={{ marginTop: 24 }}>{t("ui.CompanyDetailPage.context.blurb")}</h3>
         <div className="desk-lang-row">
           {(vernacular?.supported_langs ?? ["en", "hi", "ta"]).map((l) => (
             <button
@@ -1319,9 +1464,9 @@ export default function CompanyDetailPage() {
         </div>
         {vernacular && <blockquote className="desk-blurb">{vernacular.text}</blockquote>}
 
-        <h3 style={{ marginTop: 24 }}>Vernacular digest (Cite)</h3>
+        <h3 style={{ marginTop: 24 }}>{t("ui.CompanyDetailPage.context.digest")}</h3>
         <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
-          Factual open/closed promise summary with source links — not a forecast.
+          {t("ui.CompanyDetailPage.context.digestLede")}
         </p>
         {vernacularDigest && (
           <div data-testid="vernacular-digest">
@@ -1336,7 +1481,7 @@ export default function CompanyDetailPage() {
                         className="linkish"
                         onClick={() =>
                           openSource({
-                            title: "Vernacular source",
+                            title: t("ui.CompanyDetailPage.context.sourceTitle"),
                             source_url: s.url,
                             highlight_url: withTextHighlight(s.url, vernacularDigest.text),
                             quote: vernacularDigest.text,
@@ -1354,12 +1499,57 @@ export default function CompanyDetailPage() {
         )}
         <Disclaimer compact />
       </div>
+        </>
+      )}
 
-      <p className="muted dossier-footer">
-        <Link to="/desk" className="inline-link">
-          Open One-Stop desk
-        </Link>{" "}
-        for PIT API, AlphaHunter import, vernacular badge, CSM.
+      <p className="muted dossier-footer" data-testid="dossier-footer">
+        <Link to="/methodology" className="inline-link">
+          {t("dossier.footer.methodology")}
+        </Link>
+        {" · "}
+        <Link
+          to={`/changelog?company=${encodeURIComponent(detail.id)}`}
+          className="inline-link"
+          data-testid="dossier-changelog-link"
+        >
+          {t("dossier.footer.changelog", { name: detail.name })}
+        </Link>
+        {" · "}
+        <button
+          type="button"
+          className="linkish"
+          data-testid="dossier-cite-page"
+          onClick={() => {
+            const url = `${window.location.origin}/companies/${detail.id}`;
+            const md = `[${detail.name} GCI ${detail.gci_score ?? "—"}](${url})`;
+            const bib = `${detail.name}. Guidance Credibility Index (GCI). CiteAlpha. Data as of ${detail.as_of || "n.d."}. ${url}`;
+            void navigator.clipboard.writeText(`${md}\n${bib}`).then(() => {
+              setCiteCopied(true);
+              recordCiteCopy(detail.id);
+              window.setTimeout(() => setCiteCopied(false), 1600);
+            });
+          }}
+        >
+          {citeCopied ? t("dossier.footer.cited") : t("dossier.footer.cite")}
+        </button>
+        {" · "}
+        <a
+          href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`GCI error: ${detail.id}`)}`}
+          className="inline-link"
+          data-testid="dossier-report-error"
+        >
+          {t("dossier.footer.report")}
+        </a>
+        {" · "}
+        <span>{t("dossier.footer.disclaimer")}</span>
+        {detail.algorithm_id ? (
+          <>
+            {" · "}
+            {t("dossier.footer.method", {
+              v: detail.algorithm_id.replace(/^gci_scoring_/, ""),
+            })}
+          </>
+        ) : null}
       </p>
     </section>
   );

@@ -92,6 +92,11 @@ def sights_grid_enabled() -> bool:
     return _flag("SIGHTS_GRID", True)
 
 
+def sights_advanced_enabled() -> bool:
+    """Boards/Themes/Street/Field/Deep Dive/Agents/Export — off in production."""
+    return _flag("SIGHTS_ADVANCED", False)
+
+
 def sights_agents_enabled() -> bool:
     return _flag("SIGHTS_AGENTS", True)
 
@@ -128,6 +133,7 @@ def flags_dict() -> dict:
         "SIGHTS": sights_enabled(),
         "SIGHTS_DEEP_DIVE": sights_deep_dive_enabled(),
         "SIGHTS_GRID": sights_grid_enabled(),
+        "SIGHTS_ADVANCED": sights_advanced_enabled(),
         "SIGHTS_AGENTS": sights_agents_enabled(),
         "SIGHTS_WEB_ASSIST": sights_web_assist_enabled(),
         "INTELLENS_GCI_VERSION": gci_version(),

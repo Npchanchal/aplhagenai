@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
+import { useI18n } from "../i18n";
 
 const SHOT = "/screenshots/tiers";
 /** Bump when recapturing: /screenshots is cached 30 days under unchanged file names. */
@@ -30,132 +31,132 @@ type Tier = {
 const TIERS: Tier[] = [
   {
     id: "tier1",
-    kicker: "Must work first",
-    title: "Tier 1 — Foundation",
+    kicker: "ui.TierFeaturesPage.tier1.kicker",
+    title: "ui.TierFeaturesPage.tier1.title",
     tip: "tier1",
     intro:
-      "If this layer is weak, nothing downstream is trustworthy: automatic ingest → structure preserved → entity searchable → every GCI cell citable.",
+      "ui.TierFeaturesPage.tier1.intro",
     features: [
       {
         id: "ask-1",
         ask: "#1",
-        title: "Entity search across covered exchanges",
-        body: "Search returns covered NSE/BSE entities with GCI when present, plus doc / citeable facets — not score-only shells.",
-        images: [{ src: `${SHOT}/01-entity-search.png`, alt: "Entity search for INFY with facets" }],
+        title: "ui.TierFeaturesPage.ask-1.title",
+        body: "ui.TierFeaturesPage.ask-1.body",
+        images: [{ src: `${SHOT}/01-entity-search.png`, alt: "ui.TierFeaturesPage.ask-1.img0" }],
         rows: [
-          { label: "Typeahead across India universe", status: "Live" },
-          { label: "Facets: exchange · quality · corpus", status: "Live" },
-          { label: "Docs + citeable counts on deep names", status: "Live" },
+          { label: "ui.TierFeaturesPage.ask-1.row0", status: "ui.TierFeaturesPage.status.live" },
+          { label: "ui.TierFeaturesPage.ask-1.row1", status: "ui.TierFeaturesPage.status.live" },
+          { label: "ui.TierFeaturesPage.ask-1.row2", status: "ui.TierFeaturesPage.status.live" },
         ],
       },
       {
         id: "ask-4-5",
         ask: "#4 / #5",
-        title: "Real document ingestion (automatic)",
-        body: "Primary path is scheduled live IR refresh → pending docs → extract queue → Accept before GCI. Paste transcript is the exception path.",
+        title: "ui.TierFeaturesPage.ask-4-5.title",
+        body: "ui.TierFeaturesPage.ask-4-5.body",
         images: [
-          { src: `${SHOT}/05-auto-ingest-crawl.png`, alt: "Desk Review live IR refresh" },
-          { src: `${SHOT}/05b-corpus-foundation.png`, alt: "Desk Corpus foundation panel" },
-          { src: `${SHOT}/04-period-documents.png`, alt: "Dossier period document matrix" },
+          { src: `${SHOT}/05-auto-ingest-crawl.png`, alt: "ui.TierFeaturesPage.ask-4-5.img0" },
+          { src: `${SHOT}/05b-corpus-foundation.png`, alt: "ui.TierFeaturesPage.ask-4-5.img1" },
+          { src: `${SHOT}/04-period-documents.png`, alt: "ui.TierFeaturesPage.ask-4-5.img2" },
         ],
         rows: [
-          { label: "Live IR refresh every 6h", status: "Live" },
-          { label: "Period matrix: transcript · results · IR", status: "Live (Sensex HL)" },
-          { label: "Tier 1 gate (≥95% citeable + types)", status: "Live" },
-          { label: "Paste ingest", status: "Exception only" },
+          { label: "ui.TierFeaturesPage.ask-4-5.row0", status: "ui.TierFeaturesPage.status.live" },
+          { label: "ui.TierFeaturesPage.ask-4-5.row1", status: "ui.TierFeaturesPage.status.live_sensex_hl" },
+          { label: "ui.TierFeaturesPage.ask-4-5.row2", status: "ui.TierFeaturesPage.status.live" },
+          { label: "ui.TierFeaturesPage.ask-4-5.row3", status: "ui.TierFeaturesPage.status.exception_only" },
         ],
       },
       {
         id: "ask-6",
         ask: "#6",
-        title: "Citability — every output traceable to source",
-        body: "Each score-contributing outcome binds to citation_id, source doc, quote span, and Open source. Reports refuse provisional rows.",
+        title: "ui.TierFeaturesPage.ask-6.title",
+        body: "ui.TierFeaturesPage.ask-6.body",
         images: [
-          { src: `${SHOT}/06-citability-evidence.png`, alt: "Evidence trail with citation IDs and quotes" },
+          { src: `${SHOT}/06-citability-evidence.png`, alt: "ui.TierFeaturesPage.ask-6.img0" },
         ],
         rows: [
-          { label: "cite_* id + Open source + quote span", status: "Live on hand_labeled" },
-          { label: "Accept / Edit / Reject HITL", status: "Live" },
-          { label: "Reports: citeable only + appendix", status: "Live" },
+          { label: "ui.TierFeaturesPage.ask-6.row0", status: "ui.TierFeaturesPage.status.live_on_hand_labeled" },
+          { label: "ui.TierFeaturesPage.ask-6.row1", status: "ui.TierFeaturesPage.status.live" },
+          { label: "ui.TierFeaturesPage.ask-6.row2", status: "ui.TierFeaturesPage.status.live" },
         ],
       },
     ],
   },
   {
     id: "tier2",
-    kicker: "After Tier 1 is honest",
-    title: "Tier 2 — Workflow enrichment",
-    intro: "Differentiated desk surfaces that sit on a citeable corpus and PIT series.",
+    kicker: "ui.TierFeaturesPage.tier2.kicker",
+    title: "ui.TierFeaturesPage.tier2.title",
+    intro: "ui.TierFeaturesPage.tier2.intro",
     features: [
       {
         id: "ask-2",
         ask: "#2",
-        title: "Multi-horizon deltas (WoW / MoM / QoQ / YoY)",
-        body: "Deltas where PIT / period series exist. Missing horizons show “—” — never invented zeros. INFY surface currently emphasizes QoQ / YoY.",
+        title: "ui.TierFeaturesPage.ask-2.title",
+        body: "ui.TierFeaturesPage.ask-2.body",
         images: [
-          { src: `${SHOT}/02-multi-horizon-deltas.png`, alt: "GCI score with QoQ and YoY deltas" },
-          { src: `${SHOT}/02b-horizon-bars.png`, alt: "Delta horizon bars" },
+          { src: `${SHOT}/02-multi-horizon-deltas.png`, alt: "ui.TierFeaturesPage.ask-2.img0" },
+          { src: `${SHOT}/02b-horizon-bars.png`, alt: "ui.TierFeaturesPage.ask-2.img1" },
         ],
       },
       {
         id: "ask-3",
         ask: "#3",
-        title: "Delta visualization in charts",
-        body: "Historical GCI trend and period YoY on the dossier Trend panel. Charts are historical only — no forecast cones.",
-        images: [{ src: `${SHOT}/03-delta-charts-trend.png`, alt: "GCI trend chart with YoY" }],
+        title: "ui.TierFeaturesPage.ask-3.title",
+        body: "ui.TierFeaturesPage.ask-3.body",
+        images: [{ src: `${SHOT}/03-delta-charts-trend.png`, alt: "ui.TierFeaturesPage.ask-3.img0" }],
       },
       {
         id: "ask-7",
         ask: "#7",
-        title: "GCI vs stock-price correlation graphics",
-        body: "Descriptive pattern only. Dual series with disclosed N / window. Not a forecast, not causation, not a trading signal.",
-        images: [{ src: `${SHOT}/07-gci-vs-price.png`, alt: "GCI versus stock tape overlay" }],
+        title: "ui.TierFeaturesPage.ask-7.title",
+        body: "ui.TierFeaturesPage.ask-7.body",
+        images: [{ src: `${SHOT}/07-gci-vs-price.png`, alt: "ui.TierFeaturesPage.ask-7.img0" }],
         rows: [
-          { label: "Observed co-movement + N", status: "Yes" },
-          { label: "Extrapolate / predicted GCI", status: "No" },
-          { label: "In-panel factual disclaimer", status: "Yes" },
+          { label: "ui.TierFeaturesPage.ask-7.row0", status: "ui.TierFeaturesPage.status.yes" },
+          { label: "ui.TierFeaturesPage.ask-7.row1", status: "ui.TierFeaturesPage.status.no" },
+          { label: "ui.TierFeaturesPage.ask-7.row2", status: "ui.TierFeaturesPage.status.yes" },
         ],
       },
       {
         id: "ask-10",
         ask: "#10",
-        title: "Private analyst notes (user-restricted)",
-        body: "Notes scoped to API key / session — not org-shared by default.",
-        images: [{ src: `${SHOT}/10-private-notes.png`, alt: "Private analyst notes panel" }],
+        title: "ui.TierFeaturesPage.ask-10.title",
+        body: "ui.TierFeaturesPage.ask-10.body",
+        images: [{ src: `${SHOT}/10-private-notes.png`, alt: "ui.TierFeaturesPage.ask-10.img0" }],
       },
       {
         id: "ask-11",
         ask: "#11",
-        title: "Role / function-specific report templates",
-        body: "Templates emit Markdown with citeable outcomes only plus a citation appendix.",
+        title: "ui.TierFeaturesPage.ask-11.title",
+        body: "ui.TierFeaturesPage.ask-11.body",
         images: [
-          { src: `${SHOT}/11-report-templates-desk.png`, alt: "Desk role report templates" },
-          { src: `${SHOT}/11-report-templates-dossier.png`, alt: "Dossier generate analyst report" },
+          { src: `${SHOT}/11-report-templates-desk.png`, alt: "ui.TierFeaturesPage.ask-11.img0" },
+          { src: `${SHOT}/11-report-templates-dossier.png`, alt: "ui.TierFeaturesPage.ask-11.img1" },
         ],
       },
     ],
   },
   {
     id: "tier3",
-    kicker: "High value · methodological risk",
-    title: "Tier 3 — Frontier research",
+    kicker: "ui.TierFeaturesPage.tier3.kicker",
+    title: "ui.TierFeaturesPage.tier3.title",
     tip: "granger",
     intro:
-      "UI is EXPERIMENTAL. Engine: LASSO → Granger F-test on PIT warehouse (≥12 quarters). VAR held until ≥24. Still descriptive precedence — not causation.",
+      "ui.TierFeaturesPage.tier3.intro",
     features: [
       {
         id: "ask-8",
         ask: "#8",
-        title: "Lead / lag factor analysis",
-        body: "Dependent = GCI; independents = metrics & price tape. LASSO selects candidates; Granger reports F, p, best lag.",
-        images: [{ src: `${SHOT}/08-lead-lag-granger.png`, alt: "Granger lead-lag analytics panel" }],
+        title: "ui.TierFeaturesPage.ask-8.title",
+        body: "ui.TierFeaturesPage.ask-8.body",
+        images: [{ src: `${SHOT}/08-lead-lag-granger.png`, alt: "ui.TierFeaturesPage.ask-8.img0" }],
       },
       {
         id: "ask-9",
         ask: "#9",
-        title: "Impact factor mapping",
-        body: "Directed edges only where Granger passes FDR control. Empty map when no significant edges (as on INFY in this capture).",
-        images: [{ src: `${SHOT}/09-impact-map.png`, alt: "Analytics impact / lag surface" }],
+        title: "ui.TierFeaturesPage.ask-9.title",
+        body: "ui.TierFeaturesPage.ask-9.body",
+        images: [{ src: `${SHOT}/09-impact-map.png`, alt: "ui.TierFeaturesPage.ask-9.img0" }],
       },
     ],
   },
@@ -164,57 +165,58 @@ const TIERS: Tier[] = [
 const METHODS = [
   {
     n: "1",
-    name: "Cross-Correlation Function (CCF)",
-    role: "Correlation at different lags. Cheap and interpretable; can invent lag peaks via autocorrelation.",
-    stance: "Shipped as aid under Granger rows — not the causal claim.",
+    name: "ui.TierFeaturesPage.method1.name",
+    role: "ui.TierFeaturesPage.method1.role",
+    stance: "ui.TierFeaturesPage.method1.stance",
   },
   {
     n: "2",
-    name: "Granger causality",
-    role: "Does X’s past improve Y beyond Y’s own past? Recognizable to institutional analysts; needs stationarity.",
-    stance: "Tier 3 v1 — shipped (LASSO → F-test, N gate, experimental badge).",
+    name: "ui.TierFeaturesPage.method2.name",
+    role: "ui.TierFeaturesPage.method2.role",
+    stance: "ui.TierFeaturesPage.method2.stance",
   },
   {
     n: "3",
-    name: "VAR / VECM",
-    role: "Joint multi-series dynamics for richer impact maps. Needs longer aligned series.",
-    stance: "Held until ≥24 quarters per entity.",
+    name: "ui.TierFeaturesPage.method3.name",
+    role: "ui.TierFeaturesPage.method3.role",
+    stance: "ui.TierFeaturesPage.method3.stance",
   },
   {
     n: "4",
-    name: "LASSO / Elastic Net",
-    role: "Variable selection — shrink irrelevant candidates before Granger/VAR.",
-    stance: "Shipped as the front step of Granger v1.",
+    name: "ui.TierFeaturesPage.method4.name",
+    role: "ui.TierFeaturesPage.method4.role",
+    stance: "ui.TierFeaturesPage.method4.stance",
   },
   {
     n: "5",
-    name: "Transfer entropy",
-    role: "Model-free directional information flow; opaque and data-hungry.",
-    stance: "Out of scope near-term.",
+    name: "ui.TierFeaturesPage.method5.name",
+    role: "ui.TierFeaturesPage.method5.role",
+    stance: "ui.TierFeaturesPage.method5.stance",
   },
   {
     n: "6",
-    name: "Causal graphical models (PC / DAG)",
-    role: "Infer a full impact network. Brittle assumptions; wrong arrows destroy trust.",
-    stance: "Out of scope near-term.",
+    name: "ui.TierFeaturesPage.method6.name",
+    role: "ui.TierFeaturesPage.method6.role",
+    stance: "ui.TierFeaturesPage.method6.stance",
   },
 ] as const;
 
 function FeatureBlock({ feature }: { feature: Feature }) {
+  const { t } = useI18n();
   return (
     <article className="tier-feature" id={feature.id} data-testid={`tier-feature-${feature.id}`}>
       <header className="tier-feature-head">
         <span className="tier-ask">{feature.ask}</span>
-        <h3>{feature.title}</h3>
+        <h3>{t(feature.title)}</h3>
       </header>
-      <p className="muted">{feature.body}</p>
+      <p className="muted">{t(feature.body)}</p>
       <div className={`tier-shots ${feature.images.length > 1 ? "multi" : ""}`}>
         {feature.images.map((img) => (
           <figure key={img.src} className="tier-shot">
             <a href={shotSrc(img.src)} target="_blank" rel="noreferrer">
-              <img src={shotSrc(img.src)} alt={img.alt} loading="lazy" />
+              <img src={shotSrc(img.src)} alt={t(img.alt)} loading="lazy" />
             </a>
-            <figcaption>{img.alt}</figcaption>
+            <figcaption>{t(img.alt)}</figcaption>
           </figure>
         ))}
       </div>
@@ -222,15 +224,15 @@ function FeatureBlock({ feature }: { feature: Feature }) {
         <table className="table tier-status-table">
           <thead>
             <tr>
-              <th>What you see</th>
-              <th>Status</th>
+              <th>{t("ui.TierFeaturesPage.th.whatYouSee")}</th>
+              <th>{t("ui.TierFeaturesPage.th.status")}</th>
             </tr>
           </thead>
           <tbody>
             {feature.rows.map((r) => (
               <tr key={r.label}>
-                <td>{r.label}</td>
-                <td>{r.status}</td>
+                <td>{t(r.label)}</td>
+                <td>{t(r.status)}</td>
               </tr>
             ))}
           </tbody>
@@ -241,57 +243,56 @@ function FeatureBlock({ feature }: { feature: Feature }) {
 }
 
 export default function TierFeaturesPage() {
+  const { t } = useI18n();
   return (
     <section className="about-page tier-features-page" data-testid="tier-features-page">
       <p className="page-kicker">
-        <Link to="/about">About</Link>
+        <Link to="/about">{t("ui.TierFeaturesPage.kicker.about")}</Link>
         {" · "}
-        Product tiers
+        {t("ui.TierFeaturesPage.kicker.tiers")}
       </p>
       <h1>
-        Tier 1–3 features <InfoTip termId="tier1" />
+        {t("ui.TierFeaturesPage.title")} <InfoTip termId="tier1" />
       </h1>
       <p className="muted lede">
-        Annotated product walkthrough with live captures (INFY · Sensex hand_labeled pilot).
-        Tier surfaces are real; Tier 3 may sit on PIT scaffolding labeled non-citeable. No Buy /
-        Hold.
+        {t("ui.TierFeaturesPage.lede")}
       </p>
 
-      <nav className="about-toc" aria-label="On this page">
-        <a href="#tier1">Tier 1</a>
-        <a href="#tier2">Tier 2</a>
-        <a href="#tier3">Tier 3</a>
-        <a href="#methodology">Methodology</a>
-        <Link to="/about#tiers">Back to About</Link>
+      <nav className="about-toc" aria-label={t("ui.TierFeaturesPage.tocAria")}>
+        <a href="#tier1">{t("ui.TierFeaturesPage.toc.tier1")}</a>
+        <a href="#tier2">{t("ui.TierFeaturesPage.toc.tier2")}</a>
+        <a href="#tier3">{t("ui.TierFeaturesPage.toc.tier3")}</a>
+        <a href="#methodology">{t("ui.TierFeaturesPage.toc.methodology")}</a>
+        <Link to="/about#tiers">{t("ui.TierFeaturesPage.toc.back")}</Link>
       </nav>
 
       <div className="panel tier-hero-shots">
         <figure className="tier-shot">
           <img
             src={shotSrc(`${SHOT}/00-tracker-overview.png`)}
-            alt="Guidance Credibility Index tracker overview"
+            alt={t("ui.TierFeaturesPage.hero.trackerAlt")}
             loading="eager"
           />
-          <figcaption>Tracker · universe</figcaption>
+          <figcaption>{t("ui.TierFeaturesPage.hero.trackerCaption")}</figcaption>
         </figure>
         <figure className="tier-shot">
           <img
             src={shotSrc(`${SHOT}/00-about-tiers.png`)}
-            alt="About page tiers summary"
+            alt={t("ui.TierFeaturesPage.hero.aboutAlt")}
             loading="eager"
           />
-          <figcaption>About · tier summary</figcaption>
+          <figcaption>{t("ui.TierFeaturesPage.hero.aboutCaption")}</figcaption>
         </figure>
       </div>
 
       {TIERS.map((tier) => (
         <div className="panel" id={tier.id} key={tier.id}>
-          <p className="tier-section-kicker">{tier.kicker}</p>
+          <p className="tier-section-kicker">{t(tier.kicker)}</p>
           <h2 style={{ marginTop: 0 }}>
-            {tier.title} {tier.tip ? <InfoTip termId={tier.tip} /> : null}
+            {t(tier.title)} {tier.tip ? <InfoTip termId={tier.tip} /> : null}
           </h2>
           <p className="muted" style={{ marginTop: 0 }}>
-            {tier.intro}
+            {t(tier.intro)}
           </p>
           <div className="tier-feature-list">
             {tier.features.map((f) => (
@@ -303,20 +304,19 @@ export default function TierFeaturesPage() {
 
       <div className="panel" id="methodology">
         <h2 style={{ marginTop: 0 }}>
-          Methodology options (#8 / #9) <InfoTip termId="granger" />
+          {t("ui.TierFeaturesPage.methodology.title")} <InfoTip termId="granger" />
         </h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          Locked path: stationarity gates → LASSO → Granger → optional CCF aid → VAR when N
-          allows. Transfer entropy and causal DAGs stay out of customer-facing v1.
+          {t("ui.TierFeaturesPage.methodology.intro")}
         </p>
         <div className="table-scroll">
           <table className="table" data-testid="methodology-table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Method</th>
-                <th>Role</th>
-                <th>Ship stance</th>
+                <th>{t("ui.TierFeaturesPage.methodology.th.method")}</th>
+                <th>{t("ui.TierFeaturesPage.methodology.th.role")}</th>
+                <th>{t("ui.TierFeaturesPage.methodology.th.stance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -324,10 +324,10 @@ export default function TierFeaturesPage() {
                 <tr key={m.n}>
                   <td>{m.n}</td>
                   <td>
-                    <strong>{m.name}</strong>
+                    <strong>{t(m.name)}</strong>
                   </td>
-                  <td>{m.role}</td>
-                  <td>{m.stance}</td>
+                  <td>{t(m.role)}</td>
+                  <td>{t(m.stance)}</td>
                 </tr>
               ))}
             </tbody>
@@ -337,13 +337,13 @@ export default function TierFeaturesPage() {
 
       <div className="about-cta-row">
         <Link to="/about" className="btn ghost">
-          About CiteAlpha
+          {t("ui.TierFeaturesPage.cta.about")}
         </Link>
         <Link to="/tracker" className="btn">
-          Open Guidance Tracker
+          {t("ui.TierFeaturesPage.cta.tracker")}
         </Link>
         <Link to="/companies/infy" className="btn ghost">
-          Open INFY dossier
+          {t("ui.TierFeaturesPage.cta.infy")}
         </Link>
       </div>
 

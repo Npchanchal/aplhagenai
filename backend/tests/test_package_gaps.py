@@ -20,7 +20,7 @@ def setup_function():
 
 
 def test_p11_wordmap_has_source():
-    r = client.get("/api/companies/infy/wordmap")
+    r = client.get("/api/companies/infy/wordmap", headers={"X-API-Key": "intellens-demo"})
     assert r.status_code == 200
     body = r.json()
     assert "entity" in body and "industry" in body
@@ -80,7 +80,7 @@ def test_p21_seat_limit_on_register():
     for i in range(5):
         session_auth.register(
             f"seat{i}@example.com",
-            "secret1",
+            "secret99pass!",
             f"Seat {i}",
             accept_terms=True,
             account_type="b2b",
@@ -89,7 +89,7 @@ def test_p21_seat_limit_on_register():
     with pytest.raises(HTTPException) as exc:
         session_auth.register(
             "overflow@example.com",
-            "secret1",
+            "secret99pass!",
             "Over",
             accept_terms=True,
             account_type="b2b",

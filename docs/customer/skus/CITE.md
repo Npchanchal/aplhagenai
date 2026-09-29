@@ -4,7 +4,7 @@
 
 ## What it is
 
-**Citation-as-a-Service** for India equity research: every answer or note fragment must bind to a **primary source** (filing, concall, IR table). Includes the **Research Terminal** (search, cite-only chat, snapshot, watchlist) and a path to **vernacular factual digests**.
+**Citation-as-a-Service** for India equity research: every answer or note fragment must bind to a **primary source** (filing, concall, IR table). Includes **Filing Search** (search, cite-only chat, snapshot, watchlist) and a path to **vernacular factual digests**.
 
 Sellable **without** buying GCI seats — desks that already have a terminal still need cite discipline.
 
@@ -40,7 +40,7 @@ Sellable **without** buying GCI seats — desks that already have a terminal sti
 
 | Plan | Notes |
 |---|---|
-| Included in Desk | Interactive cite + Research Terminal |
+| Included in Desk | Interactive cite + Filing Search |
 | Cite API add-on | Higher rate limits / embed rights (Phase P4) |
 | Vernacular digest | Parallel distribution SKU (factual only) |
 

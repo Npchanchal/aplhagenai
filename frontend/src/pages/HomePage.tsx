@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChangeTriple } from "../components/ChangeChip";
-import { LineChart } from "../components/Charts";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import QualityBadge from "../components/QualityBadge";
+import TierBadge from "../components/TierBadge";
 import SectorLeaderboard from "../components/SectorLeaderboard";
 import Skeleton from "../components/Skeleton";
 import TabBar from "../components/TabBar";
@@ -15,23 +15,23 @@ import {
   fetchAlerts,
   fetchCompanies,
   fetchCompaniesCount,
-  fetchMarketHistory,
   fetchMarketIndexes,
   fetchMarkets,
+  rateLimitRetrySeconds,
   searchCompanies,
+  withRateLimitRetry,
   type AlertItem,
   type CompanySummary,
-  type IndexHistory,
   type Market,
   type MarketIndex,
 } from "../lib/api";
-import { formatScore, scoreClass } from "../lib/score";
+import { formatScore, scoreClass, formatCompanyScore, formatDossierDate } from "../lib/score";
 import { severityLabel } from "../lib/severity";
 
 const GCI_DEEP = new Set(["IN"]);
 const PAGE_SIZE = 100;
 
-type SortKey = "name" | "gci" | "delta" | "sector" | "peer";
+type SortKey = "name" | "gci" | "delta" | "sector" | "tier";
 type HomeTab = "universe" | "sectors";
 
 export default function HomePage() {
@@ -71,11 +71,12 @@ export default function HomePage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alertsFailed, setAlertsFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
   const [loading, setLoading] = useState(true);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [indexes, setIndexes] = useState<MarketIndex[]>([]);
-  const [indexHistory, setIndexHistory] = useState<IndexHistory | null>(null);
   const [market, setMarket] = useState(preferences?.default_market ?? "IN");
   const [index, setIndex] = useState(preferences?.default_index ?? "SENSEX");
   const [query, setQuery] = useState("");
@@ -99,14 +100,22 @@ export default function HomePage() {
   >([]);
   const [sortKey, setSortKey] = useState<SortKey>("gci");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [historyOpen, setHistoryOpen] = useState(false);
+  // W1.8: the Screener opens on scored names; unscored rows always sort last.
+  const [scoredOnly, setScoredOnly] = useState(true);
   const deep = GCI_DEEP.has(market) && index === "SENSEX";
   const showLeaderboard = GCI_DEEP.has(market);
+  const unscoredCount = useMemo(
+    () => rows.filter((c) => c.gci_score == null).length,
+    [rows],
+  );
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = rows;
+    if (scoredOnly) {
+      list = list.filter((c) => c.gci_score != null);
+    }
     if (q) {
-      list = rows.filter(
+      list = list.filter(
         (c) =>
           c.name.toLowerCase().includes(q) ||
           c.ticker.toLowerCase().includes(q) ||
@@ -114,7 +123,12 @@ export default function HomePage() {
       );
     }
     const dir = sortDir === "asc" ? 1 : -1;
+    const TIER_RANK: Record<string, number> = { deep: 3, established: 2, provisional: 1 };
     return [...list].sort((a, b) => {
+      // Unscored rows go last whatever the sort direction.
+      const aUn = a.gci_score == null;
+      const bUn = b.gci_score == null;
+      if (aUn !== bUn) return aUn ? 1 : -1;
       const na = (v: number | null | undefined) =>
         v == null || Number.isNaN(v) ? -Infinity * dir : v;
       switch (sortKey) {
@@ -124,21 +138,25 @@ export default function HomePage() {
           return a.sector.localeCompare(b.sector) * dir;
         case "delta":
           return (na(a.gci_change_pct) - na(b.gci_change_pct)) * dir;
-        case "peer":
-          return (na(a.peer_rank_in_sector) - na(b.peer_rank_in_sector)) * dir;
+        case "tier": {
+          const ta = TIER_RANK[a.confidence_tier ?? ""] ?? 0;
+          const tb = TIER_RANK[b.confidence_tier ?? ""] ?? 0;
+          if (ta !== tb) return (ta - tb) * dir;
+          return ((a.closed_periods ?? 0) - (b.closed_periods ?? 0)) * dir;
+        }
         case "gci":
         default:
           return (na(a.gci_score) - na(b.gci_score)) * dir;
       }
     });
-  }, [rows, query, sortKey, sortDir]);
+  }, [rows, query, sortKey, sortDir, scoredOnly]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir(key === "name" || key === "sector" || key === "peer" ? "asc" : "desc");
+      setSortDir(key === "name" || key === "sector" ? "asc" : "desc");
     }
   }
 
@@ -152,43 +170,71 @@ export default function HomePage() {
   }, [preferences?.default_market, preferences?.default_index]);
 
   useEffect(() => {
-    fetchMarkets()
-      .then((r) => setMarkets(r.markets))
-      .catch(() => setMarkets([]));
+    let cancelled = false;
+    withRateLimitRetry(fetchMarkets)
+      .then((r) => !cancelled && setMarkets(r.markets))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    fetchMarketIndexes(market)
+    let cancelled = false;
+    withRateLimitRetry(() => fetchMarketIndexes(market))
       .then((r) => {
+        if (cancelled) return;
         setIndexes(r.indexes);
         if (!r.indexes.some((i) => i.id === index) && r.indexes[0]) {
           setIndex(r.indexes[0].id);
         }
       })
-      .catch(() => setIndexes([]));
+      .catch(() => undefined);
     setPage(0);
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market]);
 
   useEffect(() => {
+    let cancelled = false;
+    let retryTimer: number | undefined;
     setError(null);
     setLoading(true);
     const offset = page * PAGE_SIZE;
-    Promise.all([
-      fetchCompanies({ market, index, limit: PAGE_SIZE, offset }),
-      fetchCompaniesCount({ market, index }),
+    Promise.allSettled([
+      Promise.all([
+        fetchCompanies({ market, index, limit: PAGE_SIZE, offset }),
+        fetchCompaniesCount({ market, index }),
+      ]),
       fetchAlerts(),
-      fetchMarketHistory(market, { index, years: 5 }),
-    ])
-      .then(([c, count, a, h]) => {
+    ]).then(([universe, a]) => {
+      if (cancelled) return;
+      if (universe.status === "fulfilled") {
+        const [c, count] = universe.value;
         setRows(c);
         setTotal(count.count);
-        setAlerts(a.slice(0, 8));
-        setIndexHistory(h.index);
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [market, index, page]);
+      } else {
+        setError((universe.reason as Error)?.message || t("ui.HomePage.loadError"));
+        const secs = rateLimitRetrySeconds(universe.reason);
+        if (secs != null) {
+          retryTimer = window.setTimeout(() => setReloadTick((n) => n + 1), secs * 1000);
+        }
+      }
+      if (a.status === "fulfilled") {
+        setAlerts(a.value.slice(0, 8));
+        setAlertsFailed(false);
+      } else {
+        setAlertsFailed(true);
+      }
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+    };
+  }, [market, index, page, reloadTick]);
 
   useEffect(() => {
     const q = entityQuery.trim();
@@ -231,8 +277,8 @@ export default function HomePage() {
         {t("home.title")} <InfoTip termId="tracker" />
       </h1>
       <p className="muted lede">
-        {t("home.lede")} <InfoTip termId="gci" /> Prefer{" "}
-        <strong>citeable</strong> corpus hits for external use.{" "}
+        {t("home.lede")} <InfoTip termId="gci" /> {t("ui.HomePage.prefer")}{" "}
+        <strong>{t("ui.HomePage.citeable")}</strong> {t("ui.HomePage.preferTail")}{" "}
         <InfoTip termId="corpus_status" />
       </p>
 
@@ -244,7 +290,7 @@ export default function HomePage() {
             onChange={(e) => onMarketChange(e.target.value)}
             data-testid="market-select"
           >
-            {markets.map((m) => (
+            {(markets.length ? markets : [{ id: market, name: market }]).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
@@ -252,7 +298,7 @@ export default function HomePage() {
           </select>
         </label>
         <div className="index-chips" role="group" aria-label={t("common.index")}>
-          {indexes.map((ix) => (
+          {(indexes.length ? indexes : [{ id: index, name: index }]).map((ix) => (
             <button
               key={ix.id}
               type="button"
@@ -265,7 +311,7 @@ export default function HomePage() {
           ))}
         </div>
         <label className="universe-search entity-search" data-testid="entity-search">
-          Search <InfoTip termId="corpus_status" />
+          {t("ui.HomePage.search")} <InfoTip termId="corpus_status" />
           <input
             type="search"
             value={query}
@@ -278,31 +324,31 @@ export default function HomePage() {
             <select
               value={entityExchange}
               onChange={(e) => setEntityExchange(e.target.value)}
-              aria-label="Exchange facet"
+              aria-label={t("ui.HomePage.exchangeFacet")}
             >
-              <option value="">All exchanges</option>
+              <option value="">{t("ui.HomePage.allExchanges")}</option>
               <option value="NSE">NSE</option>
               <option value="BSE">BSE</option>
             </select>
             <select
               value={entityQuality}
               onChange={(e) => setEntityQuality(e.target.value)}
-              aria-label="Quality facet"
+              aria-label={t("ui.HomePage.qualityFacet")}
             >
-              <option value="">All quality</option>
-              <option value="hand_labeled">Hand-labeled</option>
-              <option value="demo_structured">Demo</option>
-              <option value="listing_provisional">Provisional</option>
+              <option value="">{t("ui.HomePage.allQuality")}</option>
+              <option value="hand_labeled">{t("ui.HomePage.handLabeled")}</option>
+              <option value="demo_structured">{t("ui.HomePage.demo")}</option>
+              <option value="listing_provisional">{t("ui.HomePage.notScored")}</option>
             </select>
             <select
               value={entityCorpus}
               onChange={(e) => setEntityCorpus(e.target.value)}
-              aria-label="Corpus facet"
+              aria-label={t("ui.HomePage.corpusFacet")}
             >
-              <option value="">All corpus</option>
-              <option value="gci_citeable">Citeable</option>
-              <option value="gci_available">In corpus</option>
-              <option value="listed_not_in_corpus">Listed only</option>
+              <option value="">{t("ui.HomePage.allCorpus")}</option>
+              <option value="gci_citeable">{t("ui.HomePage.citeableOpt")}</option>
+              <option value="gci_available">{t("ui.HomePage.inCorpus")}</option>
+              <option value="listed_not_in_corpus">{t("ui.HomePage.listedOnly")}</option>
             </select>
           </div>
           {entityHits.length > 0 && (
@@ -320,13 +366,13 @@ export default function HomePage() {
                     <span className="muted" style={{ fontSize: 11, marginLeft: 6 }}>
                       {h.exchange ? `${h.exchange} · ` : ""}
                       {h.corpus_status === "gci_citeable"
-                        ? "citeable"
+                        ? t("ui.HomePage.citeable")
                         : h.corpus_status === "listed_not_in_corpus"
-                          ? "listed · not in corpus"
+                          ? t("ui.HomePage.listedNotInCorpus")
                           : h.data_quality || ""}
-                      {h.doc_count != null ? ` · ${h.doc_count} docs` : ""}
+                      {h.doc_count != null ? ` · ${t("ui.HomePage.docs", { n: h.doc_count })}` : ""}
                       {h.citeable_outcomes != null && h.citeable_outcomes > 0
-                        ? ` · ${h.citeable_outcomes} citeable`
+                        ? ` · ${t("ui.HomePage.citeableCount", { n: h.citeable_outcomes })}`
                         : ""}
                     </span>
                   </button>
@@ -341,9 +387,7 @@ export default function HomePage() {
         <p className="scaffold-banner" data-testid="scaffold-banner">
           {index === "NSE_ALL" || index === "BSE_ALL" || index === "IN1000" ? (
             <>
-              Full NSE/BSE equity masters scored with GCI v2. Sensex = hand-labeled;
-              other names = Provisional (deterministic demo outcomes — not for
-              citation). <InfoTip termId="nse_bse" />
+              {t("ui.HomePage.fullMasters")} <InfoTip termId="nse_bse" />
             </>
           ) : (
             t("home.scaffold")
@@ -387,11 +431,31 @@ export default function HomePage() {
             </div>
             {error && <p className="error">{error}</p>}
             {loading && !error && <Skeleton rows={8} label={t("common.loading")} />}
+            {!loading && !error && rows.length > 0 && (
+              <div className="screener-scope" data-testid="screener-scope">
+                <label className="toggle-inline">
+                  <input
+                    type="checkbox"
+                    checked={scoredOnly}
+                    onChange={(e) => setScoredOnly(e.target.checked)}
+                    data-testid="scored-only-toggle"
+                  />{" "}
+                  {t("screener.filter.scored")}
+                </label>
+                {unscoredCount > 0 ? (
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    {t("screener.filter.unscoredNote", { n: unscoredCount })}
+                  </span>
+                ) : null}
+              </div>
+            )}
             {!loading && !error && filtered.length === 0 && (
               <div className="empty">
                 {query
                   ? t("home.noSearchResults", { query })
-                  : t("home.noCompanies")}
+                  : scoredOnly && rows.length > 0
+                    ? t("screener.filter.noneScored")
+                    : t("home.noCompanies")}
               </div>
             )}
             {!loading && filtered.length > 0 && (
@@ -399,7 +463,7 @@ export default function HomePage() {
                 <table className="table" data-testid="company-table">
                   <thead>
                     <tr>
-                      <th aria-label="Watchlist" />
+                      <th aria-label={t("ui.HomePage.watchlist")} />
                       <th>
                         <button type="button" className="th-sort" onClick={() => toggleSort("name")}>
                           {t("common.company")}
@@ -439,15 +503,13 @@ export default function HomePage() {
                         {t("common.quality")} <InfoTip termId="data_quality" />
                       </th>
                       <th>
-                        <button type="button" className="th-sort" onClick={() => toggleSort("peer")}>
-                          {t("common.peer")}
-                          {sortMark("peer")}
-                        </button>{" "}
-                        <InfoTip termId="peer_rank" />
+                        <button type="button" className="th-sort" onClick={() => toggleSort("tier")}>
+                          {t("common.confidence")}
+                          {sortMark("tier")}
+                        </button>
                       </th>
-                      <th>
-                        {t("common.sectorAvg")} <InfoTip termId="sector_avg" />
-                      </th>
+                      <th>{t("screener.th.closed")}</th>
+                      <th>{t("screener.th.lastFiling")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -464,7 +526,7 @@ export default function HomePage() {
                               openCompany(c);
                             }
                           }}
-                          aria-label={`Open ${c.name} dossier`}
+                          aria-label={t("ui.HomePage.openDossier", { name: c.name })}
                         >
                           <td onClick={(e) => e.stopPropagation()}>
                             <WatchlistToggle companyId={c.id} compact />
@@ -480,8 +542,12 @@ export default function HomePage() {
                           </td>
                           <td>{c.ticker}</td>
                           <td>{c.sector}</td>
-                          <td className={`score ${scoreClass(c.gci_score)}`}>
-                            {formatScore(c.gci_score)}
+                          <td
+                            className={`score ${scoreClass(c.gci_score)}`}
+                            title={c.gci_score == null ? t("screener.notScored.tip") : undefined}
+                            data-testid={c.gci_score == null ? `not-scored-${c.id}` : undefined}
+                          >
+                            {formatCompanyScore(c.gci_score)}
                           </td>
                           <td>
                             <ChangeTriple
@@ -499,8 +565,17 @@ export default function HomePage() {
                               testId={`quality-${c.id}`}
                             />
                           </td>
-                          <td>{c.peer_rank_in_sector ?? "—"}</td>
-                          <td>{c.sector_avg_gci ?? "—"}</td>
+                          <td>
+                            {c.confidence_tier ? (
+                              <span title={t("tier.depth", { periods: c.closed_periods ?? 0, metrics: c.metrics_scored ?? 0 })}>
+                                <TierBadge tier={c.confidence_tier} testId={`tier-${c.id}`} />
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td>{c.closed_periods ?? "—"}</td>
+                          <td>{c.as_of ? formatDossierDate(c.as_of) : "—"}</td>
                         </tr>
                       );
                     })}
@@ -516,11 +591,14 @@ export default function HomePage() {
                   disabled={page <= 0}
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                 >
-                  ← Prev
+                  {t("ui.HomePage.prev")}
                 </button>
                 <span className="muted" style={{ fontSize: 13 }}>
-                  {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of{" "}
-                  {total}
+                  {t("ui.HomePage.range", {
+                    from: page * PAGE_SIZE + 1,
+                    to: Math.min((page + 1) * PAGE_SIZE, total),
+                    total,
+                  })}
                 </span>
                 <button
                   type="button"
@@ -528,44 +606,12 @@ export default function HomePage() {
                   disabled={page >= pageCount - 1}
                   onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
                 >
-                  Next →
+                  {t("ui.HomePage.next")}
                 </button>
               </div>
             )}
             <Disclaimer />
           </div>
-
-          {indexHistory && (
-            <details
-              className="panel history-panel"
-              data-testid="index-history"
-              open={historyOpen}
-              onToggle={(e) => setHistoryOpen((e.target as HTMLDetailsElement).open)}
-            >
-              <summary className="panel-head history-summary">
-                <h2>
-                  {t("common.history")} · {indexHistory.name}
-                </h2>
-                <span className="muted" style={{ fontSize: 13 }}>
-                  {t("common.demoTape")}
-                  {indexHistory.change_pct != null
-                    ? ` · 5Y ${indexHistory.change_pct > 0 ? "+" : ""}${indexHistory.change_pct}%`
-                    : ""}
-                </span>
-              </summary>
-              <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
-                {t("home.historyNote")}
-              </p>
-              <LineChart
-                points={indexHistory.points.map((p) => ({
-                  label: p.date.slice(0, 7),
-                  value: p.close,
-                }))}
-                height={140}
-                ariaLabel={`${indexHistory.name} 5 year demo history`}
-              />
-            </details>
-          )}
         </div>
 
         <aside className="workbench-rail">
@@ -578,7 +624,9 @@ export default function HomePage() {
             {loading && alerts.length === 0 ? (
               <Skeleton rows={4} />
             ) : alerts.length === 0 ? (
-              <p className="muted">{t("common.noAlerts")}</p>
+              <p className="muted">
+                {alertsFailed ? t("common.alertsUnavailable") : t("common.noAlerts")}
+              </p>
             ) : (
               <ul className="alert-list">
                 {alerts.map((a) => (

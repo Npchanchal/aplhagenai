@@ -1,95 +1,31 @@
 # API Quickstart
 
-Base URL: your deploy host (e.g. local `http://127.0.0.1:8080` or AWS ALB).
+Base URL: your deploy host (local `http://127.0.0.1:8080` or `https://citealpha.com`).
 
-Auth: send header `X-API-Key: <your-key>` on write/admin routes. Demo key: `intellens-demo`.
+Public reads under `/api/v1` do not need a key. `GET /openapi.json` lists that contract only (40 paths or fewer). Auth, billing, labeling, and ops routes still run; they are not in the public spec.
+
+Python and TypeScript clients: `sdk/`. Changelog RSS: `GET /api/v1/index/changelog.rss`. Weekly ledger email: set `INTELLENS_LEDGER_DIGEST_TO` and run `python -m app.jobs.ledger_digest`.
 
 ## Core reads
 
 ```bash
-# Health
 curl -s "$BASE/health"
-
-# Universe + scores
-curl -s "$BASE/api/companies" | jq '.[0:3]'
-
-# Company detail + evidence
-curl -s "$BASE/api/companies/infy/gci" | jq '{name,gci_score,label_counts,outcomes:(.outcomes|length)}'
-
-# Point-in-time history
-curl -s "$BASE/api/companies/infy/gci/history"
-
-# Alerts
-curl -s "$BASE/api/alerts"
-
-# Product meta / coverage note
 curl -s "$BASE/api/meta"
-```
-
-## Analyst write paths
-
-```bash
-# Extract prototype
-curl -s -X POST "$BASE/api/extract" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $KEY" \
-  -d '{"company_id":"infy"}'
-
-# Review outcome
-curl -s -X POST "$BASE/api/review" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $KEY" \
-  -d '{"company_id":"infy","outcome_index":0,"action":"accept"}'
-```
-
-## Enterprise shapes
-
-```bash
-# Org seats stub
-curl -s "$BASE/api/orgs/demo-org"
-
-# Vernacular blurb
-curl -s "$BASE/api/vernacular/infy?lang=hi"
-
-# Badge JSON / SVG
-curl -s "$BASE/api/badge/INFY"
-curl -s "$BASE/api/badge/INFY/svg" -o badge.svg
-
-# EM factor export shape (honest series_kind)
-curl -s "$BASE/api/export/em-factor/infy" | jq '{series_kind,citeable,contract_version}'
-
-# PIT v1 contract (design-partner quant)
-curl -s "$BASE/api/v1/pit/contract" | jq .
-curl -s "$BASE/api/v1/pit/companies/infy/history" | jq '{series_kind,citeable,n:(.points|length)}'
-curl -s "$BASE/api/v1/pit/bulk?ids=infy,tcs" | jq '.count'
-
-# IC audit dossier (JSON / PDF)
-curl -s -X POST "$BASE/api/reports/generate" \
-  -H "Content-Type: application/json" -H "X-API-Key: $KEY" \
-  -d '{"company_id":"infy","template_id":"ic_audit","format":"json"}' | jq '.citeable_count,.schema'
-
-curl -s -X POST "$BASE/api/reports/generate" \
-  -H "Content-Type: application/json" -H "X-API-Key: $KEY" \
-  -d '{"company_id":"infy","template_id":"ic_audit","format":"pdf"}' -o ic-audit-infy.pdf
-
-# Public citeable GCI rankings
-curl -s "$BASE/api/public/gci-rankings?limit=10" | jq '{universe_n,top:(.top|length)}'
-
-# Pilot checklist
-curl -s "$BASE/api/orgs/demo/pilot-checklist" -H "X-API-Key: $KEY" | jq .progress
-
-# Compliance note
+curl -s "$BASE/api/v1/companies" | jq '.[0:3]'
+curl -s "$BASE/api/v1/companies/infy/gci" | jq '{name,gci_score,confidence_tier,as_of}'
+curl -s "$BASE/api/v1/companies/infy/gci/history"
+curl -s "$BASE/api/v1/rankings" | jq '{universe_n}'
+curl -s "$BASE/api/public/gci-rankings?limit=10" | jq '{universe_n}'
+curl -s "$BASE/api/v1/index/ledger?company_id=infy" | jq '{count}'
+curl -s "$BASE/api/v1/index/changelog" | jq '{count}'
+curl -s "$BASE/api/v1/index/changelog.rss"
+curl -s "$BASE/api/v1/index/files" | jq '{count,latest:(.files[-1])}'
+curl -s "$BASE/api/v1/index/digest" | jq '{move_count,subject}'
 curl -s "$BASE/api/compliance/sebi-note"
 ```
 
+Frozen files (`gci_levels_YYYYMMDD.csv`, `.parquet`, `.sha256`) download from `/api/v1/index/files/{name}`. When `INTELLENS_INDEX_S3_BUCKET` is set, the same objects are uploaded under the `index/` prefix.
+
 ## Interactive docs
 
-Open `$BASE/docs` (OpenAPI / Swagger UI) when the API container is reachable.
-
-## Integration tips
-
-1. Cache `/api/companies` for list views; refresh GCI detail on demand.
-2. Prefer `data_quality == "hand_labeled"` **and** `citeable == true` for published / IC research.
-3. Treat `pending` outcomes as non-scoring.
-4. Store `as_of` from PIT history for backtests — do not use “today’s” score for past dates.
-5. Respect `series_kind`: never backtest `demo_pit_extension` as production alpha; require `citeable_pit` in MSA feeds.
+Open `$BASE/docs` for the public OpenAPI spec, or the site page `/developers`.

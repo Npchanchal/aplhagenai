@@ -1,0 +1,9 @@
+{
+  "as_of": null,
+  "checked": 0,
+  "verified": 0,
+  "failed": 0,
+  "fetch_failed": 0,
+  "failures": [],
+  "note": "Verification job has not run yet. python -m app.jobs.verify_sources"
+}

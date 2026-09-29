@@ -116,7 +116,10 @@ def build_wordmap(company_id: str) -> Dict[str, Any]:
 
     entity_text = _company_corpus_text(company_id)
     corpus_scores = score_themes(entity_text) if entity_text.strip() else None
-    seed = detail.sentiment or {}
+    from app.data.seed import get_data
+
+    # Seed sentiment stubs live only here (Workbench wordmap) — never on the dossier payload.
+    seed = (get_data().get("sentiment", {}) or {}).get(company_id, {}) or {}
     used_corpus = bool(corpus_scores and any(v > 0 for v in corpus_scores.values()))
 
     if used_corpus and corpus_scores is not None:

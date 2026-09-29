@@ -157,19 +157,40 @@ def audit_recent(*, org_id: Optional[str] = None, limit: int = 20) -> List[Dict[
 
 
 def audit_summary(*, org_id: Optional[str] = None) -> Dict[str, Any]:
+    from app.data import audit_log
+
     rows = list_drafts(org_id=org_id)
-    accepted = [r for r in rows if r.get("status") == "accepted"]
+    accepted_drafts = [r for r in rows if r.get("status") == "accepted"]
     submitted = [r for r in rows if r.get("status") == "submitted"]
+    accepts = audit_log.list_by_action("label_accept")
+    recent = [
+        {
+            "id": (r.get("detail") or {}).get("draft_id") or r.get("ts"),
+            "company_id": (r.get("detail") or {}).get("company_id"),
+            "period": (r.get("detail") or {}).get("period"),
+            "metric": (r.get("detail") or {}).get("metric"),
+            "status": "accepted",
+            "submitter_id": (r.get("detail") or {}).get("submitter_id"),
+            "reviewer_id": (r.get("detail") or {}).get("reviewer_id"),
+            "updated_at": r.get("ts"),
+        }
+        for r in accepts[-12:]
+    ]
+    if not recent:
+        recent = audit_recent(org_id=org_id, limit=12)
     return {
         "two_person_review": True,
-        "drafts": len(rows),
+        "drafts": len([r for r in rows if r.get("status") == "draft"]),
         "submitted": len(submitted),
-        "accepted": len(accepted),
+        "accepted": max(len(accepts), len(accepted_drafts)),
         "note": (
-            "Promotion to hand_labeled requires source_url + quote_span and a different reviewer "
-            "(admin/owner may self-accept). Does not invent actuals."
+            "Scores published today were reviewed by one analyst. A second reviewer is required "
+            "when a new row is submitted and then accepted by a different person; an account admin "
+            "may accept their own submission. A monthly sample audit by a second reviewer, and its "
+            "pass rate on the Trust Center, will be published once that audit is running. Until then "
+            "the published index is single-analyst review."
         ),
-        "recent": audit_recent(org_id=org_id, limit=12),
+        "recent": recent,
     }
 
 
@@ -222,6 +243,10 @@ def _validate_row(body: Dict[str, Any], *, require_cite: bool) -> Dict[str, Any]
         "thread_id": (body.get("thread_id") or "").strip() or None,
         "confidence": float(body.get("confidence") or 0.85),
         "notes": (body.get("notes") or "").strip() or None,
+        "guidance_source_url": (body.get("guidance_source_url") or "").strip() or None,
+        "guidance_source_ref": (body.get("guidance_source_ref") or "").strip() or None,
+        "guidance_quote": (body.get("guidance_quote") or "").strip() or None,
+        "guidance_as_of": (body.get("guidance_as_of") or "").strip() or None,
     }
 
 
@@ -272,6 +297,7 @@ def reject_draft(draft_id: str, *, actor: Dict[str, Any], comment: Optional[str]
 
 def accept_draft(draft_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
     """Two-person rule: submitter ≠ accepter unless admin/owner."""
+    from app.data.audit_log import record_label_accept
     from app.services.citation_corpus import ensure_company_citation_corpus
     from app.services import repository
 
@@ -287,6 +313,7 @@ def accept_draft(draft_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
             status_code=403,
             detail="Two-person rule: a different reviewer must accept this label",
         )
+    reviewed_at = (_now() or "")[:10]
     outcome = {
         "period": fields["period"],
         "metric": fields["metric"],
@@ -304,11 +331,40 @@ def accept_draft(draft_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
         "thread_id": fields["thread_id"] or f"{fields['company_id']}-{fields['metric']}",
         "confidence": fields["confidence"],
         "review_status": "accept",
+        "guidance_source_url": fields.get("guidance_source_url"),
+        "guidance_source_ref": fields.get("guidance_source_ref"),
+        "guidance_quote": fields.get("guidance_quote"),
+        "guidance_as_of": fields.get("guidance_as_of"),
+        "reviewed_by": actor_id or "analyst",
+        "reviewed_at": reviewed_at,
     }
     repository.merge_matched(fields["company_id"], [outcome])
-    _maybe_promote_quality(fields["company_id"])
+    promoted = _maybe_promote_quality(fields["company_id"])
+    record_label_accept(
+        company_id=fields["company_id"],
+        period=fields["period"],
+        metric=fields["metric"],
+        submitter_id=submitter or None,
+        reviewer_id=actor_id or None,
+        draft_id=f"{draft_id}:promote" if promoted else draft_id,
+        org=str(row.get("org_id") or actor.get("org_id") or "demo"),
+        actor=actor_id or "system",
+        role=role or "analyst",
+    )
     try:
         ensure_company_citation_corpus(fields["company_id"])
+    except Exception:
+        pass
+    try:
+        from app.services.score_sla import record_review_publish
+
+        record_review_publish(
+            company_id=fields["company_id"],
+            period=fields["period"],
+            metric=fields["metric"],
+            filing_date=fields.get("as_of"),
+            reviewed_at=reviewed_at,
+        )
     except Exception:
         pass
     row["status"] = "accepted"
@@ -318,17 +374,20 @@ def accept_draft(draft_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
     return row
 
 
-def _maybe_promote_quality(company_id: str) -> None:
-    """Promote demo_structured → hand_labeled only when citeable rows exist."""
+def _maybe_promote_quality(company_id: str) -> bool:
+    """Promote demo_structured → hand_labeled only when citeable rows exist.
+
+    Returns True when the quality flag actually flipped (W2.5 governance).
+    """
     data = get_data()
     company = next((c for c in data.get("companies") or [] if c.get("id") == company_id), None)
     if not company:
-        return
+        return False
     q = (company.get("data_quality") or "").lower()
     if q == "hand_labeled":
-        return
+        return False
     if q not in ("demo_structured", "listing_provisional"):
-        return
+        return False
     rows = data.get("outcomes", {}).get(company_id) or []
     citeable = [
         o
@@ -336,10 +395,10 @@ def _maybe_promote_quality(company_id: str) -> None:
         if (o.get("source_url") or "").strip() and (o.get("quote_span") or "").strip()
     ]
     if len(citeable) < 1:
-        return
-    # listing_provisional: only after real sourced outcomes, not a naked flag flip
+        return False
     company["data_quality"] = "hand_labeled"
     save_data()
+    return True
 
 
 def import_csv(text: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:

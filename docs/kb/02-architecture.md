@@ -1,6 +1,6 @@
 # 02 — Architecture
 
-**Detailed design (diagrams):** [`docs/ARCHITECTURE_AND_DESIGN.md`](../ARCHITECTURE_AND_DESIGN.md) · **In product:** `/about/architecture`
+**Detailed design (diagrams):** [`docs/ARCHITECTURE_AND_DESIGN.md`](../ARCHITECTURE_AND_DESIGN.md) · Internal only — not published on the site
 
 ## Layout
 
@@ -12,7 +12,7 @@ backend/app/
   data/                  # seed, hand_labeled, store.json
 frontend/src/
   lib/api.ts             # sole HTTP client
-  pages/                 # route surfaces (incl. ArchitecturePage)
+  pages/                 # route surfaces
   components/            # EvidenceTable, TabBar, ChangeChip, …
   i18n/                  # vernacular UI strings
 e2e/                     # Playwright
@@ -62,7 +62,6 @@ See `services/feature_flags.py` — research LLM, consensus import, SSO stubs.
 | Topic | Doc / route |
 |---|---|
 | Full architecture & design | `docs/ARCHITECTURE_AND_DESIGN.md` |
-| UI page | `/about/architecture` |
 | Pipeline | [04-pipeline](04-pipeline.md) |
 | Scoring | [03-scoring](03-scoring.md) |
 | AWS | [11-deploy-aws](11-deploy-aws.md) |

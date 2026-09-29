@@ -42,6 +42,30 @@ ALLOWED_ROLES = frozenset(
 )
 
 _PBKDF2_ITERS = 120_000
+MIN_PASSWORD_LEN = 12
+SESSION_IDLE_SECONDS = 12 * 3600
+SESSION_ABSOLUTE_SECONDS = 30 * 24 * 3600
+
+
+def _parse_ts(raw: Any) -> Optional[datetime]:
+    if not raw:
+        return None
+    try:
+        dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _auth_event(action: str, *, actor: str = "anon", role: str = "user", detail: Optional[Dict[str, Any]] = None) -> None:
+    try:
+        from app.data import audit_log
+
+        audit_log.record(action, actor=actor, role=role, detail=detail or {})
+    except Exception:
+        pass
 
 
 def _now() -> str:
@@ -167,7 +191,7 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "email": user.get("email"),
         "name": user.get("name"),
         "kind": user.get("kind", "registered"),
-        "account_type": user.get("account_type", "retail"),
+        "account_type": user.get("account_type", "b2b"),
         "org_id": user.get("org_id"),
         "role": user.get("role", "member"),
         "email_verified": bool(user.get("email_verified")),
@@ -177,6 +201,7 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "privacy_version": user.get("privacy_version"),
         "preferences": {**DEFAULT_PREFS, **(user.get("preferences") or {})},
         "created_at": user.get("created_at"),
+        "mfa_enabled": bool(user.get("totp_enabled")),
     }
     if user.get("platform_admin_role"):
         out["platform_admin_role"] = user["platform_admin_role"]
@@ -185,10 +210,12 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
 
 def _issue_session(user_id: str) -> str:
     token = secrets.token_urlsafe(32)
+    now = _now()
     store = _load_sessions()
     store["sessions"][token] = {
         "user_id": user_id,
-        "created_at": _now(),
+        "created_at": now,
+        "last_seen_at": now,
     }
     _save_sessions()
     return token
@@ -214,7 +241,7 @@ def register(
     merge_preferences: Optional[Dict[str, Any]] = None,
     guest_token: Optional[str] = None,
     org_id: Optional[str] = None,
-    account_type: str = "retail",
+    account_type: str = "b2b",
     org_name: Optional[str] = None,
     accept_terms: bool = False,
     invite_role: Optional[str] = None,
@@ -231,14 +258,28 @@ def register(
     email = email.strip().lower()
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email required")
-    if not password or len(password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not password or len(password) < MIN_PASSWORD_LEN:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Password must be at least {MIN_PASSWORD_LEN} characters",
+        )
     if _find_by_email(email):
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    acct = (account_type or "retail").strip().lower()
+    acct = (account_type or "b2b").strip().lower()
     if acct not in ("retail", "b2b"):
         raise HTTPException(status_code=400, detail="account_type must be retail or b2b")
+    if acct == "retail":
+        from app.services.legal_attest import sebi_retail_status
+
+        if sebi_retail_status() != "counsel_approved":
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Individual accounts are not offered. Register a research desk "
+                    "(account_type=b2b) or request a pilot seat."
+                ),
+            )
 
     org_svc.ensure_builtin_orgs()
 
@@ -334,15 +375,41 @@ def register(
     return out
 
 
-def login(email: str, password: str) -> Dict[str, Any]:
+def login(email: str, password: str, totp_code: Optional[str] = None) -> Dict[str, Any]:
     user = _find_by_email(email)
     if user is None or user.get("kind") == "guest":
+        _auth_event("auth_login_fail", actor=email.strip().lower(), detail={"reason": "unknown"})
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if user.get("active") is False:
         raise HTTPException(status_code=403, detail="Account revoked — contact your org admin")
     if not _verify_password(password, user["password_salt"], user["password_hash"]):
+        _auth_event(
+            "auth_login_fail",
+            actor=user.get("email") or email,
+            role=str(user.get("role") or "user"),
+            detail={"reason": "bad_password"},
+        )
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if user.get("totp_enabled"):
+        from app.services import totp as totp_svc
+
+        if not totp_code:
+            raise HTTPException(status_code=403, detail="mfa_required")
+        if not totp_svc.verify(str(user.get("totp_secret") or ""), totp_code):
+            _auth_event(
+                "auth_login_fail",
+                actor=user.get("email") or email,
+                role=str(user.get("role") or "user"),
+                detail={"reason": "bad_totp"},
+            )
+            raise HTTPException(status_code=401, detail="Invalid authenticator code")
     token = _issue_session(user["id"])
+    _auth_event(
+        "auth_login",
+        actor=user.get("email") or email,
+        role=str(user.get("role") or "user"),
+        detail={"user_id": user["id"]},
+    )
     return {"token": token, "user": _public_user(user)}
 
 
@@ -378,8 +445,16 @@ def create_guest(*, accept_terms: bool = False) -> Dict[str, Any]:
 def logout(token: Optional[str]) -> Dict[str, str]:
     if token:
         sessions = _load_sessions()
-        sessions["sessions"].pop(token, None)
+        row = sessions["sessions"].pop(token, None)
         _save_sessions()
+        if row:
+            user = _find_user(row["user_id"])
+            _auth_event(
+                "auth_logout",
+                actor=(user or {}).get("email") or row["user_id"],
+                role=str((user or {}).get("role") or "user"),
+                detail={"user_id": row["user_id"]},
+            )
     return {"status": "ok"}
 
 
@@ -390,6 +465,19 @@ def resolve_token(token: Optional[str]) -> Optional[Dict[str, Any]]:
     row = sessions["sessions"].get(token)
     if not row:
         return None
+    now = datetime.now(timezone.utc)
+    created = _parse_ts(row.get("created_at")) or now
+    last = _parse_ts(row.get("last_seen_at")) or created
+    if (now - created).total_seconds() > SESSION_ABSOLUTE_SECONDS:
+        sessions["sessions"].pop(token, None)
+        _save_sessions()
+        return None
+    if (now - last).total_seconds() > SESSION_IDLE_SECONDS:
+        sessions["sessions"].pop(token, None)
+        _save_sessions()
+        return None
+    row["last_seen_at"] = _now()
+    _save_sessions()
     user = _find_user(row["user_id"])
     if not user:
         return None
@@ -529,8 +617,11 @@ def request_password_reset(email: str) -> Dict[str, Any]:
 
 
 def confirm_password_reset(token: str, new_password: str) -> Dict[str, Any]:
-    if not new_password or len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not new_password or len(new_password) < MIN_PASSWORD_LEN:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Password must be at least {MIN_PASSWORD_LEN} characters",
+        )
     row = _consume_token(token, kind="reset_password")
     user = _find_user(row.get("user_id") or "") or _find_by_email(row["email"])
     if user is None:
@@ -683,3 +774,75 @@ def record_cite_copy(token: Optional[str], *, company_id: Optional[str] = None) 
 
 def bump_guest_dossier(token: Optional[str]) -> Dict[str, Any]:
     return bump_dossier_open(token)
+
+
+def _require_mfa_role(user: Dict[str, Any]) -> None:
+    if user.get("kind") == "guest":
+        raise HTTPException(status_code=403, detail="Register to enable two-factor authentication")
+    if str(user.get("role") or "") not in {"owner", "admin"}:
+        raise HTTPException(status_code=403, detail="Two-factor authentication is for owner and admin")
+
+
+def mfa_enroll_start(token: Optional[str]) -> Dict[str, Any]:
+    from app.services import totp as totp_svc
+
+    public = require_session(token)
+    user = _find_user(public["id"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="Session expired")
+    _require_mfa_role(user)
+    secret = totp_svc.new_secret()
+    user["totp_pending_secret"] = secret
+    _save_users()
+    email = str(user.get("email") or "desk@citealpha.com")
+    _auth_event("auth_mfa_enroll_start", actor=email, role=str(user.get("role") or "user"))
+    return {
+        "secret": secret,
+        "otpauth_uri": totp_svc.otpauth_uri(secret, email),
+        "mfa_enabled": bool(user.get("totp_enabled")),
+    }
+
+
+def mfa_enroll_confirm(token: Optional[str], code: str) -> Dict[str, Any]:
+    from app.services import totp as totp_svc
+
+    public = require_session(token)
+    user = _find_user(public["id"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="Session expired")
+    _require_mfa_role(user)
+    secret = str(user.get("totp_pending_secret") or "")
+    if not totp_svc.verify(secret, code):
+        raise HTTPException(status_code=400, detail="Invalid authenticator code")
+    user["totp_secret"] = secret
+    user["totp_enabled"] = True
+    user.pop("totp_pending_secret", None)
+    _save_users()
+    _auth_event(
+        "auth_mfa_enable",
+        actor=str(user.get("email") or user["id"]),
+        role=str(user.get("role") or "user"),
+    )
+    return {"mfa_enabled": True, "user": _public_user(user)}
+
+
+def mfa_disable(token: Optional[str], code: str) -> Dict[str, Any]:
+    from app.services import totp as totp_svc
+
+    public = require_session(token)
+    user = _find_user(public["id"])
+    if user is None:
+        raise HTTPException(status_code=401, detail="Session expired")
+    _require_mfa_role(user)
+    if not totp_svc.verify(str(user.get("totp_secret") or ""), code):
+        raise HTTPException(status_code=400, detail="Invalid authenticator code")
+    user["totp_enabled"] = False
+    user.pop("totp_secret", None)
+    user.pop("totp_pending_secret", None)
+    _save_users()
+    _auth_event(
+        "auth_mfa_disable",
+        actor=str(user.get("email") or user["id"]),
+        role=str(user.get("role") or "user"),
+    )
+    return {"mfa_enabled": False, "user": _public_user(user)}

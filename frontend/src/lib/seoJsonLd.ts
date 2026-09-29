@@ -127,6 +127,9 @@ export function breadcrumbJsonLd(pathname: string, pageTitle: string): JsonLd | 
   if (pathname.startsWith("/blog/")) {
     items.push({ name: "Blog", path: "/blog" });
     items.push({ name: pageTitle.replace(/ — CiteAlpha.*$/, ""), path: pathname });
+  } else if (pathname.startsWith("/companies/")) {
+    items.push({ name: "GCI Screener", path: "/tracker" });
+    items.push({ name: pageTitle.replace(/ — CiteAlpha.*$/, ""), path: pathname });
   } else if (pathname.startsWith("/about/")) {
     items.push({ name: "About", path: "/about" });
     items.push({ name: pageTitle.replace(/ — CiteAlpha$/, ""), path: pathname });
@@ -167,6 +170,40 @@ export function extraJsonLdForPath(pathname: string, pageTitle?: string): JsonLd
     if (crumbs) blocks.push(crumbs);
   }
   return blocks;
+}
+
+export function dossierDatasetJsonLd(input: {
+  path: string;
+  name: string;
+  description: string;
+  asOf?: string | null;
+  gci: number | null;
+}): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: `${input.name} Guidance Credibility Index (GCI)`,
+    description: input.description,
+    url: `${SITE}${input.path}`,
+    creator: {
+      "@type": "Organization",
+      name: ORG.name,
+      legalName: ORG.legalName,
+    },
+    variableMeasured: "Guidance Credibility Index",
+    license: `${SITE}/terms`,
+    isAccessibleForFree: true,
+    ...(input.asOf ? { dateModified: String(input.asOf).slice(0, 10) } : {}),
+    ...(input.gci != null
+      ? {
+          additionalProperty: {
+            "@type": "PropertyValue",
+            name: "GCI",
+            value: input.gci,
+          },
+        }
+      : {}),
+  };
 }
 
 export function blogSeoTitle(slug: string, title: string): string {

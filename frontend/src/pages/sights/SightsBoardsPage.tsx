@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import WatchlistToggle from "../../components/WatchlistToggle";
 import { fetchCompanies, fetchResearchWatchlist, type CompanySummary, type WatchlistItem } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
+import { useI18n } from "../../i18n";
 
 const SAVED_KEY = "citealpha_sights_saved_queries";
 
 export default function SightsBoardsPage() {
+  const { t } = useI18n();
   const { preferences, updatePreferences, token } = useAuth();
   const [watch, setWatch] = useState<WatchlistItem[]>([]);
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
@@ -50,17 +52,18 @@ export default function SightsBoardsPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-boards">
-      <h2>Boards</h2>
-      <p className="muted">Watchlist + saved queries for India equity coverage.</p>
+      <h2>{t("ui.SightsBoardsPage.title")}</h2>
+      <p className="muted">{t("ui.SightsBoardsPage.subtitle")}</p>
 
-      <h3>Watchlist</h3>
+      <h3>{t("ui.SightsBoardsPage.watchlist")}</h3>
       {(!preferences?.watchlist || preferences.watchlist.length === 0) && (
-        <p className="muted">Star names below or in the GCI Screener to build a board.</p>
+        <p className="muted">{t("ui.SightsBoardsPage.watchlistEmpty")}</p>
       )}
       <ul className="doc-list">
         {watch.map((w) => (
           <li key={w.company_id}>
-            <Link to={`/companies/${w.company_id}`}>{w.ticker}</Link> — GCI {w.gci_score ?? "n/a"}
+            <Link to={`/companies/${w.company_id}`}>{w.ticker}</Link>{" "}
+            {t("ui.SightsBoardsPage.gciValue", { score: w.gci_score ?? "n/a" })}
           </li>
         ))}
       </ul>
@@ -73,14 +76,14 @@ export default function SightsBoardsPage() {
         ))}
       </div>
 
-      <h3>Saved queries</h3>
+      <h3>{t("ui.SightsBoardsPage.savedQueries")}</h3>
       <div className="row gap">
         <input
           className="input"
           value={queryDraft}
           onChange={(e) => setQueryDraft(e.target.value)}
-          placeholder="e.g. capex guidance"
-          aria-label="Saved query"
+          placeholder={t("ui.SightsBoardsPage.placeholder")}
+          aria-label={t("ui.SightsBoardsPage.savedQueryAria")}
         />
         <button
           type="button"
@@ -92,7 +95,7 @@ export default function SightsBoardsPage() {
             setQueryDraft("");
           }}
         >
-          Save
+          {t("ui.SightsBoardsPage.save")}
         </button>
       </div>
       <ul>
@@ -104,7 +107,7 @@ export default function SightsBoardsPage() {
               className="btn-text"
               onClick={() => persistSaved(saved.filter((x) => x !== q))}
             >
-              Remove
+              {t("ui.SightsBoardsPage.remove")}
             </button>
           </li>
         ))}

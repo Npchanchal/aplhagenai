@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import math
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -20,6 +20,12 @@ GCI_GAMMA_MISS = 1.4
 GCI_EPS = 1e-6
 POINT_BAND_FRAC = 0.02
 MIN_PERIODS_FULL_CONF = 4
+
+# --- v4 evidence weighting (plan W1.4; see score_policy for the public tiers) ---
+MIN_CLOSED_PERIODS_PER_METRIC = 2
+METRIC_WEIGHT_CAP = 5
+#: Methodology revision inside the gci_scoring_v4 family (ledger / changelog note).
+ALGORITHM_REVISION = "v4.1 evidence-weighted composite (2026-09-28)"
 
 # --- v4: beats decay from 100 toward this floor instead of toward 0 ---
 GCI_BEAT_FLOOR = 60.0
@@ -38,6 +44,7 @@ class OutcomeLabel(str, Enum):
     DROPPED = "dropped"
     PENDING = "pending"
     UNMAPPED = "unmapped"
+    PENDING_GUIDANCE_CITE = "pending_guidance_cite"
 
 
 @dataclass(frozen=True)
@@ -66,6 +73,16 @@ class GuidanceOutcome:
     guidance_source_ref: Optional[str] = None
     guidance_quote: Optional[str] = None
     guidance_as_of: Optional[str] = None
+    # In-year changes to the band after guidance_as_of, oldest first. Each item:
+    # {"as_of", "guided_low", "guided_high", "source_url", "source_ref", "quote"}.
+    # The headline score uses the opening band; revisions feed final_band_label().
+    revisions: Tuple[Dict[str, Any], ...] = field(default=(), hash=False)
+    # Labeling governance (W2.1 schema; W2.5 requires these on every scored row).
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None  # YYYY-MM-DD
+    # W2.7: explicit False when a live fetch showed the quote is not on the URL.
+    citeable: Optional[bool] = None
+    source_verified: Optional[bool] = None
 
 
 @dataclass
@@ -76,6 +93,12 @@ class GciComputeResult:
     periods_used: int = 0
     shenanigans_deduction: float = 0.0
     by_metric: Dict[str, float] = field(default_factory=dict)
+    #: Metrics with too few closed periods to enter the composite (shown as context).
+    context_metrics: Dict[str, float] = field(default_factory=dict)
+    #: Closed periods per scored metric (drives evidence weights + confidence tier).
+    periods_by_metric: Dict[str, int] = field(default_factory=dict)
+    #: Effective composite weight per metric (evidence × optional metric weight).
+    weights_used: Dict[str, float] = field(default_factory=dict)
 
 
 def scorer_version(override: Optional[str] = None) -> str:
@@ -100,12 +123,16 @@ def _band(outcome: GuidanceOutcome) -> Tuple[float, float]:
 
 
 def classify_outcome(outcome: GuidanceOutcome) -> OutcomeLabel:
+    from app.services.score_policy import is_pending_guidance_cite
+
     if outcome.unmapped:
         return OutcomeLabel.UNMAPPED
     if outcome.dropped:
         return OutcomeLabel.DROPPED
     if outcome.actual_value is None:
         return OutcomeLabel.PENDING
+    if is_pending_guidance_cite(outcome):
+        return OutcomeLabel.PENDING_GUIDANCE_CITE
     low, high = _band(outcome)
     actual = outcome.actual_value
     # 2% tolerance around band for "met"
@@ -115,6 +142,47 @@ def classify_outcome(outcome: GuidanceOutcome) -> OutcomeLabel:
     if actual < low - pad:
         return OutcomeLabel.MISSED
     return OutcomeLabel.MET
+
+
+def final_band(outcome: GuidanceOutcome) -> Optional[Tuple[float, float]]:
+    """Last revised (low, high) band before the period closed, or None if never revised."""
+    if not outcome.revisions:
+        return None
+    last = outcome.revisions[-1]
+    low, high = float(last["guided_low"]), float(last["guided_high"])
+    return (low, high) if low <= high else (high, low)
+
+
+def final_band_label(outcome: GuidanceOutcome) -> Optional[OutcomeLabel]:
+    """Outcome against the final revised band; None when there were no revisions."""
+    band = final_band(outcome)
+    if band is None:
+        return None
+    low, high = band
+    return classify_outcome(
+        replace(
+            outcome,
+            guided_low=low,
+            guided_high=high,
+            guided_value=(low + high) / 2.0,
+            revisions=(),
+        )
+    )
+
+
+def revision_direction(outcome: GuidanceOutcome) -> Optional[str]:
+    """raised | cut | unchanged — final band midpoint vs opening band midpoint."""
+    band = final_band(outcome)
+    if band is None:
+        return None
+    o_low, o_high = _band(outcome)
+    opening_mid = (o_low + o_high) / 2.0
+    final_mid = (band[0] + band[1]) / 2.0
+    if final_mid > opening_mid + GCI_EPS:
+        return "raised"
+    if final_mid < opening_mid - GCI_EPS:
+        return "cut"
+    return "unchanged"
 
 
 # ---------------------------------------------------------------------------
@@ -131,8 +199,16 @@ def outcome_score_v2(outcome: GuidanceOutcome) -> Optional[float]:
     - Exceeded (beat) → 92–100 (slightly below perfect — forecast quality)
     - Missed → decays with relative distance below low band; ≥50% miss → 0
     """
+    from app.services.score_policy import excluded_from_score
+
+    if excluded_from_score(outcome):
+        return None
     label = classify_outcome(outcome)
-    if label in (OutcomeLabel.PENDING, OutcomeLabel.UNMAPPED):
+    if label in (
+        OutcomeLabel.PENDING,
+        OutcomeLabel.UNMAPPED,
+        OutcomeLabel.PENDING_GUIDANCE_CITE,
+    ):
         return None
     if label == OutcomeLabel.DROPPED:
         raw = 35.0
@@ -188,7 +264,11 @@ def effective_band(outcome: GuidanceOutcome) -> Tuple[float, float, float, float
 
 def normalized_deviation(outcome: GuidanceOutcome) -> Optional[float]:
     """Out-of-band δ_t; 0 inside band; None if period excluded."""
+    from app.services.score_policy import is_pending_guidance_cite, is_unreviewed
+
     if outcome.unmapped or outcome.dropped or outcome.actual_value is None:
+        return None
+    if is_pending_guidance_cite(outcome) or is_unreviewed(outcome):
         return None
     gmin, gmax, gmid, w = effective_band(outcome)
     actual = float(outcome.actual_value)
@@ -198,7 +278,11 @@ def normalized_deviation(outcome: GuidanceOutcome) -> Optional[float]:
 
 
 def _outcome_score_exp(outcome: GuidanceOutcome, beat_floor: float) -> Optional[float]:
+    from app.services.score_policy import excluded_from_score
+
     if outcome.unmapped or outcome.dropped or outcome.actual_value is None:
+        return None
+    if excluded_from_score(outcome):
         return None
     gmin, gmax, gmid, w = effective_band(outcome)
     actual = float(outcome.actual_value)
@@ -230,10 +314,14 @@ def audit_deduction(
     outcomes: Sequence[GuidanceOutcome],
     audit_flags: Optional[Sequence[str]] = None,
 ) -> float:
-    """D_shenanigans from explicit flags + auto guidance_withdrawal if any dropped."""
+    """D_shenanigans from analyst-set flags only (W2.6).
+
+    Dropped rows are excluded from the composite; they do not auto-apply
+    ``guidance_withdrawal``. Pass that flag explicitly after a reviewer sets it.
+    ``outcomes`` is unused and kept so existing call sites keep compiling.
+    """
+    del outcomes
     flags = set(audit_flags or [])
-    if any(o.dropped for o in outcomes):
-        flags.add("guidance_withdrawal")
     return sum(AUDIT_PENALTY_PTS[f] for f in flags if f in AUDIT_PENALTY_PTS)
 
 
@@ -341,22 +429,46 @@ def compute_gci_v3_detail(
         by_metric_rows.setdefault(o.metric, []).append(o)
 
     s_by_metric: Dict[str, float] = {}
+    periods_by_metric: Dict[str, int] = {}
     for metric, rows in by_metric_rows.items():
         sm = _metric_score_v3(rows, period_rank, score_fn)
         if sm is not None:
             s_by_metric[metric] = sm
+            periods_by_metric[metric] = len(
+                {o.period for o in rows if score_fn(o) is not None and o.period in period_rank}
+            )
 
     if not s_by_metric:
         # Only audit / dropped with no scored delivery — still no GCI
         return GciComputeResult(gci=None, version=version, by_metric={})
 
+    # --- Evidence-weighted composite (v4, plan W1.4) -------------------------
+    # A metric's weight is its number of closed periods (capped). A metric with
+    # fewer than MIN_CLOSED_PERIODS_PER_METRIC closed periods is context-only —
+    # shown on the dossier but not in the composite — *when* the company has at
+    # least one deeper metric. If every metric is single-period the composite
+    # falls back to a flat mean and the confidence tier says "provisional".
+    evidence_weighted = version == "v4"
+    context_metrics: Dict[str, float] = {}
+    composite_metrics = dict(s_by_metric)
+    if evidence_weighted:
+        deep = {m for m, n in periods_by_metric.items() if n >= MIN_CLOSED_PERIODS_PER_METRIC}
+        if deep:
+            for metric in list(composite_metrics):
+                if metric not in deep:
+                    context_metrics[metric] = composite_metrics.pop(metric)
+
     weights = metric_weights or {}
+    weights_used: Dict[str, float] = {}
     v_sum = 0.0
     weighted = 0.0
-    for metric, sm in s_by_metric.items():
+    for metric, sm in composite_metrics.items():
         v = float(weights.get(metric, 1.0))
+        if evidence_weighted:
+            v *= float(min(periods_by_metric.get(metric, 1), METRIC_WEIGHT_CAP))
         if v <= 0:
             continue
+        weights_used[metric] = v
         v_sum += v
         weighted += v * sm
     if v_sum <= 0:
@@ -368,10 +480,10 @@ def compute_gci_v3_detail(
 
     n_periods = len(periods)
     low_conf = n_periods < MIN_PERIODS_FULL_CONF
-    if low_conf and sector_mean is not None:
-        blend = n_periods / float(MIN_PERIODS_FULL_CONF)
-        gci = blend * gci + (1.0 - blend) * float(sector_mean)
-        gci = max(0.0, min(100.0, gci))
+    # Sector shrinkage was removed in W1.5 (decision D5): the cohort is too
+    # thin for sector means to carry information. ``sector_mean`` is accepted
+    # for signature compatibility and ignored.
+    del sector_mean
 
     return GciComputeResult(
         gci=round(gci, 1),
@@ -379,7 +491,10 @@ def compute_gci_v3_detail(
         low_confidence=low_conf,
         periods_used=n_periods,
         shenanigans_deduction=d_shen,
-        by_metric={k: round(v, 1) for k, v in s_by_metric.items()},
+        by_metric={k: round(v, 1) for k, v in composite_metrics.items()},
+        context_metrics={k: round(v, 1) for k, v in context_metrics.items()},
+        periods_by_metric=periods_by_metric,
+        weights_used=weights_used,
     )
 
 

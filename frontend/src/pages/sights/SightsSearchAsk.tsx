@@ -10,8 +10,10 @@ import CitedAnswer from "../../components/CitedAnswer";
 import PlanAccessGate from "../../components/PlanAccessGate";
 import { useSourceViewer } from "../../lib/SourceViewerContext";
 import { withTextHighlight } from "../../lib/sourceHighlight";
+import { useI18n } from "../../i18n";
 
 export function SightsSearchPage() {
+  const { t } = useI18n();
   const { openSource } = useSourceViewer();
   const [q, setQ] = useState("guidance margin");
   const [results, setResults] = useState<ResearchDoc[]>([]);
@@ -27,7 +29,7 @@ export function SightsSearchPage() {
       setResults(res.results || []);
       setExpanded(res.expanded_query || query);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Search failed");
+      setError(e instanceof Error ? e.message : t("ui.SightsSearchAsk.searchFailed"));
     } finally {
       setBusy(false);
     }
@@ -41,21 +43,21 @@ export function SightsSearchPage() {
 
   return (
     <section className="sights-panel" data-testid="sights-search">
-      <h2>Sights Search</h2>
-      <p className="muted">Business Lexicon expands India IR synonyms behind the query.</p>
+      <h2>{t("ui.SightsSearchAsk.search.title")}</h2>
+      <p className="muted">{t("ui.SightsSearchAsk.search.subtitle")}</p>
       <div className="row gap">
         <input
           className="input"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          aria-label="Search query"
+          aria-label={t("ui.SightsSearchAsk.search.aria")}
           onKeyDown={(e) => e.key === "Enter" && void run()}
         />
         <button type="button" className="btn" disabled={busy} onClick={() => void run()}>
-          {busy ? "Searching…" : "Search"}
+          {busy ? t("ui.SightsSearchAsk.search.searching") : t("ui.SightsSearchAsk.search.button")}
         </button>
       </div>
-      {expanded && expanded !== q && <p className="muted">Expanded: {expanded}</p>}
+      {expanded && expanded !== q && <p className="muted">{t("ui.SightsSearchAsk.search.expanded", { query: expanded })}</p>}
       {error && <p className="error">{error}</p>}
       <ul className="doc-list">
         {results.map((d) => (
@@ -80,7 +82,7 @@ export function SightsSearchPage() {
                 })
               }
             >
-              Open source →
+              {t("ui.SightsSearchAsk.openSource")}
             </button>
           </li>
         ))}
@@ -90,6 +92,7 @@ export function SightsSearchPage() {
 }
 
 export function SightsAskPage() {
+  const { t } = useI18n();
   const [q, setQ] = useState("What guidance was given on revenue?");
   const [answer, setAnswer] = useState("");
   const [cites, setCites] = useState<CitationRecord[]>([]);
@@ -106,7 +109,7 @@ export function SightsAskPage() {
       setCites(res.citations || []);
       setRefused(!!res.refused);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ask failed");
+      setError(e instanceof Error ? e.message : t("ui.SightsSearchAsk.askFailed"));
     } finally {
       setBusy(false);
     }
@@ -117,23 +120,23 @@ export function SightsAskPage() {
       <PlanAccessGate
         feature="sights_ask"
         variant="panel"
-        title="Sights Ask"
-        description="Cite-only answers over indexed India IR and CiteAlpha evidence. Pilot+ plans required."
+        title={t("ui.SightsSearchAsk.ask.title")}
+        description={t("ui.SightsSearchAsk.ask.gateDescription")}
         returnTo="/sights/ask"
         testId="sights-ask-gate"
       >
-      <h2>Sights Ask</h2>
-      <p className="muted">Cite-only. Web Assist stays off until quality gates.</p>
+      <h2>{t("ui.SightsSearchAsk.ask.title")}</h2>
+      <p className="muted">{t("ui.SightsSearchAsk.ask.subtitle")}</p>
       <div className="row gap">
         <input
           className="input"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          aria-label="Ask question"
+          aria-label={t("ui.SightsSearchAsk.ask.aria")}
           onKeyDown={(e) => e.key === "Enter" && void run()}
         />
         <button type="button" className="btn" disabled={busy} onClick={() => void run()}>
-          {busy ? "Asking…" : "Ask"}
+          {busy ? t("ui.SightsSearchAsk.ask.asking") : t("ui.SightsSearchAsk.ask.button")}
         </button>
       </div>
       {error && <p className="error">{error}</p>}

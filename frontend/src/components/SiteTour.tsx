@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTour } from "../lib/TourProvider";
 import { getTour, type TourStep } from "../lib/tours";
+import { useI18n } from "../i18n";
 
 type Rect = { top: number; left: number; width: number; height: number };
 
@@ -61,6 +62,7 @@ function placePopover(
 }
 
 export default function SiteTour() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const { activeTourId, stepIndex, nextStep, prevStep, skipTour, finishTour } =
@@ -195,12 +197,12 @@ export default function SiteTour() {
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>{step.body}</p>
         {missing && (
           <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-            Target not on screen yet — use Next after the page finishes loading, or Skip.
+            {t("ui.SiteTour.missing")}
           </p>
         )}
         <div className="site-tour-actions">
           <button type="button" className="btn ghost" onClick={skipTour} data-testid="tour-skip">
-            Skip
+            {t("ui.SiteTour.skip")}
           </button>
           <div className="site-tour-nav">
             <button
@@ -210,7 +212,7 @@ export default function SiteTour() {
               onClick={prevStep}
               data-testid="tour-prev"
             >
-              Back
+              {t("ui.SiteTour.back")}
             </button>
             <button
               type="button"
@@ -218,7 +220,7 @@ export default function SiteTour() {
               onClick={() => (isLast ? finishTour() : nextStep())}
               data-testid="tour-next"
             >
-              {isLast ? "Done" : "Next"}
+              {isLast ? t("ui.SiteTour.done") : t("ui.SiteTour.next")}
             </button>
           </div>
         </div>

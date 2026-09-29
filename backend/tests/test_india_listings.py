@@ -8,7 +8,11 @@ from app.data.markets import list_constituents, list_indexes
 from app.data.seed import get_data, get_outcomes, outcome_from_dict, reset_data
 from app.main import app
 from app.services.gci_scoring import compute_company_gci
-from app.services.provisional_gci import make_provisional_outcomes, score_provisional
+from app.services.provisional_gci import (
+    make_provisional_outcomes,
+    score_provisional,
+    score_provisional_internal,
+)
 
 client = TestClient(app)
 
@@ -30,32 +34,33 @@ def test_nse_all_and_bse_all_indexes():
     assert len(bse) >= 2000
 
 
-def test_provisional_gci_uses_v2_scorer():
+def test_provisional_listing_is_not_yet_scored():
     rep = score_provisional("nse_demo", "DEMOCO", "Equity")
-    assert rep["gci_score"] is not None
-    assert 0 <= rep["gci_score"] <= 100
+    assert rep["gci_score"] is None
+    assert rep["status"] == "not_yet_scored"
     assert rep["data_quality"] == "listing_provisional"
+    assert rep["trend"] == [] and rep["by_metric"] == {}
+
+
+def test_provisional_internal_still_runs_production_scorer():
+    rep = score_provisional_internal("nse_demo", "DEMOCO", "Equity")
     outcomes = make_provisional_outcomes("nse_demo", "DEMOCO", "Equity")
+    assert rep["gci_score"] is not None
     assert compute_company_gci(outcomes) == rep["gci_score"]
 
 
 def test_score_universe_cache_subset():
     clear_memory_cache()
     report = build_india_gci_cache(limit=80)
-    assert report["scored_count"] >= 40
     assert report["algorithm"] == "gci_scoring_v4"
-    # A non-seed listing in the first 80 should be cached
-    listing = next(
-        r
-        for r in list_constituents("NSE_ALL")
-        if r["data_quality"] == "listing_master"
-    )
-    # may or may not be in first 80 — score directly
-    scored = score_provisional(listing["id"], listing["ticker"], listing.get("sector") or "Equity")
-    assert scored["gci_score"] is not None
+    for row in report["scores"].values():
+        if row["data_quality"] != "hand_labeled":
+            assert row["gci_score"] is None
+            assert row["yoy_pct"] is None
 
 
 def test_sensex_still_scored():
+    """W2.1: only dual-cited closed rows score. Infosys revenue years remain."""
     reset_data()
     data = get_data()
     assert len(data["companies"]) >= 40
@@ -67,10 +72,13 @@ def test_sensex_still_scored():
         )
         is not None
     ]
-    assert len(scored) >= 30
+    ids = {c["id"] for c in scored}
+    assert "infy" in ids
+    # Promise citations are backfilled in W2.2; do not require a Sensex-wide score.
+    assert len(scored) >= 1
 
 
-def test_companies_api_nse_all_has_scores():
+def test_companies_api_nse_all_scores_only_hand_labeled():
     clear_memory_cache()
     build_india_gci_cache(limit=None)
     r = client.get("/api/companies/count", params={"market": "IN", "index": "NSE_ALL"})
@@ -83,7 +91,9 @@ def test_companies_api_nse_all_has_scores():
     assert r2.status_code == 200
     body = r2.json()
     assert len(body) == 20
-    assert all(row["gci_score"] is not None for row in body)
+    for row in body:
+        if row["data_quality"] != "hand_labeled":
+            assert row["gci_score"] is None
 
 
 def test_nifty_bank_index_is_not_empty():
@@ -113,7 +123,7 @@ def test_find_listing_by_ticker_numeric_symbol():
     assert row["id"] == "nse_20microns"
 
 
-def test_listing_dossier_has_provisional_gci():
+def test_listing_dossier_is_not_yet_scored():
     listing = next(
         r
         for r in list_constituents("NSE_ALL")
@@ -123,7 +133,28 @@ def test_listing_dossier_has_provisional_gci():
     r = client.get(f"/api/companies/{listing['id']}/gci")
     assert r.status_code == 200
     body = r.json()
-    assert body["gci_score"] is not None
+    assert body["gci_score"] is None
+    assert body["status"] == "not_yet_scored"
     assert body["data_quality"] == "listing_provisional"
-    assert body["outcomes"]
+    assert body["outcomes"] == []
+    assert body["trend"] == []
     assert get_outcomes(listing["id"]) == []  # not in seed store
+
+
+def test_demo_structured_company_is_not_yet_scored():
+    reset_data()
+    demo = next(c for c in get_data()["companies"] if c["data_quality"] == "demo_structured")
+    body = client.get(f"/api/companies/{demo['id']}/gci").json()
+    assert body["gci_score"] is None
+    assert body["status"] == "not_yet_scored"
+    assert all(o["contribution_score"] is None for o in body["outcomes"])
+    listed = {r["id"]: r for r in client.get("/api/companies").json()}
+    assert listed[demo["id"]]["gci_score"] is None
+    from app.services.repository import pit_history
+
+    assert pit_history(demo["id"]) == []
+
+
+def test_meta_counts_only_hand_labeled_scores():
+    meta = client.get("/api/meta").json()
+    assert meta["gci_scored_count"] <= meta["hand_labeled_count"]

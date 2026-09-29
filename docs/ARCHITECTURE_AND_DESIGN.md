@@ -1,7 +1,7 @@
 # CiteAlpha — Architecture & Design
 
 **Product:** CiteAlpha · **Entity:** Ocotillo Innovation Private Limited  
-**UI:** https://citealpha.com/about/architecture  
+**Visibility:** internal doc only — not published on citealpha.com  
 **Kb summary:** [`docs/kb/02-architecture.md`](kb/02-architecture.md)
 
 Detailed design reference with diagrams. Prefer this over chat folklore when changing stack boundaries.
@@ -61,12 +61,10 @@ flowchart TB
   desk["/desk"]
   research["/research"]
   dossier["/companies/:id"]
-  arch["/about/architecture"]
 
   track --> dossier
   desk --> dossier
   research --> dossier
-  arch -.-> track
 ```
 
 ---

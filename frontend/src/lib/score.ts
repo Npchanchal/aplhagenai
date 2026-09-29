@@ -10,3 +10,186 @@ export function formatScore(score: number | null | undefined, digits = 1): strin
   if (score === null || score === undefined) return "—";
   return score.toFixed(digits);
 }
+
+export const NOT_SCORED_LABEL = "Not yet scored";
+
+/** A company's own GCI: companies without analyst-reviewed, cited evidence have no number. */
+export function formatCompanyScore(score: number | null | undefined, digits = 1): string {
+  if (score === null || score === undefined) return NOT_SCORED_LABEL;
+  return score.toFixed(digits);
+}
+
+/** ``YYYY-MM-DD`` → ``d Mon yyyy`` (UTC), for dossier as-of / reviewed stamps. */
+export function formatDossierDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso.trim());
+  if (!m) return iso;
+  const dt = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return dt.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/** Catalog display names (mirrors backend/app/data/metric_catalog.py). */
+const METRIC_DISPLAY: Record<string, string> = {
+  revenue_growth_pct: "Revenue growth %",
+  revenue_growth_cc_pct: "Revenue growth (constant currency) %",
+  operating_margin_pct: "Operating margin %",
+  ebitda_margin_pct: "EBITDA margin %",
+  ebitda_growth_pct: "EBITDA growth %",
+  pat_margin_pct: "Net / PAT margin %",
+  capex: "Capex guidance",
+  fcf_guidance: "Free cash flow guidance",
+  wc_days: "Working-capital days",
+  capacity_util_pct: "Capacity / utilization %",
+  nim_pct: "Net interest margin %",
+  loan_growth_pct: "Loan / advances growth %",
+  underlying_volume_growth_pct: "Underlying volume growth %",
+  cigarette_volume_growth_pct: "Cigarette volume growth %",
+  wholesale_volume_growth_pct: "Wholesale volume growth %",
+  sssg_pct: "Same-store sales growth %",
+  arpu_growth_pct: "ARPU growth %",
+  jewellery_ebitda_margin_pct: "Jewellery EBITDA margin %",
+  rd_spend_pct: "R&D spend % of revenue",
+  cost_saves_pct: "Cost savings % of revenue",
+  ape_growth_pct: "APE / new business growth %",
+  vnb_growth_pct: "VNB growth %",
+  vnb_margin_pct: "VNB / new business margin %",
+  oev_pct: "Operating return on embedded value %",
+  occupancy_pct: "Hospital bed occupancy %",
+  arpo_growth_pct: "ARPOB growth %",
+  production_volume_mmt: "Production / cargo volume (MMT)",
+  vehicle_volume_units: "Vehicle sales volume (units)",
+};
+
+const METRIC_UNIT: Record<string, string> = {
+  revenue_growth_pct: "pct",
+  revenue_growth_cc_pct: "pct",
+  operating_margin_pct: "pct",
+  ebitda_margin_pct: "pct",
+  ebitda_growth_pct: "pct",
+  pat_margin_pct: "pct",
+  nim_pct: "pct",
+  loan_growth_pct: "pct",
+  underlying_volume_growth_pct: "pct",
+  cigarette_volume_growth_pct: "pct",
+  wholesale_volume_growth_pct: "pct",
+  sssg_pct: "pct",
+  arpu_growth_pct: "pct",
+  jewellery_ebitda_margin_pct: "pct",
+  rd_spend_pct: "pct",
+  cost_saves_pct: "pct",
+  ape_growth_pct: "pct",
+  vnb_growth_pct: "pct",
+  vnb_margin_pct: "pct",
+  oev_pct: "pct",
+  occupancy_pct: "pct",
+  arpo_growth_pct: "pct",
+  production_volume_mmt: "mmt",
+  vehicle_volume_units: "units",
+  wc_days: "days",
+};
+
+export function metricDisplayName(metricId: string): string {
+  return METRIC_DISPLAY[metricId] || metricId.replace(/_/g, " ");
+}
+
+export function metricUnit(metricId: string): string {
+  return METRIC_UNIT[metricId] || (metricId.endsWith("_pct") ? "pct" : "");
+}
+
+/** Character span on a filing — never interpolate raw `{end}` into the DOM. */
+export function formatCharLocator(
+  start?: number | null,
+  end?: number | null,
+): string {
+  if (start == null || end == null) return "";
+  return `chars ${start}–${end}`;
+}
+
+export function formatGuidedBand(o: {
+  guided_low?: number | null;
+  guided_high?: number | null;
+  guided_value: number;
+  metric?: string;
+}): string {
+  const unit = o.metric && metricUnit(o.metric) === "pct" ? "%" : "";
+  if (o.guided_low != null && o.guided_high != null) {
+    if (o.guided_low === o.guided_high) return `${o.guided_low}${unit}`;
+    return `${o.guided_low}–${o.guided_high}${unit}`;
+  }
+  return `${o.guided_value}${unit}`;
+}
+
+export function formatActual(o: {
+  actual_value: number | null;
+  metric?: string;
+}): string {
+  if (o.actual_value == null) return "—";
+  const unit = o.metric && metricUnit(o.metric) === "pct" ? "%" : "";
+  return `${o.actual_value}${unit}`;
+}
+
+/** Guided-vs-actual gap in the metric's own units (not YoY of a growth rate). */
+export function formatGuideGap(o: {
+  actual_value: number | null;
+  guided_low?: number | null;
+  guided_high?: number | null;
+  guided_value: number;
+  metric?: string;
+}): string {
+  if (o.actual_value == null) return "—";
+  const mid =
+    o.guided_low != null && o.guided_high != null
+      ? (o.guided_low + o.guided_high) / 2
+      : o.guided_value;
+  const gap = o.actual_value - mid;
+  const sign = gap > 0 ? "+" : "";
+  const n = Number.isInteger(gap) ? String(gap) : gap.toFixed(1);
+  const unit = o.metric && metricUnit(o.metric) === "pct" ? " pp" : "";
+  return `${sign}${n}${unit}`;
+}
+
+const CLOSED_LABELS = new Set(["met", "exceeded", "missed"]);
+
+export type RecordParts = {
+  metOrBeat: number;
+  closed: number;
+  missedClause: string;
+  metricLabel: string;
+};
+
+export function buildRecordParts(
+  outcomes: Array<{
+    metric: string;
+    period: string;
+    label: string;
+    actual_value: number | null;
+  }>,
+): RecordParts {
+  const closedRows = outcomes.filter(
+    (o) => o.actual_value != null && CLOSED_LABELS.has(o.label),
+  );
+  const revenue = closedRows.filter((o) => o.metric.includes("revenue"));
+  const focus = revenue.length ? revenue : closedRows;
+  const missed = focus
+    .filter((o) => o.label === "missed")
+    .map((o) => o.period)
+    .sort();
+  const metOrBeat = focus.filter((o) => o.label === "met" || o.label === "exceeded").length;
+  const metricId = focus[0]?.metric || "";
+  return {
+    metOrBeat,
+    closed: focus.length,
+    missedClause: missed.length ? `; missed ${missed.join(", ")}` : "",
+    metricLabel: metricId ? metricDisplayName(metricId) : "guidance",
+  };
+}
+
+/** English record sentence for SEO / OG (locale-independent). */
+export function englishRecordSentence(parts: RecordParts): string {
+  if (parts.closed === 0) return "No closed, dual-cited results yet.";
+  return `Met or beat ${parts.metricLabel} guidance in ${parts.metOrBeat} of ${parts.closed} closed years${parts.missedClause}.`;
+}

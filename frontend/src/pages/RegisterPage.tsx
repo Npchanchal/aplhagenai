@@ -15,7 +15,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accountType, setAccountType] = useState<"retail" | "b2b">("retail");
   const [orgName, setOrgName] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +28,7 @@ export default function RegisterPage() {
       return;
     }
     if (!abuse.ready || !abuse.answer.trim()) {
-      setError("Complete the verification check to register.");
+      setError(t("ui.RegisterPage.challenge"));
       return;
     }
     setBusy(true);
@@ -37,8 +36,8 @@ export default function RegisterPage() {
     try {
       await register(email, password, name, {
         acceptTerms: true,
-        accountType,
-        orgName: accountType === "b2b" ? orgName : undefined,
+        accountType: "b2b",
+        orgName,
         challengeId: abuse.challengeId,
         challengeAnswer: abuse.answer,
       });
@@ -57,7 +56,7 @@ export default function RegisterPage() {
       return;
     }
     if (!abuse.ready || !abuse.answer.trim()) {
-      setError("Complete the verification check to continue as guest.");
+      setError(t("ui.LoginPage.guestChallenge"));
       return;
     }
     setBusy(true);
@@ -81,48 +80,24 @@ export default function RegisterPage() {
       <p className="page-kicker">{t("common.account")}</p>
       <h1>{t("auth.registerTitle")}</h1>
       <p className="muted lede">
-        Create a retail (B2C) or business (B2B) account. Citeable GCI still requires
-        hand-labeled evidence — registration is not an advice entitlement. Product of{" "}
-        {LEGAL_ENTITY}. {t("auth.ssoSoon")}
+        {t("ui.RegisterPage.lede", { entity: LEGAL_ENTITY })} {t("auth.ssoSoon")}
+      </p>
+      <p className="muted">
+        <Link to="/pilot">{t("footer.pilot")}</Link>
       </p>
       <form className="auth-form panel" onSubmit={onSubmit}>
-        <fieldset className="account-type-fieldset">
-          <legend>{t("auth.accountType")}</legend>
-          <label className="radio-row">
-            <input
-              type="radio"
-              name="account_type"
-              checked={accountType === "retail"}
-              onChange={() => setAccountType("retail")}
-              data-testid="register-type-retail"
-            />
-            {t("auth.retail")}
-          </label>
-          <label className="radio-row">
-            <input
-              type="radio"
-              name="account_type"
-              checked={accountType === "b2b"}
-              onChange={() => setAccountType("b2b")}
-              data-testid="register-type-b2b"
-            />
-            {t("auth.b2b")}
-          </label>
-        </fieldset>
-        {accountType === "b2b" && (
-          <label>
-            {t("auth.orgName")}
-            <input
-              type="text"
-              required
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              data-testid="register-org-name"
-              autoComplete="organization"
-              placeholder="Desk / firm name"
-            />
-          </label>
-        )}
+        <label>
+          {t("auth.orgName")}
+          <input
+            type="text"
+            required
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
+            data-testid="register-org-name"
+            autoComplete="organization"
+            placeholder={t("ui.RegisterPage.orgPlaceholder")}
+          />
+        </label>
         <label>
           {t("auth.name")}
           <input
@@ -149,7 +124,7 @@ export default function RegisterPage() {
           <input
             type="password"
             required
-            minLength={6}
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             data-testid="register-password"

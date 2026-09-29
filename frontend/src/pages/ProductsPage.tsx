@@ -118,24 +118,32 @@ export default function ProductsPage() {
           ]);
           if (!cancelled) {
             setLedgerSummary(
-              `${led.summary.closed_count} closed · ${led.summary.open_promise_count} open · GCI ${led.gci_score ?? "—"}`,
+              t("ui.ProductsPage.ledgerSummary", {
+                closed: led.summary.closed_count,
+                open: led.summary.open_promise_count,
+                gci: led.gci_score ?? "—",
+              }),
             );
             if (nci) setNciScore(nci.nci_score);
-            if (badge) setBadgeGate(badge.gate || "Channel metadata available");
+            if (badge) setBadgeGate(badge.gate || t("ui.ProductsPage.channelMetadata"));
             if (wb) {
               setWorkbench(
-                `${wb.pending_extract_batches} pending extract batches · ${wb.status}`,
+                t("ui.ProductsPage.workbenchSummary", {
+                  n: wb.pending_extract_batches,
+                  status: wb.status,
+                }),
               );
             }
           }
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("ui.ProductsPage.failedToLoad"));
       }
     })();
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -145,7 +153,11 @@ export default function ProductsPage() {
       .then((led) => {
         if (!cancelled) {
           setLedgerSummary(
-            `${led.summary.closed_count} closed · ${led.summary.open_promise_count} open · GCI ${led.gci_score ?? "—"}${creditOnly ? " · credit filter" : ""}`,
+            `${t("ui.ProductsPage.ledgerSummary", {
+              closed: led.summary.closed_count,
+              open: led.summary.open_promise_count,
+              gci: led.gci_score ?? "—",
+            })}${creditOnly ? t("ui.ProductsPage.creditFilterSuffix") : ""}`,
           );
         }
       })
@@ -153,7 +165,7 @@ export default function ProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [sampleId, creditOnly]);
+  }, [sampleId, creditOnly, t]);
 
   useEffect(() => {
     const id = location.hash.replace(/^#/, "");
@@ -172,6 +184,42 @@ export default function ProductsPage() {
         <h1>{t("products.title")}</h1>
         <p className="lede">{t("products.lede")}</p>
       </header>
+
+      <section className="products-section" data-testid="what-you-get">
+        <h2>{t("products.whatYouGet")}</h2>
+        <div className="desk-guide-grid">
+          <article className="desk-guide">
+            <h3>{t("products.get.screener.title")}</h3>
+            <p>{t("products.get.screener.text")}</p>
+            <p>
+              <Link to="/tracker">{t("products.openTracker")}</Link>
+            </p>
+          </article>
+          <article className="desk-guide">
+            <h3>{t("products.get.workbench.title")}</h3>
+            <p>{t("products.get.workbench.text")}</p>
+            <p>
+              <Link to="/desk">{t("nav.desk")}</Link>
+            </p>
+          </article>
+          <article className="desk-guide">
+            <h3>{t("products.get.search.title")}</h3>
+            <p>{t("products.get.search.text")}</p>
+            <p>
+              <Link to="/research">{t("products.openResearch")}</Link>
+            </p>
+          </article>
+          <article className="desk-guide">
+            <h3>{t("products.get.api.title")}</h3>
+            <p>{t("products.get.api.text")}</p>
+            <p>
+              <Link to="/developers">Developers</Link>
+              {" · "}
+              <Link to="/package">{t("footer.package")}</Link>
+            </p>
+          </article>
+        </div>
+      </section>
 
       {error && (
         <p className="error" role="alert">
@@ -215,7 +263,8 @@ export default function ProductsPage() {
       </section>
 
       <section className="sku-grid" aria-label={t("products.byProduct")}>
-        <h2 className="sku-grid-heading">{t("products.byProduct")}</h2>
+        <h2 className="sku-grid-heading">{t("products.skuAppendix")}</h2>
+        <p className="muted">{t("products.skuAppendix.lede")}</p>
         {products.map((p) => {
           const link = skuLinks[p.id] ?? {
             primary: "/package",
@@ -254,14 +303,17 @@ export default function ProductsPage() {
       </section>
 
       <section className="products-section" data-testid="radar-calendar-section">
-        <h2>Result calendar</h2>
+        <h2>{t("ui.ProductsPage.calendar.title")}</h2>
         <ul className="radar-list">
           {calendar.map((w) => (
             <li key={w.company_id}>
               <Link to={`/companies/${w.company_id}`}>
                 <strong>{w.ticker}</strong>
               </Link>{" "}
-              {w.open_promise_count} open · {w.periods.join(", ") || "—"}
+              {t("ui.ProductsPage.calendar.row", {
+                n: w.open_promise_count,
+                periods: w.periods.join(", ") || "—",
+              })}
             </li>
           ))}
         </ul>
@@ -270,15 +322,15 @@ export default function ProductsPage() {
       <section className="products-section" data-testid="radar-digest-section">
         <details>
           <summary>
-            <h2 style={{ display: "inline" }}>Radar digest (ops)</h2>
+            <h2 style={{ display: "inline" }}>{t("ui.ProductsPage.digest.title")}</h2>
           </summary>
-          <pre className="digest-preview">{digestPreview || "Loading…"}</pre>
+          <pre className="digest-preview">{digestPreview || t("ui.ProductsPage.loading")}</pre>
           <div className="queue-ingest-row" style={{ marginTop: 12, flexWrap: "wrap", gap: 8 }}>
             <input
               type="email"
               value={digestEmail}
               onChange={(e) => setDigestEmail(e.target.value)}
-              aria-label="Digest email"
+              aria-label={t("ui.ProductsPage.digest.emailAria")}
               data-testid="radar-digest-email"
               style={{ minWidth: 200 }}
             />
@@ -290,24 +342,30 @@ export default function ProductsPage() {
                 try {
                   const r = await postRadarDigestSend(digestEmail);
                   if (r.status === "disabled") {
-                    setToast("Digest disabled — set RADAR_DIGEST=1");
+                    setToast(t("ui.ProductsPage.digest.disabled"));
                   } else {
-                    setToast(`Digest ${r.status}${r.mail?.status ? ` · mail ${r.mail.status}` : ""}`);
+                    setToast(
+                      `${t("ui.ProductsPage.digest.status", { status: r.status })}${
+                        r.mail?.status
+                          ? t("ui.ProductsPage.digest.mailStatus", { status: r.mail.status })
+                          : ""
+                      }`,
+                    );
                   }
                 } catch (e) {
-                  setToast(e instanceof Error ? e.message : "Send failed");
+                  setToast(e instanceof Error ? e.message : t("ui.ProductsPage.digest.sendFailed"));
                 }
               }}
             >
-              Send digest
+              {t("ui.ProductsPage.digest.send")}
             </button>
           </div>
         </details>
       </section>
 
       <section id="ledger" className="products-section" data-testid="ledger-section">
-        <h2>Ledger — {sampleTicker || "…"}</h2>
-        <p>{ledgerSummary || "Loading…"}</p>
+        <h2>{t("ui.ProductsPage.ledger.title", { ticker: sampleTicker || "…" })}</h2>
+        <p>{ledgerSummary || t("ui.ProductsPage.loading")}</p>
         <div className="queue-ingest-row" style={{ flexWrap: "wrap", gap: 8 }}>
           <label className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <input
@@ -316,7 +374,7 @@ export default function ProductsPage() {
               onChange={(e) => setCreditOnly(e.target.checked)}
               data-testid="products-credit-only"
             />
-            Credit-adjacent only
+            {t("ui.ProductsPage.ledger.creditOnly")}
           </label>
           <button
             type="button"
@@ -333,13 +391,13 @@ export default function ProductsPage() {
                 a.download = `ledger-${sampleTicker}.pdf`;
                 a.click();
                 URL.revokeObjectURL(url);
-                setToast("Ledger PDF downloaded");
+                setToast(t("ui.ProductsPage.ledger.pdfDownloaded"));
               } catch (e) {
-                setToast(e instanceof Error ? e.message : "PDF failed");
+                setToast(e instanceof Error ? e.message : t("ui.ProductsPage.ledger.pdfFailed"));
               }
             }}
           >
-            Download PDF
+            {t("ui.ProductsPage.ledger.downloadPdf")}
           </button>
           <button
             type="button"
@@ -351,29 +409,32 @@ export default function ProductsPage() {
               try {
                 const m = await fetchLedgerMirror(sampleId);
                 setLedgerSummary(
-                  `IR Mirror · ${m.summary.closed_count} closed · sector avg ${m.peer_context?.sector_avg_gci ?? "—"}`,
+                  t("ui.ProductsPage.ledger.irSummary", {
+                    closed: m.summary.closed_count,
+                    avg: m.peer_context?.sector_avg_gci ?? "—",
+                  }),
                 );
-                setToast("IR Mirror loaded");
+                setToast(t("ui.ProductsPage.ledger.irLoaded"));
               } catch {
-                setToast("IR Mirror needs IR_MIRROR=1");
+                setToast(t("ui.ProductsPage.ledger.irNeedsFlag"));
               }
             }}
           >
-            IR Mirror
+            {t("ui.ProductsPage.ledger.irMirror")}
           </button>
           {sampleId && (
             <Link className="btn ghost small" to={`/companies/${sampleId}#ledger`}>
-              Open dossier ledger →
+              {t("ui.ProductsPage.ledger.openDossier")}
             </Link>
           )}
         </div>
         <p className="muted" style={{ fontSize: 13 }}>
-          Flag: IR_MIRROR={String(flags.IR_MIRROR ?? false)}
+          {t("ui.ProductsPage.ledger.flag", { value: String(flags.IR_MIRROR ?? false) })}
         </p>
       </section>
 
       <section id="data" className="products-section" data-testid="data-section">
-        <h2>Data export</h2>
+        <h2>{t("ui.ProductsPage.data.title")}</h2>
         <ul>
           {exports.map((e) => (
             <li key={e.id}>
@@ -397,19 +458,19 @@ export default function ProductsPage() {
                   a.download = `outcomes_bulk.${fmt === "json" ? "json" : "csv"}`;
                   a.click();
                   URL.revokeObjectURL(url);
-                  setToast(`Downloaded outcomes .${fmt}`);
+                  setToast(t("ui.ProductsPage.data.downloaded", { fmt }));
                 } catch (e) {
-                  setToast(e instanceof Error ? e.message : "Export failed");
+                  setToast(e instanceof Error ? e.message : t("ui.ProductsPage.data.exportFailed"));
                 }
               }}
             >
-              Download {fmt.toUpperCase()}
+              {t("ui.ProductsPage.data.download", { fmt: fmt.toUpperCase() })}
             </button>
           ))}
         </div>
         {kpiCount != null && (
           <p className="muted" style={{ marginTop: 12 }}>
-            KPI dictionary: {kpiCount} metrics in ontology
+            {t("ui.ProductsPage.data.kpi", { n: kpiCount })}
           </p>
         )}
       </section>
@@ -417,44 +478,48 @@ export default function ProductsPage() {
       <section className="products-section" data-testid="cite-section">
         <h2>Cite API</h2>
         <ul>
-          {citeTiers.map((t) => (
-            <li key={t.id}>
-              <strong>{t.name}</strong> — {t.rpm} RPM
+          {citeTiers.map((tier) => (
+            <li key={tier.id}>
+              <strong>{tier.name}</strong> — {t("ui.ProductsPage.cite.rpm", { rpm: tier.rpm })}
             </li>
           ))}
         </ul>
         {citeUsage && (
           <p data-testid="cite-usage">
-            Session usage: tier <strong>{citeUsage.tier}</strong> ·{" "}
-            {citeUsage.citations_served_session} citations metered
+            {t("ui.ProductsPage.cite.usageBefore")} <strong>{citeUsage.tier}</strong> ·{" "}
+            {t("ui.ProductsPage.cite.usageAfter", { n: citeUsage.citations_served_session })}
           </p>
         )}
         <Link className="btn ghost small" to="/research">
-          Open Research Terminal →
+          {t("ui.ProductsPage.cite.openResearch")}
         </Link>
       </section>
 
       <section className="products-section" data-testid="stretch-section">
         <details>
           <summary>
-            <h2 style={{ display: "inline" }}>Stretch (P5)</h2>
+            <h2 style={{ display: "inline" }}>{t("ui.ProductsPage.stretch.title")}</h2>
           </summary>
           <ul className="radar-list">
             <li data-testid="nci-summary">
-              NCI (sample {sampleTicker || "—"}): {nciScore ?? "—"} ·{" "}
+              {t("ui.ProductsPage.stretch.nci", {
+                ticker: sampleTicker || "—",
+                score: nciScore ?? "—",
+              })}{" "}
               {sampleId && (
-                <Link to={`/companies/${sampleId}#ledger`}>view on dossier</Link>
+                <Link to={`/companies/${sampleId}#ledger`}>{t("ui.ProductsPage.stretch.viewOnDossier")}</Link>
               )}
             </li>
-            <li>Broker trust badge: {badgeGate || "—"}</li>
-            <li>Extraction workbench: {workbench || "—"}</li>
+            <li>{t("ui.ProductsPage.stretch.badge", { value: badgeGate || "—" })}</li>
+            <li>{t("ui.ProductsPage.stretch.workbench", { value: workbench || "—" })}</li>
           </ul>
         </details>
       </section>
 
       <p className="muted">
-        Commercial tiers on <Link to="/package">Package</Link>. Roadmap:{" "}
-        <code>docs/PORTFOLIO_ROADMAP.md</code>.
+        {t("ui.ProductsPage.footer.before")}{" "}
+        <Link to="/package">{t("ui.ProductsPage.footer.link")}</Link>
+        {t("ui.ProductsPage.footer.after")}
       </p>
       <Disclaimer />
     </div>
