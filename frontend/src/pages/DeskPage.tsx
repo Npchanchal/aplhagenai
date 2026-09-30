@@ -851,31 +851,29 @@ export default function DeskPage() {
             {t("ui.DeskPage.corpus.title")} <InfoTip termId="tier1" />
           </h2>
           <p className="muted">{t("ui.DeskPage.corpus.lede")}</p>
-          {corpusCov && (
-            <div className="metrics" data-testid="corpus-coverage">
-              <div className="metric">
-                <div className="label">{t("ui.DeskPage.corpus.tier1Pass")}</div>
-                <div className="value" style={{ fontSize: 20 }}>
-                  {String(corpusCov.tier1_gate_pass ?? corpusCov.tier1_pass ?? "—")} /{" "}
-                  {String(
-                    corpusCov.hand_labeled_sensex ??
-                      (Array.isArray(corpusCov.companies)
-                        ? (corpusCov.companies as unknown[]).length
-                        : corpusCov.companies) ??
-                      "—",
-                  )}
-                </div>
-              </div>
-              <div className="metric">
-                <div className="label">{t("ui.DeskPage.corpus.tier1Rate")}</div>
-                <div className="value" style={{ fontSize: 20 }}>
-                  {corpusCov.tier1_gate_rate != null || corpusCov.tier1_rate_pct != null
-                    ? `${Number(corpusCov.tier1_gate_rate ?? corpusCov.tier1_rate_pct).toFixed(1)}%`
-                    : "—"}
-                </div>
+          <div className="metrics" data-testid="corpus-coverage">
+            <div className="metric">
+              <div className="label">{t("ui.DeskPage.corpus.tier1Pass")}</div>
+              <div className="value" style={{ fontSize: 20 }}>
+                {String(corpusCov?.tier1_gate_pass ?? corpusCov?.tier1_pass ?? "—")} /{" "}
+                {String(
+                  corpusCov?.hand_labeled_sensex ??
+                    (Array.isArray(corpusCov?.companies)
+                      ? (corpusCov.companies as unknown[]).length
+                      : corpusCov?.companies) ??
+                    "—",
+                )}
               </div>
             </div>
-          )}
+            <div className="metric">
+              <div className="label">{t("ui.DeskPage.corpus.tier1Rate")}</div>
+              <div className="value" style={{ fontSize: 20 }}>
+                {corpusCov?.tier1_gate_rate != null || corpusCov?.tier1_rate_pct != null
+                  ? `${Number(corpusCov?.tier1_gate_rate ?? corpusCov?.tier1_rate_pct).toFixed(1)}%`
+                  : "—"}
+              </div>
+            </div>
+          </div>
           {pendingDepth && (
             <p className="muted" style={{ fontSize: 13 }} data-testid="pending-depth-summary">
               {t("ui.DeskPage.corpus.depthLlm")}{" "}
