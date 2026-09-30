@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  ApiError,
   fetchAuthMe,
   postGuest,
   postLogin,
@@ -129,14 +130,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       try {
-        const me = await fetchAuthMe(tkn);
+        let me: { user: AuthUser } | null = null;
+        let denied = false;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            me = await fetchAuthMe(tkn);
+            break;
+          } catch (e) {
+            const status = e instanceof ApiError ? e.status : 0;
+            if (status === 401 || status === 403) {
+              denied = true;
+              break;
+            }
+            if (status === 429 && attempt < 2) {
+              await new Promise((resolve) => window.setTimeout(resolve, 1500 * (attempt + 1)));
+              continue;
+            }
+            break;
+          }
+        }
         if (cancelled) return;
-        applySession(tkn, me.user);
-      } catch {
-        writeToken(null);
-        if (!cancelled) {
+        if (me) {
+          applySession(tkn, me.user);
+        } else if (denied) {
+          writeToken(null);
           setToken(null);
           setUser(null);
+        } else {
+          // A rate limit or a network blip is not a logout. Keep the stored session.
+          setToken(tkn);
         }
       } finally {
         if (!cancelled) setLoading(false);

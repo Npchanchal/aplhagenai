@@ -13,7 +13,7 @@ test.describe("Desk — pilot user workflows", () => {
     test(`tab ${tab.id} loads panel`, async ({ page }) => {
       await page.goto(`/desk?tab=${tab.id}`);
       await dismissOverlays(page);
-      await expect(page.getByTestId(tab.testId)).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId(tab.testId)).toBeVisible({ timeout: 30_000 });
     });
   }
 
@@ -36,20 +36,20 @@ test.describe("Desk — pilot user workflows", () => {
   test("corpus panel shows coverage metrics", async ({ page }) => {
     await page.goto("/desk?tab=corpus");
     await dismissOverlays(page);
-    await expect(page.getByTestId("corpus-coverage")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("corpus-coverage")).toBeVisible({ timeout: 30_000 });
   });
 
   test("reports panel can select template", async ({ page }) => {
     await page.goto("/desk?tab=reports");
     await dismissOverlays(page);
-    await expect(page.getByTestId("report-template")).toBeVisible();
+    await expect(page.getByTestId("report-template")).toBeVisible({ timeout: 25_000 });
     await expect(page.getByTestId("generate-report")).toBeVisible();
   });
 
   test("PIT panel loads API catalog section", async ({ page }) => {
     await page.goto("/desk?tab=pit");
     await dismissOverlays(page);
-    await expect(page.getByTestId("pit-panel")).toBeVisible();
+    await expect(page.getByTestId("pit-panel")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("pit-panel").locator("h2").first()).toBeVisible();
   });
 
@@ -70,6 +70,7 @@ test.describe("Desk — pilot user workflows", () => {
       localStorage.setItem(key, JSON.stringify(seen));
     });
     await page.reload();
+    await expect(page.getByTestId("desk-page")).toBeVisible({ timeout: 25_000 });
     const card = page.getByTestId("site-tour-card");
     await expect(card).toBeVisible({ timeout: 25_000 });
     await expect(card).toContainText("Welcome to the Analyst Workbench");

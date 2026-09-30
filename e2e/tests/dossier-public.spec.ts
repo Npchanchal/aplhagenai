@@ -96,15 +96,28 @@ test("public snapshot ranks only established/deep and explains an empty list", a
   await page.goto("/rankings");
   await dismissOverlays(page);
   await expect(page.getByTestId("gci-rankings-page")).toBeVisible();
-  const rows = page.locator("table tbody tr");
-  await expect(rows.first()).toBeVisible({ timeout: 10_000 });
-  const badges = page.locator("[data-testid^='rank-tier-']");
-  const n = await badges.count();
-  if (n === 0) {
-    await expect(page.getByTestId("rankings-empty")).toBeVisible();
+  const record = page.getByTestId("rankings-record-table");
+  const ranked = page.getByRole("columnheader", { name: "#", exact: true });
+  const recordMode = await record
+    .waitFor({ state: "visible", timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (recordMode) {
+    // Below 20 established names the snapshot is a delivery record, not a ranking.
+    await expect(ranked).toHaveCount(0);
+    const badges = record.locator("[data-testid^='rank-tier-']");
+    if ((await badges.count()) === 0) {
+      await expect(page.getByTestId("rankings-empty")).toBeVisible();
+    }
   } else {
-    for (let i = 0; i < n; i++) {
-      await expect(badges.nth(i)).toHaveText(/Established|Deep/);
+    const badges = page.locator("[data-testid^='rank-tier-']");
+    const n = await badges.count();
+    if (n === 0) {
+      await expect(page.getByTestId("rankings-empty")).toBeVisible();
+    } else {
+      for (let i = 0; i < n; i++) {
+        await expect(badges.nth(i)).toHaveText(/Established|Deep/);
+      }
     }
   }
 });

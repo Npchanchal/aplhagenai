@@ -28,7 +28,7 @@ export default function TourWelcome() {
         window.clearInterval(t);
         markSeen("desk_first_run");
         startTour("desk");
-      } else if (tries >= 40) {
+      } else if (tries >= 80) {
         window.clearInterval(t);
       }
     }, 400);

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchEntitlementsMe, type Entitlements } from "./api";
+import { ApiError, fetchEntitlementsMe, type Entitlements } from "./api";
 import { useAuth } from "./auth";
 
 const GUEST: Entitlements = {
@@ -35,8 +35,22 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const row = await fetchEntitlementsMe();
-      setEntitlements(row);
+      let row: Entitlements | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          row = await fetchEntitlementsMe();
+          break;
+        } catch (e) {
+          const status = e instanceof ApiError ? e.status : 0;
+          if (status === 429 && attempt < 2) {
+            await new Promise((resolve) => window.setTimeout(resolve, 1500 * (attempt + 1)));
+            continue;
+          }
+          if (status === 429) return;
+          throw e;
+        }
+      }
+      if (row) setEntitlements(row);
     } catch {
       setEntitlements(GUEST);
     } finally {

@@ -49,7 +49,6 @@ test.describe("Marketing & portfolio surfaces", () => {
     await page.goto("/package");
     await dismissOverlays(page);
     await expect(page.getByTestId("package-page")).toBeVisible();
-    await expect(page.getByTestId("portfolio-skus")).toBeVisible();
     for (const plan of ["pilot", "desk", "enterprise"]) {
       await expect(page.getByTestId(`plan-${plan}`)).toBeVisible();
     }

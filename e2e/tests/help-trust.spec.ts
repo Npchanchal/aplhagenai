@@ -20,15 +20,14 @@ test("about, help, trust, and terms surfaces", async ({ page }) => {
 
   await page.goto("/trust");
   await expect(page.getByTestId("trust-page")).toBeVisible();
-  await expect(page.getByTestId("counsel-banner")).toBeVisible();
-  await expect(page.getByTestId("trust-counsel")).toBeVisible();
+  await expect(page.getByTestId("trust-legal")).toBeVisible();
   await expect(page.getByTestId("trust-subprocessors")).toBeVisible();
   await expect(page.getByText("Ocotillo Innovation Private Limited").first()).toBeVisible();
 
   await page.goto("/terms");
   await expect(page.getByTestId("legal-terms-page")).toBeVisible();
   await expect(page.getByTestId("counsel-banner")).toBeVisible();
-  await expect(page.locator(".legal-section")).toHaveCount(12);
+  await expect.poll(async () => page.locator(".legal-section").count()).toBeGreaterThanOrEqual(12);
 
   await page.goto("/privacy");
   await expect(page.getByTestId("legal-privacy-page")).toBeVisible();

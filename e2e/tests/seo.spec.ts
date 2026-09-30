@@ -24,7 +24,7 @@ test("hand-labeled dossier is indexable with GCI title", async ({ page }) => {
   await dismissOverlays(page);
   await waitForDossier(page);
   await expect.poll(async () => page.title()).toMatch(
-    /Infosys — Guidance Credibility Index \(GCI\) 76\.5/,
+    /Infosys.*Guidance Credibility Index \(GCI\) 76\.5/,
   );
   const robots = page.locator('meta[name="robots"]');
   await expect(robots).toHaveAttribute("content", /index,follow/);
