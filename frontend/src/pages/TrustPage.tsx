@@ -190,10 +190,7 @@ export default function TrustPage() {
               <>
                 <p data-testid="trust-review-process">{t("method.page.review.i4")}</p>
                 <ul className="about-list">
-                  <li>
-                    {t("ui.TrustPage.twoPerson")}{" "}
-                    {data.labeling_governance.two_person_review ? t("ui.TrustPage.required") : t("ui.TrustPage.notSet")}
-                  </li>
+                  <li>{t("ui.TrustPage.filingCheck")}</li>
                   <li>
                     {t("ui.TrustPage.counts", {
                       drafts: data.labeling_governance.drafts ?? 0,

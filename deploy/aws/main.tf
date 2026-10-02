@@ -645,6 +645,14 @@ resource "aws_ecs_task_definition" "app" {
         var.openai_api_key != "" && !local.secrets_enabled ? [
           { name = "OPENAI_API_KEY", value = var.openai_api_key }
         ] : [],
+        var.gemini_api_key != "" && !local.secrets_enabled ? [
+          { name = "GEMINI_API_KEY", value = var.gemini_api_key }
+        ] : [],
+        var.gemini_api_key != "" ? [
+          { name = "INTELLENS_LLM_BASE_URL", value = "https://generativelanguage.googleapis.com/v1beta/openai" },
+          { name = "INTELLENS_LLM_MODEL", value = var.gemini_chat_model },
+          { name = "INTELLENS_EMBED_MODEL", value = var.gemini_embed_model }
+        ] : [],
         var.force_https ? [
           { name = "FORCE_HTTPS", value = "true" }
         ] : [],
@@ -653,7 +661,7 @@ resource "aws_ecs_task_definition" "app" {
         ] : [],
         var.intellens_public_url != "" ? [
           { name = "INTELLENS_PUBLIC_URL", value = var.intellens_public_url }
-        ] : (
+          ] : (
           var.domain_name != "" ? [
             { name = "INTELLENS_PUBLIC_URL", value = "https://${var.domain_name}" }
           ] : []
@@ -669,7 +677,7 @@ resource "aws_ecs_task_definition" "app" {
         ] : [],
         var.oidc_redirect_uri != "" ? [
           { name = "OIDC_REDIRECT_URI", value = var.oidc_redirect_uri }
-        ] : (
+          ] : (
           var.domain_name != "" ? [
             { name = "OIDC_REDIRECT_URI", value = "https://${var.domain_name}/api/auth/sso/callback" }
           ] : []
@@ -697,7 +705,7 @@ resource "aws_ecs_task_definition" "app" {
         ] : [],
         var.intellens_auth_dev_tokens ? [
           { name = "INTELLENS_AUTH_DEV_TOKENS", value = "1" }
-        ] : [
+          ] : [
           { name = "INTELLENS_AUTH_DEV_TOKENS", value = "0" }
         ],
         var.intellens_api_key != "" && !local.secrets_enabled ? [
@@ -709,10 +717,18 @@ resource "aws_ecs_task_definition" "app" {
         [
           { name = "RADAR_DIGEST", value = var.radar_digest ? "1" : "0" },
           { name = "IR_MIRROR", value = var.ir_mirror ? "1" : "0" },
-          { name = "PORTFOLIO_STRETCH", value = var.portfolio_stretch ? "1" : "0" }
+          { name = "PORTFOLIO_STRETCH", value = var.portfolio_stretch ? "1" : "0" },
+          { name = "INTELLENS_GUIDANCE_REVIEW", value = "1" }
         ],
         var.enable_auth_efs && var.use_db_auth ? [
-          { name = "INTELLENS_DATA_DIR", value = "/data/citealpha" }
+          { name = "INTELLENS_DATA_DIR", value = "/data/citealpha" },
+          { name = "INTELLENS_INDIA_COVERAGE", value = "1" },
+          { name = "INTELLENS_FILING_LIVE", value = "1" },
+          { name = "INTELLENS_FILING_FETCH_DAILY_CAP", value = "10000" },
+          { name = "INTELLENS_FILING_DISCOVERY_DAILY_CAP", value = "10000" },
+          { name = "INTELLENS_INDIA_COVERAGE_COHORT", value = "nifty50" },
+          { name = "INTELLENS_EXTRACT_LLM_DAILY_CAP", value = "10000" },
+          { name = "INTELLENS_WEB_SEARCH_DISCOVERY", value = "1" }
         ] : [],
         var.enable_index_bucket ? [
           { name = "INTELLENS_INDEX_S3_BUCKET", value = aws_s3_bucket.index[0].bucket },

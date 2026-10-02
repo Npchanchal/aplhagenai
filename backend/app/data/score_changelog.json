@@ -2,6 +2,24 @@
   "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
   "entries": [
     {
+      "date": "2026-10-02",
+      "reason": "methodology",
+      "companies": [],
+      "change": "Every NSE and BSE listing now carries a coverage status (scored, open period, filing in review, no quantified guidance, or listed only). A published number still requires a guidance quote and a later actual on accepted filings. Machine-extracted rows that pass quote-in-document checks may publish as extracted_verified at the provisional tier and are not ranked. Exchange-filing ingest and extract jobs walk Nifty, then India Top 1000, then the rest of NSE and BSE-only names. A completed lookback with no metric-and-number promise is recorded as no quantified guidance — a coverage finding, not a delivery miss. Infosys 76.5, Cipla 65.5, Axis Bank 83.8, Adani Ports 58.7, Apollo Hospitals 60.4 and HDFC Life 87.8 are unchanged."
+    },
+    {
+      "date": "2026-10-01",
+      "reason": "new_filing",
+      "companies": ["axisbank", "adani_ports", "apollohosp", "hdfclife"],
+      "change": "Guidance review filed promise citations already stored on the filings, where the guided figure is not the same number as the result. Axis Bank none → 83.8 provisional (FY25 NIM guided 3.80%, actual 3.98%). Adani Ports none → 58.7 provisional (FY25 cargo band 460–480 MMT, actual 450). Apollo Hospitals none → 60.4 provisional (FY24 ARPOB band 6–7%, actual 11%). HDFC Life none → 87.8 provisional (operating RoEV). Rows whose guidance figure is the reported actual stay unscored. Infosys 76.5 and Cipla 65.5 are unchanged."
+    },
+    {
+      "date": "2026-10-01",
+      "reason": "display_fix",
+      "companies": [],
+      "change": "A row counts when a fetch of both filings contains the recorded quotes. The company page shows the date of that check. A missing quote drops the row; nothing is queued for a person. The 31 March 2027 Sensex and Nifty 50 coverage date is withdrawn. The methodology page states the limitations, including the ±2% band on a single-point guide. In-year revision count, direction, and average move are shown beside the score and are not part of GCI. Infosys 76.5 and Cipla 65.5 are unchanged."
+    },
+    {
       "date": "2026-09-29",
       "reason": "display_fix",
       "companies": [],

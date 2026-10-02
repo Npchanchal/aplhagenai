@@ -1,7 +1,10 @@
 """Real NSE / BSE equity masters (cached JSON under app/data/listings/).
 
 GCI is NOT invented for these rows — only Sensex/Nifty seed outcomes score.
-Listings power navigation (NSE_ALL / BSE_ALL / IN1000) with data_quality=listing_master.
+
+One row per scrip. Every India index (SENSEX, NIFTY50, NIFTYBANK, NSE_ALL,
+BSE_ALL, IN1000) is a membership tag on that row, never a separate record, so a
+dual-listed or multi-index name is stored, scored and walked exactly once.
 """
 
 from __future__ import annotations
@@ -22,6 +25,12 @@ from app.data.universe import (
 _LISTINGS = Path(__file__).with_name("listings")
 
 StockRow = Dict[str, Any]
+
+IN1000_CAP = 1000
+INDIA_INDEX_IDS = ("SENSEX", "NIFTY50", "NIFTYBANK", "NSE_ALL", "BSE_ALL", "IN1000")
+NIFTYBANK_TICKERS = frozenset(
+    {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
+)
 
 
 def _slug(ticker: str) -> str:
@@ -76,6 +85,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
 
     by_id: Dict[str, StockRow] = {}
     isin_to_id: Dict[str, str] = {}
+    ticker_to_id: Dict[str, str] = {}
 
     for row in nse_raw:
         symbol = (row.get("symbol") or "").strip().upper()
@@ -88,10 +98,12 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             else "listing_master"
         )
         isin = (row.get("isin") or "").strip().upper()
+        if cid in by_id or (isin and isin in isin_to_id):
+            continue
         entry: StockRow = {
             "id": cid,
             "market_id": "IN",
-            "index_ids": ["NSE_ALL", "IN1000"],
+            "index_ids": ["NSE_ALL"],
             "name": name,
             "ticker": ticker,
             "sector": sector,
@@ -100,6 +112,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             "isin": isin or None,
         }
         by_id[cid] = entry
+        ticker_to_id.setdefault(ticker.upper(), cid)
         if isin:
             isin_to_id[isin] = cid
 
@@ -113,11 +126,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
         if isin and isin in isin_to_id:
             existing_id = isin_to_id[isin]
         elif symbol:
-            # ticker match against NSE / seed
-            for cid, entry in by_id.items():
-                if entry["ticker"].upper() == symbol:
-                    existing_id = cid
-                    break
+            existing_id = ticker_to_id.get(symbol)
 
         if existing_id and existing_id in by_id:
             ids = list(by_id[existing_id].get("index_ids") or [])
@@ -134,7 +143,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
         by_id[cid] = {
             "id": cid,
             "market_id": "IN",
-            "index_ids": ["BSE_ALL", "IN1000"],
+            "index_ids": ["BSE_ALL"],
             "name": name,
             "ticker": symbol or code,
             "sector": "Equity",
@@ -143,48 +152,71 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             "isin": isin or None,
             "bse_scrip_code": code or None,
         }
+        if symbol:
+            ticker_to_id.setdefault(symbol, cid)
         if isin:
             isin_to_id[isin] = cid
 
-    # Sensex / Nifty membership overlays
+    # Seeded deep names absent from the exchange files (renamed / demerged symbols)
+    # keep their single record so Sensex / Nifty filters never fall back to a copy.
+    for cid, name, ticker, sector in list(SENSEX_30) + list(NIFTY50_BEYOND_SENSEX):
+        if cid in by_id:
+            continue
+        by_id[cid] = {
+            "id": cid,
+            "market_id": "IN",
+            "index_ids": [],
+            "name": name,
+            "ticker": ticker,
+            "sector": sector,
+            "data_quality": deep_data_quality(cid),
+            "exchange": None,
+            "isin": None,
+        }
+
     sensex_ids = {cid for cid, *_ in SENSEX_30}
-    nifty_ids = sensex_ids | {cid for cid, *_ in NIFTY50_BEYOND_SENSEX}
-    bank_tickers = {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
     for cid, entry in by_id.items():
         ids = list(entry.get("index_ids") or [])
+        ticker = (entry.get("ticker") or "").upper()
         if cid in sensex_ids:
-            for ix in ("SENSEX", "NIFTY50", "IN1000"):
-                if ix == "NIFTY50" and entry.get("ticker", "").upper() not in OFFICIAL_NIFTY50_TICKERS:
-                    continue
-                if ix not in ids:
-                    ids.append(ix)
-        elif cid in nifty_ids:
-            if (
-                entry.get("ticker", "").upper() in OFFICIAL_NIFTY50_TICKERS
-                and "NIFTY50" not in ids
-            ):
-                ids.append("NIFTY50")
-        if entry.get("ticker", "").upper() in bank_tickers and "NIFTYBANK" not in ids:
+            ids.append("SENSEX")
+        if ticker in OFFICIAL_NIFTY50_TICKERS:
+            ids.append("NIFTY50")
+        if ticker in NIFTYBANK_TICKERS:
             ids.append("NIFTYBANK")
         entry["index_ids"] = ids
 
     # Stable order: deep GCI first, then NSE ticker, then BSE-only
-    deep = [by_id[c] for c, *_ in SENSEX_30 if c in by_id]
-    deep += [by_id[c] for c, *_ in NIFTY50_BEYOND_SENSEX if c in by_id and c not in sensex_ids]
+    deep = [by_id[c] for c, *_ in SENSEX_30]
+    deep += [by_id[c] for c, *_ in NIFTY50_BEYOND_SENSEX if c not in sensex_ids]
     deep_ids = {r["id"] for r in deep}
     rest = sorted(
         (r for r in by_id.values() if r["id"] not in deep_ids),
         key=lambda r: (0 if "NSE_ALL" in r.get("index_ids", []) else 1, r.get("ticker") or ""),
     )
-    return tuple(deep + rest)
+    ordered = deep + rest
+    for row in ordered[:IN1000_CAP]:
+        row["index_ids"].append("IN1000")
+    for row in ordered:
+        row["index_ids"] = [ix for ix in INDIA_INDEX_IDS if ix in row["index_ids"]]
+    return tuple(ordered)
+
+
+@lru_cache(maxsize=None)
+def india_index_members(index_id: str) -> Tuple[StockRow, ...]:
+    """Rows tagged with ``index_id`` — the same objects as the universe, not copies."""
+    iid = (index_id or "").upper()
+    return tuple(r for r in india_equity_universe() if iid in r["index_ids"])
+
+
+@lru_cache(maxsize=1)
+def _listings_by_id() -> Dict[str, StockRow]:
+    return {row["id"]: row for row in india_equity_universe()}
 
 
 def find_listing(company_id: str) -> Optional[StockRow]:
-    cid = (company_id or "").strip()
-    for row in india_equity_universe():
-        if row["id"] == cid:
-            return dict(row)
-    return None
+    row = _listings_by_id().get((company_id or "").strip())
+    return dict(row) if row else None
 
 
 @lru_cache(maxsize=1)
@@ -223,6 +255,8 @@ def listing_counts() -> Dict[str, Any]:
 
 def clear_listing_caches() -> None:
     india_equity_universe.cache_clear()
+    india_index_members.cache_clear()
+    _listings_by_id.cache_clear()
     nse_meta.cache_clear()
     bse_meta.cache_clear()
     _sensex_by_ticker.cache_clear()

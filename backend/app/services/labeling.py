@@ -179,16 +179,14 @@ def audit_summary(*, org_id: Optional[str] = None) -> Dict[str, Any]:
     if not recent:
         recent = audit_recent(org_id=org_id, limit=12)
     return {
-        "two_person_review": True,
+        "two_person_review": False,
         "drafts": len([r for r in rows if r.get("status") == "draft"]),
         "submitted": len(submitted),
         "accepted": max(len(accepts), len(accepted_drafts)),
         "note": (
-            "Scores published today were reviewed by one analyst. A second reviewer is required "
-            "when a new row is submitted and then accepted by a different person; an account admin "
-            "may accept their own submission. A monthly sample audit by a second reviewer, and its "
-            "pass rate on the Trust Center, will be published once that audit is running. Until then "
-            "the published index is single-analyst review."
+            "A closed row counts when a fetch of the guidance filing and the results filing "
+            "both contain the recorded quotes. The company page shows the date of that check. "
+            "A quote that is not on the filing keeps the row out of the score."
         ),
         "recent": recent,
     }

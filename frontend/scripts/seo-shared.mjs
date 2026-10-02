@@ -263,13 +263,13 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <ol>
         <li><strong>Sources</strong> — NSE and BSE filings, company IR decks and guidance tables, earnings-call transcripts.</li>
         <li><strong>What counts as guidance</strong> — a number or range for a named metric and period, from a filing, results release or call transcript. Commentary without a number is left out. If guidance is raised or cut during the year, we score against the original number and show every revision next to it.</li>
-        <li><strong>Verification</strong> — one analyst checks every extracted row against its source document before it counts. Scores published today are that single review. Each row keeps the quote, the document link and the date.</li>
+        <li><strong>Verification</strong> — each guidance quote and each reported actual is kept with its document link and date. The row counts only when a fetch of both documents contains those quotes.</li>
         <li><strong>Scoring</strong> — GCI scores promise-keeping, not forecast accuracy. Each closed result earns 0–100 points for where it landed against its own guided range; misses lose points faster than beats. A wide range reaches 100 more easily than a tight one. Scores are not adjusted by sector. Open periods don't count until results are filed.</li>
         <li><strong>Independence</strong> — payment never influences a score or when it changes. Covered companies cannot buy, edit or delay their score.</li>
       </ol>
       <h2>Coverage today</h2>
       <ul>
-        <li>Sensex companies plus early Nifty 50 names are scored from analyst-reviewed guidance with cited filings, once they have at least one closed result. Only these carry a GCI.</li>
+        <li>Sensex companies plus early Nifty 50 names are scored when both quotes are found on the cited filings, once they have at least one closed result. Only these carry a GCI.</li>
         <li>A small set of companies have sample data for walkthroughs — not scored, not for citation.</li>
         <li>Other NSE/BSE listings can be browsed but are not yet scored.</li>
         <li>Point-in-time API for design partners: every data point carries the date it became known and whether it can be cited.</li>

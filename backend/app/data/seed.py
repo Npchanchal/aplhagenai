@@ -248,7 +248,7 @@ def build_dataset() -> Dict[str, Any]:
             }
         )
         if cid in HAND_LABELED:
-            labeled = list(HAND_LABELED[cid])
+            labeled = copy.deepcopy(HAND_LABELED[cid])
             # Phase 1.6 — freeze demo pad when FREEZE_DEMO_PAD (default True)
             if not freeze_demo_pad() and len(labeled) < 8:
                 filler = _make_outcomes(cid, ticker, sector)
@@ -287,7 +287,7 @@ def build_dataset() -> Dict[str, Any]:
             }
         )
         if cid in HAND_LABELED:
-            outcomes[cid] = list(HAND_LABELED[cid])
+            outcomes[cid] = copy.deepcopy(HAND_LABELED[cid])
         else:
             outcomes[cid] = _make_outcomes(cid, ticker, sector)
 
@@ -382,7 +382,7 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         metric=metric,
         guided_value=float(d["guided_value"]),
         actual_value=None if d.get("actual_value") is None else float(d["actual_value"]),
-        guided_text=d["guided_text"],
+        guided_text=d.get("guided_text") or d.get("guidance_quote") or d.get("quote_span") or "",
         confidence=float(d.get("confidence", 1.0)),
         speaker=d.get("speaker", "CFO"),
         guided_low=None if d.get("guided_low") is None else float(d["guided_low"]),
@@ -483,6 +483,11 @@ def get_data() -> Dict[str, Any]:
         fresh = not _PATH.exists()
         _DATA = build_dataset() if fresh else json.loads(_PATH.read_text())
         _restore_tenant_state(_DATA)
+        from app.services.guidance_review import apply_stored_binds
+        from app.services.extract_pipeline import apply_extracted_outcomes
+
+        apply_stored_binds(_DATA)
+        apply_extracted_outcomes(_DATA)
         if fresh:
             save_data()
         _ensure_nifty_seed_rows(_DATA)

@@ -36,6 +36,7 @@ services:
       FORCE_HTTPS: ${FORCE_HTTPS:-0}
       ENABLE_HSTS: ${ENABLE_HSTS:-0}
       INTELLENS_VERIFY_SOURCES: ${INTELLENS_VERIFY_SOURCES:-1}
+      INTELLENS_GUIDANCE_REVIEW: "1"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 5s
@@ -85,6 +86,12 @@ services:
       INTELLENS_API_KEY: ${INTELLENS_API_KEY:-intellens-demo}
       INTELLENS_VERIFY_SOURCES: "1"
       INTELLENS_LEDGER_DIGEST: "1"
+      INTELLENS_GUIDANCE_REVIEW: "1"
+      INTELLENS_INDIA_COVERAGE: "1"
+      INTELLENS_INDIA_COVERAGE_LIMIT: "25"
+      INTELLENS_INDIA_COVERAGE_COHORT: "nifty50"
+      INTELLENS_FILING_FETCH_DAILY_CAP: "200"
+      INTELLENS_EXTRACT_LLM_DAILY_CAP: "50"
     depends_on:
       api:
         condition: service_healthy

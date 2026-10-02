@@ -70,9 +70,9 @@ test.describe("Guest user journey", () => {
     await expect(page.getByTestId("landing-method")).toContainText("What counts as guidance");
     await expect(page.getByTestId("coverage-listings")).toContainText("not yet scored");
     await expect(page.getByTestId("coverage-sensex")).toContainText("of 30 Sensex companies scored");
-    await expect(page.getByTestId("coverage-commitments")).toContainText("31 March 2027");
-    await expect(page.getByTestId("coverage-commitments")).toContainText("Sensex");
-    await expect(page.getByTestId("coverage-commitments")).toContainText("Nifty 50");
+    await expect(page.getByTestId("coverage-commitments")).toContainText("both quotes are found");
+    await expect(page.getByTestId("coverage-commitments")).not.toContainText("31 March 2027");
+    await expect(page.getByTestId("coverage-commitments")).toContainText("Established");
     await expect(page.getByTestId("landing-independence")).toContainText(
       "payment never influences a score",
     );

@@ -17,6 +17,7 @@ from app.services.gci_scoring import (
     audit_deduction,
     classify_outcome,
     compute_company_gci,
+    revision_direction,
 )
 
 # Human labels for UI chips
@@ -180,6 +181,7 @@ def score_meta(
     *,
     scoreable: bool = True,
     company_id: Optional[str] = None,
+    data_quality: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Published-score provenance (W1.3/W1.4): tier, depth, as-of, composite parts.
 
@@ -243,7 +245,9 @@ def score_meta(
         "periods_by_metric": res.periods_by_metric,
         "composite_weights": {k: round(v, 2) for k, v in res.weights_used.items()},
         "confidence_tier": confidence_tier(
-            closed_periods=res.periods_used, metrics_scored=metrics_scored
+            closed_periods=res.periods_used,
+            metrics_scored=metrics_scored,
+            data_quality=data_quality,
         ),
         "closed_periods": res.periods_used,
         "metrics_scored": metrics_scored,
@@ -279,11 +283,45 @@ def audit_summary(
         "deduction": round(float(deduction), 1),
         "badges": badges,
         "note": (
-            "Audit deductions apply only when an analyst sets the flag with a source. "
-            "Keyword heuristics enqueue a review suggestion and do not move GCI. "
+            "Audit deductions apply only when the flag is stored with a source. "
+            "Keyword matches do not move GCI. "
             "Not a forensic accruals or Beneish engine."
         ),
     }
+
+
+def revision_summaries(outcomes: Sequence[GuidanceOutcome]) -> List[Dict[str, Any]]:
+    """Count, direction, and average size of in-year revisions. Not a second index."""
+    rows: List[Dict[str, Any]] = []
+    for o in outcomes:
+        revs = list(o.revisions or ())
+        if not revs:
+            continue
+        low = o.guided_low if o.guided_low is not None else o.guided_value
+        high = o.guided_high if o.guided_high is not None else o.guided_value
+        prev = (float(low) + float(high)) / 2.0
+        moves: List[float] = []
+        for rev in revs:
+            try:
+                lo = float(rev["guided_low"])
+                hi = float(rev["guided_high"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            mid = (lo + hi) / 2.0
+            moves.append(abs(mid - prev))
+            prev = mid
+        if not moves:
+            continue
+        rows.append(
+            {
+                "period": o.period,
+                "metric": o.metric,
+                "count": len(moves),
+                "direction": revision_direction(o) or "unchanged",
+                "average_abs_move": round(sum(moves) / len(moves), 2),
+            }
+        )
+    return rows
 
 
 def revision_timeline(

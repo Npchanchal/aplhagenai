@@ -14,21 +14,26 @@ import urllib.request
 from typing import Any, Dict, List, Optional, Sequence
 
 
-def llm_api_key() -> Optional[str]:
-    key = (
-        os.environ.get("INTELLENS_LLM_API_KEY")
-        or os.environ.get("OPENAI_API_KEY")
-        or ""
-    ).strip()
-    return key or None
-
-
 def llm_base_url() -> str:
     return (
         os.environ.get("INTELLENS_LLM_BASE_URL")
         or os.environ.get("OPENAI_BASE_URL")
         or "https://api.openai.com/v1"
     ).rstrip("/")
+
+
+def is_gemini() -> bool:
+    return "generativelanguage.googleapis.com" in llm_base_url()
+
+
+def llm_api_key() -> Optional[str]:
+    key = (
+        os.environ.get("INTELLENS_LLM_API_KEY")
+        or (os.environ.get("GEMINI_API_KEY") if is_gemini() else None)
+        or os.environ.get("OPENAI_API_KEY")
+        or ""
+    ).strip()
+    return key or None
 
 
 def llm_chat_model() -> str:
@@ -87,6 +92,102 @@ def chat_completion(
         raise RuntimeError("LLM returned no choices")
     content = (choices[0].get("message") or {}).get("content") or ""
     return str(content).strip()
+
+
+def search_model() -> str:
+    if os.environ.get("INTELLENS_LLM_SEARCH_MODEL"):
+        return os.environ["INTELLENS_LLM_SEARCH_MODEL"]
+    return llm_chat_model() if is_gemini() else "gpt-4.1-mini"
+
+
+_URL_IN_TEXT = re.compile(r"https?://[^\s<>()\"'\]]+")
+_GEMINI_REDIRECT = "vertexaisearch.cloud.google.com/grounding-api-redirect/"
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: D401
+        return None
+
+
+def _resolve_redirect(url: str, timeout: float = 20.0) -> str:
+    """Gemini cites a Google redirect; the allowlist needs the real address."""
+    opener = urllib.request.build_opener(_NoRedirect)
+    try:
+        opener.open(urllib.request.Request(url, method="HEAD"), timeout=timeout)
+    except urllib.error.HTTPError as e:
+        if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
+            return str(e.headers["Location"])
+    except (urllib.error.URLError, OSError):
+        pass
+    return ""
+
+
+def _gemini_search(prompt: str, timeout: float) -> Dict[str, Any]:
+    key = llm_api_key()
+    if not key:
+        raise RuntimeError("LLM API key not configured")
+    root = re.sub(r"/openai$", "", llm_base_url())
+    req = urllib.request.Request(
+        f"{root}/models/{search_model()}:generateContent",
+        data=json.dumps(
+            {"contents": [{"parts": [{"text": prompt}]}], "tools": [{"google_search": {}}]}
+        ).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-goog-api-key": key},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors="replace")[:500]
+        raise RuntimeError(f"LLM HTTP {e.code}: {body}") from e
+
+
+def web_search_links(prompt: str, *, timeout: float = 120.0) -> List[Dict[str, str]]:
+    """Ask the model to search the web; return the links it cited or wrote.
+
+    The links are leads only. The caller fetches each through its own allowlist
+    and never takes a number or quote from this response.
+    """
+    links: List[Dict[str, str]] = []
+    seen = set()
+
+    def add(url: str, title: str = "") -> None:
+        url = url.rstrip(".,;:")
+        if _GEMINI_REDIRECT in url:
+            url = _resolve_redirect(url)
+        if url and url not in seen:
+            seen.add(url)
+            links.append({"url": url, "title": title})
+
+    if is_gemini():
+        doc = _gemini_search(prompt, timeout)
+        for cand in doc.get("candidates") or []:
+            for part in (cand.get("content") or {}).get("parts") or []:
+                for url in _URL_IN_TEXT.findall(str(part.get("text") or "")):
+                    add(url)
+            for chunk in (cand.get("groundingMetadata") or {}).get("groundingChunks") or []:
+                web = chunk.get("web") or {}
+                if web.get("uri"):
+                    add(str(web["uri"]), str(web.get("title") or ""))
+        return links
+
+    tool = os.environ.get("INTELLENS_LLM_SEARCH_TOOL") or "web_search"
+    doc = _post_json(
+        "/responses",
+        {"model": search_model(), "tools": [{"type": tool}], "input": prompt},
+        timeout=timeout,
+    )
+    for item in doc.get("output") or []:
+        if item.get("type") != "message":
+            continue
+        for part in item.get("content") or []:
+            for ann in part.get("annotations") or []:
+                if ann.get("type") == "url_citation" and ann.get("url"):
+                    add(str(ann["url"]), str(ann.get("title") or ""))
+            for url in _URL_IN_TEXT.findall(str(part.get("text") or "")):
+                add(url)
+    return links
 
 
 def embed_texts(texts: Sequence[str]) -> List[List[float]]:

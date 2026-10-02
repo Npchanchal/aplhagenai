@@ -16,12 +16,12 @@ def setup_function():
 
 def test_trust_labeling_governance_counts_accepts():
     gov = client.get("/api/trust").json()["labeling_governance"]
-    assert gov["two_person_review"] is True
+    assert gov["two_person_review"] is False
     assert gov["accepted"] > 0
     assert any(r.get("reviewer_id") for r in (gov.get("recent") or []))
     note = gov["note"]
-    assert "one analyst" in note
-    assert "single-analyst review" in note
+    assert "both contain the recorded quotes" in note
+    assert "analyst" not in note.lower()
     assert "hand_labeled" not in note
 
 

@@ -807,6 +807,8 @@ def meta() -> Dict[str, Any]:
     from app.services.gci_scoring import algorithm_id, compute_company_gci
     from app.data.seed import get_outcomes
 
+    from app.data.india_listings import india_equity_universe
+    from app.services.coverage import universe_coverage_counts
     from app.services.score_policy import is_scoreable
 
     scored = sum(
@@ -836,6 +838,10 @@ def meta() -> Dict[str, Any]:
         "gci_listing_scored_count": listing_scored,
         "gci_listing_unscored_count": max(
             0, len(gci_cache.get("scores") or {}) - listing_scored
+        ),
+        "gci_coverage": universe_coverage_counts(
+            [c["id"] for c in data["companies"]],
+            [r["id"] for r in india_equity_universe()],
         ),
         "gci_algorithm": algorithm_id(),
         "gci_cache_algorithm": gci_cache.get("algorithm") or "gci_scoring_v2",
@@ -3197,12 +3203,9 @@ def index_ledger(company_id: Optional[str] = None, limit: int = 200) -> Dict[str
 @router.get("/api/v1/index/changelog")
 def index_changelog(company_id: Optional[str] = None) -> Dict[str, Any]:
     """Public methodology / data changelog (mirrors docs/kb/03-scoring.md)."""
-    import json as _json
-    from pathlib import Path as _Path
+    from app.services.guidance_review import changelog_entries
 
-    path = _Path(__file__).resolve().parents[1] / "data" / "score_changelog.json"
-    data = _json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"entries": []}
-    entries = list(data.get("entries") or [])
+    entries = changelog_entries()
     if company_id:
         entries = [e for e in entries if company_id in (e.get("companies") or [])]
     entries.sort(key=lambda e: e.get("date") or "", reverse=True)

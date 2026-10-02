@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.data.gci_score_cache import build_india_gci_cache, clear_memory_cache, get_listing_score
 from app.data.india_listings import find_listing, find_listing_by_ticker, listing_counts
-from app.data.markets import list_constituents, list_indexes
+from app.data.markets import constituents_readonly, list_constituents, list_indexes
 from app.data.seed import get_data, get_outcomes, outcome_from_dict, reset_data
 from app.main import app
 from app.services.gci_scoring import compute_company_gci
@@ -54,7 +54,7 @@ def test_score_universe_cache_subset():
     report = build_india_gci_cache(limit=80)
     assert report["algorithm"] == "gci_scoring_v4"
     for row in report["scores"].values():
-        if row["data_quality"] != "hand_labeled":
+        if row["data_quality"] not in ("hand_labeled", "extracted_verified"):
             assert row["gci_score"] is None
             assert row["yoy_pct"] is None
 
@@ -114,6 +114,48 @@ def test_index_quality_tags_match_company_records():
         for row in list_constituents(ix):
             if row["id"] in seeded:
                 assert row["data_quality"] == seeded[row["id"]], (ix, row["id"])
+
+
+def test_india_indexes_filter_one_record_per_scrip():
+    from app.data.india_listings import india_equity_universe
+
+    universe = india_equity_universe()
+    by_id = {r["id"]: r for r in universe}
+    assert len(by_id) == len(universe)
+    isins = [r["isin"] for r in universe if r.get("isin")]
+    assert len(isins) == len(set(isins))
+    for ix in ("SENSEX", "NIFTY50", "NIFTYBANK", "NSE_ALL", "BSE_ALL", "IN1000"):
+        rows = constituents_readonly(ix)
+        assert rows, ix
+        assert len({r["id"] for r in rows}) == len(rows), ix
+        for r in rows:
+            assert r is by_id[r["id"]], (ix, r["id"])
+            assert ix in r["index_ids"]
+    in1000 = constituents_readonly("IN1000")
+    assert len(in1000) == 1000
+    assert {r["id"] for r in in1000} == {r["id"] for r in universe[:1000]}
+    assert sum("IN1000" in r["index_ids"] for r in universe) == 1000
+    assert {r["id"] for r in constituents_readonly("SENSEX")} <= {r["id"] for r in in1000}
+
+
+def test_dual_listed_scrip_in_both_exchange_filters_once():
+    hdfc = find_listing("hdfcbank")
+    assert {"SENSEX", "NIFTY50", "NIFTYBANK", "NSE_ALL", "BSE_ALL", "IN1000"} <= set(hdfc["index_ids"])
+    for ix in ("NSE_ALL", "BSE_ALL"):
+        assert [r["id"] for r in constituents_readonly(ix)].count("hdfcbank") == 1
+
+
+def test_coverage_cohorts_are_disjoint_and_complete():
+    from app.data.india_listings import india_equity_universe
+    from app.services.india_coverage import COHORTS, cohort_ids, cohort_partition
+
+    parts = cohort_partition()
+    flat = [cid for name in COHORTS for cid in parts[name]]
+    assert len(flat) == len(set(flat)) == len(india_equity_universe())
+    assert cohort_ids("all") == flat
+    flagship = set(parts["nifty50"])
+    for ix in ("SENSEX", "NIFTY50", "NIFTYBANK"):
+        assert {r["id"] for r in constituents_readonly(ix)} <= flagship
 
 
 def test_find_listing_by_ticker_numeric_symbol():

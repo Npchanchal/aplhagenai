@@ -19,6 +19,7 @@ from app.models.schemas import (
 )
 from app.services.changes import change_bundle, enrich_metric_rows, enrich_value_series
 from app.services.citations import enrich_outcome_citation
+from app.services.coverage import coverage_status_for
 from app.services.score_policy import NOT_SCORED_STATUS, is_scoreable, publishable_score
 from app.services.gci_scoring import (
     classify_outcome,
@@ -217,6 +218,7 @@ def list_company_summaries(
     # Default product path — existing Sensex GCI seed
     if not mid and not iid:
         from app.data.gci_score_cache import load_cache
+        from app.data.india_listings import find_listing
 
         cache_scores = load_cache().get("scores") or {}
         stats = _sector_stats()
@@ -224,7 +226,12 @@ def list_company_summaries(
         for c in list_companies():
             outcomes = get_outcomes(c["id"])
             scoreable = is_scoreable(c.get("data_quality"))
-            meta = score_meta(outcomes, scoreable=scoreable, company_id=c["id"])
+            meta = score_meta(
+                outcomes,
+                scoreable=scoreable,
+                company_id=c["id"],
+                data_quality=c.get("data_quality"),
+            )
             score = meta["gci_score"]
             trend = gci_trend_series(outcomes) if scoreable else []
             ch_pct, ch_h = _latest_trend_change(trend)
@@ -266,12 +273,15 @@ def list_company_summaries(
                     gci_change_pct=ch_pct,
                     gci_change_horizon=ch_h,
                     market_id="IN",
-                    index_ids=["SENSEX", "NIFTY50"],
+                    index_ids=(find_listing(c["id"]) or {}).get("index_ids"),
                     confidence_tier=meta["confidence_tier"],
                     closed_periods=meta["closed_periods"],
                     metrics_scored=meta["metrics_scored"],
                     as_of=meta["as_of"],
                     algorithm_id=meta["algorithm_id"],
+                    coverage_status=coverage_status_for(
+                        c["id"], score=score, outcomes=outcomes, data_quality=c.get("data_quality")
+                    ),
                     **hz,
                 )
             )
@@ -316,7 +326,12 @@ def list_company_summaries(
             if seeded.get("data_quality") == "hand_labeled" or not large:
                 outcomes = get_outcomes(seeded["id"])
                 scoreable = is_scoreable(seeded.get("data_quality"))
-                meta = score_meta(outcomes, scoreable=scoreable, company_id=seeded["id"])
+                meta = score_meta(
+                    outcomes,
+                    scoreable=scoreable,
+                    company_id=seeded["id"],
+                    data_quality=seeded.get("data_quality"),
+                )
                 score = meta["gci_score"]
                 trend = gci_trend_series(outcomes) if scoreable else []
                 ch_pct, ch_h = _latest_trend_change(trend)
@@ -355,6 +370,12 @@ def list_company_summaries(
                         metrics_scored=meta["metrics_scored"],
                         as_of=meta["as_of"],
                         algorithm_id=meta["algorithm_id"],
+                        coverage_status=coverage_status_for(
+                            seeded["id"],
+                            score=score,
+                            outcomes=outcomes,
+                            data_quality=seeded.get("data_quality"),
+                        ),
                     )
                 )
                 continue
@@ -387,6 +408,8 @@ def list_company_summaries(
                 metrics_scored=int((cached or {}).get("metrics_scored") or 0),
                 as_of=(cached or {}).get("as_of"),
                 algorithm_id=(cached or {}).get("algorithm_id"),
+                coverage_status=(cached or {}).get("coverage_status")
+                or coverage_status_for(cid, score=score, data_quality=quality),
             )
         )
     return rows
@@ -422,6 +445,9 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
             gci_change_horizon=None,
             by_metric_changes={},
             algorithm_id=score_meta([], scoreable=False)["algorithm_id"],
+            coverage_status=coverage_status_for(
+                listing["id"], score=None, data_quality=QUALITY
+            ),
             **audit,
         )
 
@@ -444,7 +470,9 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
             ensure_company_citation_corpus(company_id)
     outcomes = get_outcomes(company_id)
     scoreable = is_scoreable(quality)
-    smeta = score_meta(outcomes, scoreable=scoreable, company_id=company_id)
+    smeta = score_meta(
+        outcomes, scoreable=scoreable, company_id=company_id, data_quality=quality
+    )
     score = smeta["gci_score"]
     chmap = _outcome_change_map(outcomes)
     views = []
@@ -505,6 +533,9 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         as_of=smeta["as_of"],
         reviewed_at=smeta.get("reviewed_at"),
         algorithm_id=smeta["algorithm_id"],
+        coverage_status=coverage_status_for(
+            company_id, score=score, outcomes=outcomes, data_quality=quality
+        ),
         **audit,
     )
 
@@ -565,6 +596,7 @@ def _audit_payload(
     from app.services.guidance_flags import (
         audit_summary,
         company_red_alerts,
+        revision_summaries,
         revision_timeline,
     )
 
@@ -578,6 +610,7 @@ def _audit_payload(
         "revision_timeline": revision_timeline(
             outcomes, company_id=company_id, ticker=ticker
         ),
+        "revision_summaries": revision_summaries(outcomes),
     }
 
 
@@ -1034,6 +1067,9 @@ def search_entities(
                 "doc_count": doc_count,
                 "citeable_outcomes": citeable_n,
                 "corpus_status": status,
+                "coverage_status": coverage_status_for(
+                    row["id"], score=score, data_quality=quality
+                ),
             }
         )
         if len(hits) >= max(limit * 4, 40):
@@ -1312,7 +1348,10 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
             from app.services.score_policy import is_scoreable
 
             meta = score_meta(
-                outcomes, scoreable=is_scoreable(quality), company_id=c["id"]
+                outcomes,
+                scoreable=is_scoreable(quality),
+                company_id=c["id"],
+                data_quality=quality,
             )
             return {
                 "id": c["id"],
@@ -1323,6 +1362,9 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
                 "confidence_tier": meta.get("confidence_tier"),
                 "as_of": meta.get("as_of"),
                 "algorithm_id": meta.get("algorithm_id"),
+                "coverage_status": coverage_status_for(
+                    c["id"], score=meta["gci_score"], outcomes=outcomes, data_quality=quality
+                ),
             }
 
     from app.data.gci_score_cache import get_listing_score
@@ -1350,6 +1392,10 @@ def resolve_ticker_summary(ticker: str) -> Optional[Dict[str, Any]]:
         "data_quality": quality,
         "confidence_tier": (cached or {}).get("confidence_tier"),
         "as_of": (cached or {}).get("as_of"),
+        "coverage_status": (cached or {}).get("coverage_status")
+        or coverage_status_for(
+            listing["id"], score=publishable_score(score, quality), data_quality=quality
+        ),
         "algorithm_id": (cached or {}).get("algorithm_id"),
     }
 

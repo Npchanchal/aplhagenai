@@ -246,7 +246,7 @@ def test_trust_labeling_governance_and_csp():
     assert r.status_code == 200
     body = r.json()
     gov = body.get("labeling_governance") or {}
-    assert gov.get("two_person_review") is True
+    assert gov.get("two_person_review") is False
     assert "csp" in (body.get("security") or {})
     assert "googletagmanager" in (body["security"].get("csp") or "")
     csp = r.headers.get("content-security-policy") or ""

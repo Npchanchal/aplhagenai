@@ -129,7 +129,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   data_quality: {
     id: "data_quality",
     term: "Data quality",
-    tip: "Hand-labeled = analyst-reviewed guidance with filing links; the only rows that carry a GCI. Demo = sample data for walkthroughs, not scored. Listing = NSE/BSE master, not yet scored.",
+    tip: "Hand-labeled = guidance whose quotes were found on the cited filings; the only rows that carry a GCI. Demo = sample data for walkthroughs, not scored. Listing = NSE/BSE master, not yet scored.",
   },
   listing_master: {
     id: "listing_master",
@@ -139,12 +139,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   nse_bse: {
     id: "nse_bse",
     term: "NSE_ALL / BSE_ALL",
-    tip: "Full India equity masters for navigation. Only hand-labeled companies carry a GCI; every other listing shows Not yet scored until an analyst reviews its guidance.",
+    tip: "Full India equity masters for navigation. Only hand-labeled companies carry a GCI; every other listing shows Not yet scored until both quotes are found on the cited filings.",
   },
   listing_provisional: {
     id: "listing_provisional",
     term: "Not yet scored",
-    tip: "Listed company without analyst-reviewed guidance and cited filings. No GCI is shown until that review is done.",
+    tip: "Listed company whose guidance quotes are not yet on the cited filings. No GCI is shown until that check passes.",
   },
   source: {
     id: "source",

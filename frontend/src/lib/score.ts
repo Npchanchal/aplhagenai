@@ -13,9 +13,27 @@ export function formatScore(score: number | null | undefined, digits = 1): strin
 
 export const NOT_SCORED_LABEL = "Not yet scored";
 
-/** A company's own GCI: companies without analyst-reviewed, cited evidence have no number. */
-export function formatCompanyScore(score: number | null | undefined, digits = 1): string {
-  if (score === null || score === undefined) return NOT_SCORED_LABEL;
+const COVERAGE_LABELS: Record<string, string> = {
+  scored: "Scored",
+  open_period: "Open period",
+  filing_in_review: "Filing in review",
+  no_quantified_guidance: "No quantified guidance",
+  listed_only: "Listed only",
+};
+
+/** Typed GCI cell when there is no publishable number. */
+export function formatCoverageStatus(status?: string | null): string {
+  if (!status) return NOT_SCORED_LABEL;
+  return COVERAGE_LABELS[status] || NOT_SCORED_LABEL;
+}
+
+/** A company's own GCI: a number, or a coverage status — never an invented score. */
+export function formatCompanyScore(
+  score: number | null | undefined,
+  digits = 1,
+  coverageStatus?: string | null,
+): string {
+  if (score === null || score === undefined) return formatCoverageStatus(coverageStatus);
   return score.toFixed(digits);
 }
 

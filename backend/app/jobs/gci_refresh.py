@@ -18,6 +18,29 @@ from typing import Any, Dict, List, Optional
 from app.services.refresh import refresh_interval_hours, run_gci_refresh
 
 
+def _maybe_guidance_review() -> None:
+    flag = os.environ.get("INTELLENS_GUIDANCE_REVIEW", "").strip().lower()
+    if flag not in ("1", "true", "yes"):
+        return
+    try:
+        from app.services.guidance_review import run_daily
+
+        print(json.dumps({"guidance_review": run_daily()}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — review queue must not stop the refresh loop
+        print(json.dumps({"guidance_review": "error", "detail": type(exc).__name__}), flush=True)
+
+
+def _maybe_india_coverage() -> None:
+    try:
+        from app.services.india_coverage import run_daily_from_env
+
+        report = run_daily_from_env()
+        if report is not None:
+            print(json.dumps({"india_coverage": report}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — coverage walk must not stop refresh
+        print(json.dumps({"india_coverage": "error", "detail": type(exc).__name__}), flush=True)
+
+
 def _maybe_ledger_digest() -> None:
     flag = os.environ.get("INTELLENS_LEDGER_DIGEST", "").strip().lower()
     if flag not in ("1", "true", "yes"):
@@ -133,6 +156,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             except Exception as exc:  # noqa: BLE001
                 report = {"ok": False, "error": type(exc).__name__, "detail": str(exc)}
             print(json.dumps(report, indent=2), flush=True)
+            _maybe_guidance_review()
+            _maybe_india_coverage()
             _maybe_ledger_digest()
             ok = bool(report.get("ok"))
             # Full cadence on success; short backoff on failure so a blip doesn't wait 6h

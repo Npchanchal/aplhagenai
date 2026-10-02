@@ -3281,5 +3281,1806 @@
       "pending_new": 2,
       "extract_batches": 0
     }
+  },
+  {
+    "ts": "2026-10-01T03:51:46.975816+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "b4cf7636-f34d-4e27-86ca-e429c146b778",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T03:45:01.224307+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "2499e4fe-f151-49a0-993e-2bb3c334ac36",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:12:20.699400+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7bb4c797-b06e-4ff6-a646-c3fa9f5ab569"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:12:20.738951+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7bb4c797-b06e-4ff6-a646-c3fa9f5ab569"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:12:20.775332+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:14:58.438370+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "6288480a-cbc6-4d83-a5cd-ca0ae76f56df",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:15:07.299707+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "707e26bd-5bdb-459f-a25b-4f56d8065cdc",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:54.352624+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:54.403076+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "86cdff77-a4a1-42ba-bd09-3998b5423aa8",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:54.782664+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:54.874413+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "2afb722b-a775-42f0-9f8d-cc674258a854",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:55.576280+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "573ce930-2634-40ec-ba22-4a06801d7007"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:55.614657+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "573ce930-2634-40ec-ba22-4a06801d7007"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:16:55.650270+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:09.244093+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:09.629708+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "f6996553-4f20-4a50-821f-9145eb45e06a",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:17.808378+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:17.844858+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "80c401ad-d106-4133-a356-fee15912774d"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:18.309226+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "48fd7b39-3409-4fca-88f4-792d7e231a45"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:18.374110+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T04:17:18.383495+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T04:17:18.568503+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "fdbc9d80-fa6a-41ad-8260-e7159cb4768a"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:17:19.197577+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T04:31:39.993660+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "0a938337-8c71-447a-9d67-dd2fbe43b0db",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:40.694214+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:40.742578+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "4e30a910-a581-464d-a216-c146dc4c1a4b",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:41.109378+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:41.159415+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "000907df-9dca-4db0-b096-12c5de7181e8",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:41.701822+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "6f7e7ccf-d33c-4721-a4ae-be323b3d314a"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:41.739276+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "6f7e7ccf-d33c-4721-a4ae-be323b3d314a"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:41.774258+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:55.760145+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:33:56.146915+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "519f3b7d-4d7b-4793-9bf8-4587e90a38fe",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T04:34:04.426425+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:34:04.462925+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "feb49bca-3299-4e8f-944e-47f84d1aee70"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:34:05.141678+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "c7da436f-a704-42d7-9791-7951edf5bb2d"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:34:05.211190+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T04:34:05.223051+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T04:34:05.306551+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "e147f3e7-1fe4-4f15-8c73-4d094e19b287"
+    }
+  },
+  {
+    "ts": "2026-10-02T04:34:05.993170+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T06:19:01.841343+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "8d7f8a7d-c173-43ad-89f5-b98351634c0d",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:51.057537+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:51.114389+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "7578c558-7417-4906-baa8-8f6d5ee19b79",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:51.594976+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:51.656045+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "d8231b50-c5b0-433a-a1ee-63613dec3ca2",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:52.492821+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7f3ac592-4d77-467c-8f68-ad3b9d82ed45"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:52.531591+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7f3ac592-4d77-467c-8f68-ad3b9d82ed45"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:21:52.567301+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:06.784706+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:07.189965+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "06cc1a10-7fa1-4cf4-881c-c8fbffb1b8ae",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:15.528379+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:15.565188+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "9415c1b3-65b9-496a-abe7-d910f2624ad4"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:15.990080+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "86c020be-b7a0-4020-b1ff-5fa8388e5466"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:16.051995+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T06:22:16.058973+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T06:22:16.129828+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "770656d1-6a19-408a-b2ba-3a696f251603"
+    }
+  },
+  {
+    "ts": "2026-10-02T06:22:16.743423+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T09:30:57.305063+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "8e28ee7f-acfe-45c3-b6b2-8a2fa605c0ca",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:04.289513+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:04.353675+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "9c9471f2-2904-4f1f-8e75-f2ec03950383",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:04.835200+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:04.894850+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "8df34ec4-ced7-4532-b378-77e1f2ffa3e8",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:05.682202+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "1edae408-e294-4d7a-9527-65140d36e418"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:05.882832+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "1edae408-e294-4d7a-9527-65140d36e418"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:05.943787+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:20.484267+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:21.048851+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "40cbb555-58bc-4b3a-a67d-801c3c580095",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:32.598913+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:32.678899+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "5dd4408e-a5cc-42a1-be69-2c637a77fd39"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:33.544104+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "50c603b7-010e-490c-abad-3fc64160d295"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:33.909051+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T09:33:33.941210+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T09:33:34.087212+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7e5036ec-8bea-4894-b6f2-c62e281e64d0"
+    }
+  },
+  {
+    "ts": "2026-10-02T09:33:35.669908+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T10:13:48.520617+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "57a39572-c131-448a-8c6b-13264b9550fb",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:14.015912+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:14.066624+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "a2317f7d-e1e1-4f7a-8768-12b715686e09",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:14.470501+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:14.522864+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "93a2d91d-13e0-48f6-92f3-0caa5e12a5cf",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:15.101020+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "2bab680d-a559-4251-9f7a-f1a904d29f35"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:15.139529+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "2bab680d-a559-4251-9f7a-f1a904d29f35"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:15.175215+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:29.293546+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:29.864088+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "c4e74d73-7e99-4f55-98db-85bbd36929d8",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:38.397459+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:38.435190+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "a0bcaca4-1a00-4450-8fbc-5afb3a260aaf"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:38.961518+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "3fbefca1-3c75-4073-8e54-bffa6cd33cc7"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:39.067558+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T10:16:39.086219+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T10:16:39.184852+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "19f08d5d-a9e4-433f-9d6c-7083fcc398a3"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:16:39.840280+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T10:19:42.511442+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "bd95a5d1-5a6c-465b-a396-a491cc5fd590",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:53.545709+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:53.712053+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "b5c7220f-d98d-450e-9b0c-fad5a634f74e",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:54.669803+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:54.800069+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "0641b740-6950-42f9-9c4b-248d7d2218e5",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:55.981973+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "ccfb8c9a-d799-4e48-95ca-994e86072aaf"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:56.057752+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "ccfb8c9a-d799-4e48-95ca-994e86072aaf"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:21:56.127951+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:13.808115+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:15.354231+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "73224aca-6dc3-4413-94db-a254e7a59099",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:27.497358+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:27.556390+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "fbb2d228-eb09-45cb-90c2-09e505990925"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:28.260635+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "1e4b1771-905f-4789-9936-e396b9182c84"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:28.349661+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T10:22:28.358445+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T10:22:28.454793+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "a40b801e-124d-4e65-a28e-95d4f5112ae0"
+    }
+  },
+  {
+    "ts": "2026-10-02T10:22:29.244744+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T13:00:18.646915+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "906054de-af64-40ce-a852-ce9cee38936a",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:00:46.243574+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "940b8c13-3e25-4452-8b9a-5884011a1c7c",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:41.065919+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:41.116366+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "a9fb9979-4aa0-4d91-a61a-020975050a96",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:41.497372+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:41.551568+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "2282361e-a3e1-46a9-9bf0-0fb799ea5eb9",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:42.087522+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "b9cacf11-1afa-4272-9de8-3fc882ef7f37"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:42.127563+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "b9cacf11-1afa-4272-9de8-3fc882ef7f37"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:42.163768+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:56.149097+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:03:56.625630+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "e43d3e92-f427-4dca-bd28-f0093cc88a40",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:04:05.478112+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:04:05.515052+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "847627e9-fe11-4ae4-9f88-a92f7b359f19"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:04:05.960256+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "a54f2bb3-c743-40f5-8d77-521da668a3f6"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:04:06.027466+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T13:04:06.037365+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T13:04:06.110320+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7b5ff292-8d71-4377-a881-717c946da6be"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:04:06.774048+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T13:36:53.141787+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "5c7aa9db-3b69-4f15-80b7-156fe99ee6ca",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:37.937785+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:38.256209+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "ac2e82e5-a3c9-4cfa-afd7-7d3762573470",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:39.985230+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:40.144817+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "260cbc14-f681-4b9b-a8b1-752fc96c27b6",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:41.392604+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "b8e5118e-0bb0-4ed3-9fb7-7aaafc27322b"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:41.457093+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "b8e5118e-0bb0-4ed3-9fb7-7aaafc27322b"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:41.513678+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:55.704657+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:40:56.117233+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "9fdb3813-a9f8-470a-9bbb-7e7a2a8ca91b",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T13:41:05.548615+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:41:05.614196+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "0de7ce73-b2c7-463c-8f1e-2d6a59fb629b"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:41:06.348030+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "a9858b47-90d6-4777-8ccb-1352adc69b54"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:41:06.438801+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T13:41:06.450191+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T13:41:06.551888+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "be9d2986-df47-4c2d-aecb-f02b1864dcd2"
+    }
+  },
+  {
+    "ts": "2026-10-02T13:41:07.387479+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T15:40:05.227236+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "5d635b87-5321-4943-afc9-8d7d706b4f1c",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T15:41:02.877207+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "fbfb89e0-1ee1-427a-9895-4202fd05811a",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:37.280472+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:37.380127+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "40c8c444-dac5-49cb-8330-cb9c770c5b04",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:38.145298+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:38.247099+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "1dea9493-3177-43df-90a9-7d878b7cb087",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:39.334686+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "073e6eef-9e21-4923-b2e0-cc86eb355af3"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:39.447109+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "073e6eef-9e21-4923-b2e0-cc86eb355af3"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:39.533826+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:56.050706+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:44:56.753469+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "extract_id": "175b83f2-657c-4309-b6d0-d032fbad8844",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-10-02T15:45:07.379079+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:45:07.430644+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "7a06b048-f70d-42da-94d2-f51a620e07ae"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:45:08.443962+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "4df41867-6934-41f0-9fb5-2efac51d5635"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:45:08.569393+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T15:45:08.587344+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-10-02T15:45:08.750640+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "6d3b7201-311d-4b1a-a4f8-8c79b438e58e"
+    }
+  },
+  {
+    "ts": "2026-10-02T15:45:11.352217+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "analyst",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
   }
 ]

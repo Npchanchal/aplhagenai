@@ -27,7 +27,7 @@
 | **P2** | Deepen existing HL | 38 | Every current HL name ≥8 closed citeable outcomes | `batch_p2_sensex_nifty_depth.csv` |
 | **P3** | IN1000 wave 1 | 60 | Top-liquidity names beyond Nifty → HL | `batch_p3_in1000_wave1.csv` |
 | **P4** | IN1000 waves 2–17 | 900 | 60 names / month × 15 months | Generate per wave |
-| **P5** | NSE/BSE long tail | 6k+ | Queue-only; promote via Desk extract → review | Desk labeling queue |
+| **P5** | NSE/BSE long tail | 6k+ | Ingest → extract → classify until `listed_only` is 0. `no_quantified_guidance` after lookback. Promote via Desk only for human gold (`hand_labeled`) | `python -m app.jobs.classify_india_coverage --cohort all` |
 
 **Do not** flip `data_quality` without real sourced outcomes. Provisional scores are navigation only.
 

@@ -53,6 +53,9 @@ _load_tf_env() {
       OPENAI_API_KEY|INTELLENS_LLM_API_KEY)
         [[ -z "${TF_VAR_openai_api_key:-}" ]] && export TF_VAR_openai_api_key="$val"
         ;;
+      GEMINI_API_KEY)
+        [[ -z "${TF_VAR_gemini_api_key:-}" ]] && export TF_VAR_gemini_api_key="$val"
+        ;;
       FORCE_HTTPS)
         v="$(printf '%s' "$val" | tr '[:upper:]' '[:lower:]')"
         case "$v" in true|1|yes|on) export TF_VAR_force_https=true ;; esac
@@ -136,7 +139,9 @@ if [[ -n "${TF_VAR_fmp_api_key:-}" ]]; then
 else
   echo "== No FMP key — market tape stays demo_deterministic =="
 fi
-if [[ -n "${TF_VAR_openai_api_key:-}" ]]; then
+if [[ -n "${TF_VAR_gemini_api_key:-}" ]]; then
+  echo "== Gemini key detected (LLM extract, embeddings and web search use Gemini) =="
+elif [[ -n "${TF_VAR_openai_api_key:-}" ]]; then
   echo "== LLM key detected (wiring OPENAI_API_KEY into ECS task) =="
 else
   echo "== No LLM key — extract/embeddings stay local fallback =="

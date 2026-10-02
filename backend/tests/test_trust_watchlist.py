@@ -27,7 +27,7 @@ def test_trust_center_payload():
     assert any(p["name"] == "Amazon Web Services" for p in body["subprocessors"])
     assert "DPA" in body["incident"]["note"] or "dpa" in body["incident"]["note"].lower()
     assert "llm" in body
-    assert body["labeling_governance"]["two_person_review"] is True
+    assert body["labeling_governance"]["two_person_review"] is False
     assert "googletagmanager" in (body["security"].get("csp") or "")
     assert "googletagmanager.com" in (r.headers.get("content-security-policy") or "")
 

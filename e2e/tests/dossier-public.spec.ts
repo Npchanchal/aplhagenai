@@ -36,7 +36,7 @@ test("guest dossier has no synthetic analytics and shows tier + as-of", async ({
   await expect(page.getByTestId("tier-badge")).toHaveText(/Provisional|Established|Deep/);
   await expect(page.getByTestId("dossier-as-of")).toContainText(/Data as of \d{1,2} \w{3} \d{4}/);
   await expect(page.getByTestId("dossier-reviewed")).toContainText(
-    /Reviewed by a CiteAlpha analyst/,
+    /Checked against the source documents/,
   );
   await expect(page.getByTestId("dossier-record")).toBeVisible();
   await expect(page.getByTestId("delivery-record")).toBeVisible();
@@ -122,20 +122,22 @@ test("public snapshot ranks only established/deep and explains an empty list", a
   }
 });
 
-test("screener opens on scored names, unscored sort last with a tooltip", async ({ page }) => {
+test("screener lists every name, with scored rows first", async ({ page }) => {
   await page.goto("/tracker");
   await dismissOverlays(page);
   await expect(page.getByTestId("company-table")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("scored-only-toggle")).toBeChecked();
-  await expect(page.locator("[data-testid^='not-scored-']")).toHaveCount(0);
-
-  await page.getByTestId("scored-only-toggle").uncheck();
+  await expect(page.getByTestId("scored-only-toggle")).not.toBeChecked();
   const unscored = page.locator("[data-testid^='not-scored-']");
   if ((await unscored.count()) > 0) {
-    await expect(unscored.first()).toHaveAttribute("title", /Not yet scored/);
-    // last row must be unscored when any exist
+    await expect(unscored.first()).toHaveAttribute(
+      "title",
+      /Not yet scored|No quantified guidance|Filing in review|Open period|Listed only/,
+    );
     const lastScore = page.locator("[data-testid='company-table'] tbody tr").last().locator("td.score");
-    await expect(lastScore).toHaveAttribute("title", /Not yet scored/);
+    await expect(lastScore).toHaveAttribute(
+      "title",
+      /Not yet scored|No quantified guidance|Filing in review|Open period|Listed only/,
+    );
   }
 });
 

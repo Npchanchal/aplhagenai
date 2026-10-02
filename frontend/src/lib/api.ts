@@ -21,7 +21,15 @@ export type CompanySummary = {
   metrics_scored?: number;
   as_of?: string | null;
   algorithm_id?: string | null;
+  coverage_status?: CoverageStatus | null;
 };
+
+export type CoverageStatus =
+  | "scored"
+  | "open_period"
+  | "filing_in_review"
+  | "no_quantified_guidance"
+  | "listed_only";
 
 export type ConfidenceTier = "provisional" | "established" | "deep";
 
@@ -108,6 +116,7 @@ export type CompanyGCIDetail = {
   as_of?: string | null;
   reviewed_at?: string | null;
   algorithm_id?: string | null;
+  coverage_status?: CoverageStatus | null;
   gci_change_pct?: number | null;
   gci_change_horizon?: string | null;
   by_metric_changes?: Record<
@@ -151,6 +160,13 @@ export type CompanyGCIDetail = {
     detail?: string;
     severity?: string;
     source_url?: string | null;
+  }>;
+  revision_summaries?: Array<{
+    period: string;
+    metric: string;
+    count: number;
+    direction: "raised" | "cut" | "unchanged" | string;
+    average_abs_move: number;
   }>;
   audit_note?: string | null;
 };

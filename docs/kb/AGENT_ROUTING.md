@@ -12,6 +12,7 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 | Workbench / Filing Search chrome, tabs, toasts | `frontend-designer` | `citealpha-frontend-ux` | frontend, frontend-ux | 06 |
 | Research search/chat | `research-terminal` | `citealpha-research` | research-terminal | 07 |
 | Hand-label Sensex | `labeling-analyst` | `citealpha-labeling` / phase0 | data-quality | 08 |
+| Guidance quote vs later filing, daily market rotation | `guidance-reviewer` | `citealpha-guidance-review` | index-integrity, data-quality | 08 |
 | Product / GTM / stories | `product-strategist` | `citealpha-product` | citealpha-core, seo-marketing | 01, 13 |
 | Tests / docker release | `qa-release` | `citealpha-test-deploy` | testing-deploy | 10 |
 | AWS / ECS | `devops-aws` | `citealpha-aws` | aws-deploy | 11 |

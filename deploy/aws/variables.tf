@@ -99,6 +99,25 @@ variable "openai_api_key" {
   description = "Optional OpenAI (or compatible) key for LLM extract + embeddings. Empty = heuristic/TF-IDF."
 }
 
+variable "gemini_api_key" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Optional Gemini key. When set, LLM extract, embeddings and web-search discovery use Gemini instead of OpenAI."
+}
+
+variable "gemini_chat_model" {
+  type        = string
+  default     = "gemini-3.5-flash"
+  description = "Gemini model for extract and web-search discovery."
+}
+
+variable "gemini_embed_model" {
+  type        = string
+  default     = "gemini-embedding-001"
+  description = "Gemini embedding model for Research ranking."
+}
+
 variable "force_https" {
   type        = bool
   default     = false

@@ -5,12 +5,13 @@
 | Flag | Meaning | External cite? |
 |---|---|---|
 | `hand_labeled` | Human-audited guidance vs actuals + sources | Yes |
+| `extracted_verified` | Dual-cited quotes verified in stored filings by the extract/bind jobs; provisional, not ranked | Yes (provisional) |
 | `demo_structured` | Synthetic-but-realistic seed | Demo only |
 | `market_scaffold` | Universe row without deep GCI | No dossier depth |
 
 ## In-product workbench
 
-Desk `?tab=labeling` (feature `labeling`): draft → submit → second reviewer accept. APIs under `/api/labeling/drafts`. When `USE_DB_AUTH` is on, drafts persist in `intellens_label_drafts` (SQLite/Postgres); otherwise JSON store. Accept merges outcomes (with `reviewed_by` / `reviewed_at`) and may promote `demo_structured` / `listing_provisional` → `hand_labeled` only when `source_url` + `quote_span` exist. Each accept appends a `label_accept` row to `audit.json` (submitter + reviewer). Does **not** rewrite `hand_labeled.py`. Two-person rule: submitter ≠ accepter unless admin/owner. Published rows in `hand_labeled.py` are single-analyst (`reviewed_by=analyst:nv`); `/methodology` and the Trust Center say so. The two-person rule applies to new workbench accepts, not to that file. Trust Center (`/api/trust.labeling_governance`) counts real `label_accept` rows. Desk CSM shows submitter/reviewer **ids** (no emails). Public dossiers show “Reviewed by a CiteAlpha analyst · {date}” from the latest scored row’s `reviewed_at`.
+Desk `?tab=labeling` (feature `labeling`): draft → submit → second reviewer accept. APIs under `/api/labeling/drafts`. When `USE_DB_AUTH` is on, drafts persist in `intellens_label_drafts` (SQLite/Postgres); otherwise JSON store. Accept merges outcomes (with `reviewed_by` / `reviewed_at`) and may promote `demo_structured` / `listing_provisional` → `hand_labeled` only when `source_url` + `quote_span` exist. Each accept appends a `label_accept` row to `audit.json` (submitter + reviewer). Does **not** rewrite `hand_labeled.py`. Two-person rule: submitter ≠ accepter unless admin/owner. Published rows in `hand_labeled.py` are single-analyst (`reviewed_by=analyst:nv`); `/methodology` and the Trust Center say so. The two-person rule applies to new workbench accepts, not to that file. Trust Center (`/api/trust.labeling_governance`) counts real `label_accept` rows. Desk CSM shows submitter/reviewer **ids** (no emails). Public dossiers show “Checked against the source documents · {date}”. A row counts when the fetch finds both quotes; a miss drops the row and is not queued. from the latest scored row’s `reviewed_at`.
 
 Quality partner feedback (`wrong_band` / `wrong_period` / `wrong_label` / `missing_source`) enqueues a high-priority labeling-queue item. **GCI is not mutated** by feedback.
 
@@ -19,6 +20,10 @@ Nightly source verification (`python -m app.jobs.verify_sources --write`, also f
 Priority enqueue `POST /api/labeling/queue` remains ops SLA (Desk), not HL promotion. The queue (GET/POST/PATCH) is scoped to the caller's org; only platform admins (e.g. `X-API-Key: $INTELLENS_API_KEY`) see or act across orgs via `?org_id=`.
 
 CSV import uses `docs/labeling/outcome_row_template.csv` columns and still creates drafts.
+
+## Daily guidance review
+
+`guidance-reviewer` (`.cursor/agents/guidance-reviewer.md`) runs `python -m app.jobs.guidance_review`. The calendar rotates markets, one per UTC day. The API process runs it when `INTELLENS_GUIDANCE_REVIEW=1` (02:30 IST). Each stock is reviewed on its own catalog metrics (sector plus the metrics it already files). A citation is copied only when an accepted filing names that metric, uses its unit, and contains the recorded band. The row is stamped `reviewed_by=job:guidance_review` only after both sides verify against that text. A row with no matching filing stays unscored. If a published GCI moves, the job appends the score ledger (`new_filing`) and a changelog entry.
 
 ## Hand-label workflow (repo)
 
@@ -34,7 +39,7 @@ CSV import uses `docs/labeling/outcome_row_template.csv` columns and still creat
 
 ## Provisional
 
-`listing_provisional` = coverage only. Promote only via labeling queue → extract/review → real outcomes (never quality-flag flip).
+`listing_provisional` = coverage only. The extract job may promote to `extracted_verified` when both quotes verify in stored filings. Human gold (`hand_labeled`) still goes through the labeling queue. Never flip a quality flag without those outcomes.
 
 ## Never
 

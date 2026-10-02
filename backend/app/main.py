@@ -102,6 +102,19 @@ app.openapi = custom_openapi
 
 
 @app.on_event("startup")
+def _start_guidance_review() -> None:
+    import os
+    import threading
+
+    flag = os.environ.get("INTELLENS_GUIDANCE_REVIEW", "").strip().lower()
+    if flag not in ("1", "true", "yes"):
+        return
+    from app.jobs.guidance_review import serve
+
+    threading.Thread(target=serve, name="guidance-review", daemon=True).start()
+
+
+@app.on_event("startup")
 def _restore_missing_orgs() -> None:
     from app.db.auth_db import use_db_auth
 

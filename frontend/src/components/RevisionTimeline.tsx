@@ -3,7 +3,7 @@
 import { useI18n } from "../i18n";
 import { useSourceViewer } from "../lib/SourceViewerContext";
 import { withTextHighlight } from "../lib/sourceHighlight";
-import { metricDisplayName } from "../lib/score";
+import { metricDisplayName, metricUnit } from "../lib/score";
 
 export type RevisionEvent = {
   as_of?: string;
@@ -18,10 +18,28 @@ export type RevisionEvent = {
   guided_value?: number | null;
 };
 
+export type RevisionSummary = {
+  period: string;
+  metric: string;
+  count: number;
+  direction: string;
+  average_abs_move: number;
+};
+
 type Props = {
   events?: RevisionEvent[] | null;
+  summaries?: RevisionSummary[] | null;
   testId?: string;
 };
+
+function moveUnit(metric: string, t: (key: string) => string): string {
+  const unit = metricUnit(metric);
+  if (unit === "pct") return t("ui.revisionSummary.unit.pct");
+  if (unit === "mmt") return t("ui.revisionSummary.unit.mmt");
+  if (unit === "units") return t("ui.revisionSummary.unit.units");
+  if (unit === "days") return t("ui.revisionSummary.unit.days");
+  return unit;
+}
 
 const KIND_LABEL_KEY: Record<string, string> = {
   stated: "ui.RevisionTimeline.kind.stated",
@@ -40,12 +58,14 @@ const KIND_LABEL_KEY: Record<string, string> = {
 
 export default function RevisionTimeline({
   events,
+  summaries,
   testId = "revision-timeline",
 }: Props) {
   const { t } = useI18n();
   const { openSource } = useSourceViewer();
   const rows = events || [];
-  if (rows.length === 0) {
+  const stats = summaries || [];
+  if (rows.length === 0 && stats.length === 0) {
     return (
       <p className="muted" data-testid={testId}>
         {t("ui.RevisionTimeline.empty")}
@@ -53,7 +73,30 @@ export default function RevisionTimeline({
     );
   }
   return (
-    <ol className="revision-timeline" data-testid={testId}>
+    <div data-testid={testId}>
+      {stats.length > 0 ? (
+        <ul className="about-list" data-testid="revision-summary">
+          {stats.map((s) => {
+            const directionKey =
+              s.direction === "raised" || s.direction === "cut" || s.direction === "unchanged"
+                ? s.direction
+                : "unchanged";
+            return (
+              <li key={`${s.period}-${s.metric}`}>
+                {t("ui.revisionSummary.line", {
+                  period: s.period,
+                  metric: metricDisplayName(s.metric),
+                  count: s.count,
+                  direction: t(`ui.revisionSummary.${directionKey}`),
+                  size: s.average_abs_move,
+                  unit: moveUnit(s.metric, t),
+                })}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <ol className="revision-timeline">
       {rows.map((e, i) => {
         const kind = e.kind || "stated";
         const sev = e.severity || "low";
@@ -84,6 +127,7 @@ export default function RevisionTimeline({
           </li>
         );
       })}
-    </ol>
+      </ol>
+    </div>
   );
 }

@@ -15,6 +15,18 @@ from app.services.source_verify import (
 client = TestClient(app)
 
 
+def test_crawl_order_puts_numeric_guiders_first():
+    from app.services.source_verify import CRAWL_FIRST, iter_source_bindings
+
+    bindings = iter_source_bindings()
+    ids = [b["company_id"] for b in bindings]
+    assert ids, "expected hand-labeled bindings"
+    first = ids[0]
+    assert first == CRAWL_FIRST[0]
+    if "reliance" in ids:
+        assert ids.index("infy") < ids.index("reliance")
+
+
 def test_quote_in_text_normalizes_dashes():
     assert quote_in_text("3.45% to 3.5%", "margins stable at 3.45% to 3.5% printed")
 
@@ -92,10 +104,16 @@ def test_verify_job_marks_missing_quote_enqueues_and_trust_counts(tmp_path, monk
         for i in list_queue()
         if i.get("kind") == "source_verify_fail" and i.get("company_id") == "asianpaints"
     ]
-    assert queued
+    assert queued == []
 
     infy = client.get("/api/companies/infy/gci").json()
     assert infy["gci_score"] == 76.5
+    infy_row = next(o for o in infy["outcomes"] if o.get("guidance_quote"))
+    assert infy_row["reviewed_by"] == "verifier:source_check"
+    fy22 = next(s for s in infy["revision_summaries"] if s["period"] == "FY22")
+    assert fy22["count"] == 3
+    assert fy22["direction"] == "raised"
+    assert fy22["average_abs_move"] > 0
 
     trust = client.get("/api/trust").json()["source_verification"]
     assert trust["failed"] >= 1

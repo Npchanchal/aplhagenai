@@ -108,7 +108,7 @@ def verify_source_binding(source_url: Optional[str], quote_span: Optional[str]) 
 
 
 # HTML press pages whose body does not contain the recorded quote on fetch (W2.7).
-# Excluded from citeable until an analyst re-cites a filing PDF / transcript.
+# Excluded from citeable until a later fetch finds the quote on the filing.
 KNOWN_UNVERIFIED: tuple[tuple[str, str, str], ...] = (
     ("hcltech", "FY26", "revenue_growth_cc_pct"),
     ("maruti", "FY25", "wholesale_volume_growth_pct"),
@@ -117,6 +117,19 @@ KNOWN_UNVERIFIED: tuple[tuple[str, str, str], ...] = (
 )
 
 REPORT_PATH = Path(__file__).resolve().parent.parent / "data" / "source_verify_report.json"
+
+#: Crawl these numeric guiders before the rest of the universe. Nobody types the rows.
+CRAWL_FIRST: tuple[str, ...] = (
+    "infy",
+    "wipro",
+    "hcltech",
+    "sbin",
+    "bajajfinance",
+    "tatamotors",
+    "lt",
+    "titan",
+)
+VERIFIER_ID = "verifier:source_check"
 
 
 def iter_source_bindings() -> List[Dict[str, Any]]:
@@ -157,6 +170,17 @@ def iter_source_bindings() -> List[Dict[str, Any]]:
                         "quote": gquote,
                     }
                 )
+    order = {cid: i for i, cid in enumerate(CRAWL_FIRST)}
+    tail = len(CRAWL_FIRST)
+    out.sort(
+        key=lambda b: (
+            order.get(b["company_id"], tail),
+            b["company_id"],
+            b["period"],
+            b["metric"],
+            0 if b["kind"] == "guidance" else 1,
+        )
+    )
     return out
 
 
@@ -189,34 +213,6 @@ def save_report(report: Dict[str, Any]) -> None:
     REPORT_PATH.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
 
-def _enqueue_verify_fail(
-    company_id: str, period: str, metric: str, kind: str, url: str
-) -> None:
-    from app.services.labeling_queue import enqueue, list_queue
-
-    token = f"{period}:{metric}:{kind}"
-    for row in list_queue():
-        if (
-            row.get("company_id") == company_id
-            and row.get("kind") == "source_verify_fail"
-            and row.get("flag") == token
-            and row.get("status") in ("queued", "in_progress")
-        ):
-            return
-    enqueue(
-        company_id=company_id,
-        org_id="demo",
-        priority="high",
-        note=(
-            f"Recorded {kind} quote for {period} {metric} is not on the source page. "
-            f"Row is not citeable until re-cited. {url}"
-        ),
-        requested_by="source_verify",
-        kind="source_verify_fail",
-        flag=token,
-    )
-
-
 def _mark_unverified(company_id: str, period: str, metric: str, kind: str) -> None:
     from app.data.seed import get_data, save_data
 
@@ -227,6 +223,29 @@ def _mark_unverified(company_id: str, period: str, metric: str, kind: str) -> No
             row["citeable"] = False
             row["source_verified"] = False
             row["source_verify_fail"] = kind
+            changed = True
+    if changed:
+        save_data()
+
+
+def _stamp_verified(passed: set[tuple[str, str, str]], failed: set[tuple[str, str, str]]) -> None:
+    """Stamp rows whose quotes all matched. A failed quote drops the row; nothing is queued."""
+    from datetime import datetime, timezone
+
+    from app.data.seed import get_data, save_data
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    data = get_data()
+    changed = False
+    for cid, rows in (data.get("outcomes") or {}).items():
+        for row in rows or []:
+            key = (cid, str(row.get("period") or ""), str(row.get("metric") or ""))
+            if key in failed or key not in passed:
+                continue
+            row["reviewed_by"] = VERIFIER_ID
+            row["reviewed_at"] = today
+            row["source_verified"] = True
+            row.pop("source_verify_fail", None)
             changed = True
     if changed:
         save_data()
@@ -252,15 +271,21 @@ def verify_all_bindings(
     failed = 0
     fetch_failed = 0
     failures: List[Dict[str, Any]] = []
+    row_state: Dict[tuple, Dict[str, int]] = {}
     for b in bindings:
+        key = (b["company_id"], b["period"], b["metric"])
+        state = row_state.setdefault(key, {"pass": 0, "fail": 0, "unknown": 0})
         result = fn(b["url"], b["quote"])
         if result is True:
             verified += 1
+            state["pass"] += 1
             continue
         if result is None:
             fetch_failed += 1
+            state["unknown"] += 1
             continue
         failed += 1
+        state["fail"] += 1
         failures.append(
             {
                 "company_id": b["company_id"],
@@ -272,12 +297,14 @@ def verify_all_bindings(
         )
         if write:
             _mark_unverified(b["company_id"], b["period"], b["metric"], b["kind"])
-            try:
-                _enqueue_verify_fail(
-                    b["company_id"], b["period"], b["metric"], b["kind"], b["url"]
-                )
-            except Exception:
-                pass
+    if write:
+        passed = {
+            key
+            for key, state in row_state.items()
+            if state["pass"] and not state["fail"] and not state["unknown"]
+        }
+        failed_keys = {key for key, state in row_state.items() if state["fail"]}
+        _stamp_verified(passed, failed_keys)
     report = {
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "checked": len(bindings),
@@ -287,7 +314,7 @@ def verify_all_bindings(
         "failures": failures[:50],
         "note": (
             "A link is verified when the recorded quote appears on the filing. "
-            "Missing quotes are not citeable and are queued for re-cite. "
+            "A missing quote drops the row from the score. Nothing is queued for a person. "
             "Fetch failures are retried on the next run."
         ),
     }

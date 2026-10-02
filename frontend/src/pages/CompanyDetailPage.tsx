@@ -393,7 +393,11 @@ export default function CompanyDetailPage() {
           <span className="field-label">
             GCI <InfoTip termId="gci" />
           </span>
-          <ScoreReveal score={detail.gci_score} testId="gci-score" />
+          <ScoreReveal
+            score={detail.gci_score}
+            coverageStatus={detail.coverage_status}
+            testId="gci-score"
+          />
           <AuditBadges
             badges={detail.audit_badges}
             deduction={detail.audit_deduction}
@@ -615,7 +619,10 @@ export default function CompanyDetailPage() {
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
           {t("ui.CompanyDetailPage.revisions.lede")}
         </p>
-        <RevisionTimeline events={detail.revision_timeline} />
+        <RevisionTimeline
+          events={detail.revision_timeline}
+          summaries={detail.revision_summaries}
+        />
       </div>
 
       <div className="panel" id="calc" data-testid="dossier-calc">

@@ -5,8 +5,7 @@
 | Tier | Coverage | Data quality |
 |---|---|---|
 | Product default | Sensex-30 | Mix of `hand_labeled` and not-yet-scored listings |
-| Commitment (W9.7) | Sensex 30 at Established | **31 March 2027** |
-| Commitment (W9.7) | Nifty 50 at Established | **31 March 2027** |
+| Scored set | Whatever the filing check has confirmed | Live counts on the homepage |
 | Later | Nifty 500 + sector benchmarks | Not dated |
 
 Always check `GET /api/meta` → `hand_labeled_count`, `data_quality_note`.
@@ -24,7 +23,7 @@ Refresh records `filing_seen` when a new IR document lands; `accept_draft` recor
 | Layer | Cadence |
 |---|---|
 | Seed / hand-labeled tables | Manual / batch on release |
-| IR crawl + extract queue | Every 6 hours; docs stay pending until analyst accept |
+| IR crawl + extract queue | Every 6 hours; a score still requires both quotes on the cited filings |
 | Source-link verification | Nightly on live refresh (at most once per 24 h) |
 | Alerts | Computed on request from current store |
 

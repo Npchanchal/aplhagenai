@@ -146,7 +146,7 @@ def test_badge_and_trust_api_strings_ban_legacy_voice():
 
 
 def test_methodology_names_promise_keeping_and_constants():
-    """Public methodology states the floor philosophy, δ=1 points, and single-analyst review."""
+    """Public methodology states the floor philosophy, δ=1 points, and the filing check."""
     data = json.loads((FRONTEND / "src/i18n/locales/en.json").read_text(encoding="utf-8"))
     philosophy = data["method.page.formula.philosophy"]
     assert "promise-keeping discipline, not forecast accuracy" in philosophy
@@ -155,8 +155,10 @@ def test_methodology_names_promise_keeping_and_constants():
     assert "about 88" in constants
     assert "15 points" in constants
     review = data["method.page.review.i4"]
-    assert "one analyst" in review
-    assert "single-analyst review" in review
+    assert "both contain the recorded quotes" in review
+    assert "analyst" not in review.lower()
+    limits = data["method.page.limitations.i3"]
+    assert "±2%" in limits
     comparable = data["method.page.company.comparable.text"]
     assert "half-width" in comparable
     assert "not adjusted by sector" in comparable

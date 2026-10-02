@@ -24,6 +24,7 @@ backend/tests/_test_auth.db
 .coverage
 htmlcov/
 backend/app/data/store.json
+backend/app/data/coverage_status.json
 backend/app/data/users.json
 backend/app/data/sessions.json
 backend/app/data/crawl_state.json

@@ -7,8 +7,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as urlquote, urlsplit, urlunsplit
 
-# Only hand_labeled outcomes may be presented as externally citeable.
-CITEABLE_QUALITIES = frozenset({"hand_labeled"})
+# Dual-cited rows on a scoreable quality may be presented as citeable.
+# extracted_verified stays provisional and is not ranked.
+CITEABLE_QUALITIES = frozenset({"hand_labeled", "extracted_verified"})
 
 
 def citation_id_for(

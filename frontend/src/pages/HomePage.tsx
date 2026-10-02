@@ -100,8 +100,8 @@ export default function HomePage() {
   >([]);
   const [sortKey, setSortKey] = useState<SortKey>("gci");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  // W1.8: the Screener opens on scored names; unscored rows always sort last.
-  const [scoredOnly, setScoredOnly] = useState(true);
+  // Full list on every market and index. Scored names sort first; "Scored only" hides the rest.
+  const [scoredOnly, setScoredOnly] = useState(false);
   const deep = GCI_DEEP.has(market) && index === "SENSEX";
   const showLeaderboard = GCI_DEEP.has(market);
   const unscoredCount = useMemo(
@@ -544,10 +544,18 @@ export default function HomePage() {
                           <td>{c.sector}</td>
                           <td
                             className={`score ${scoreClass(c.gci_score)}`}
-                            title={c.gci_score == null ? t("screener.notScored.tip") : undefined}
+                            title={
+                              c.gci_score == null
+                                ? t(
+                                    c.coverage_status
+                                      ? `coverage.tip.${c.coverage_status}`
+                                      : "screener.notScored.tip",
+                                  )
+                                : undefined
+                            }
                             data-testid={c.gci_score == null ? `not-scored-${c.id}` : undefined}
                           >
-                            {formatCompanyScore(c.gci_score)}
+                            {formatCompanyScore(c.gci_score, 1, c.coverage_status)}
                           </td>
                           <td>
                             <ChangeTriple

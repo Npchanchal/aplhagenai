@@ -145,6 +145,17 @@ export default function MethodologyPage() {
         <p>{t("method.page.independence.text", { product: PRODUCT_NAME })}</p>
       </div>
 
+      <div className="panel" data-testid="methodology-limitations">
+        <h2 style={{ marginTop: 0 }}>{t("method.page.limitations.title")}</h2>
+        <ul className="about-list">
+          <li>{t("method.page.limitations.i1")}</li>
+          <li>{t("method.page.limitations.i2")}</li>
+          <li>{t("method.page.limitations.i3")}</li>
+          <li>{t("method.page.limitations.i4")}</li>
+          <li>{t("method.page.limitations.i5")}</li>
+        </ul>
+      </div>
+
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>{t("method.page.errors.title")}</h2>
         <p>

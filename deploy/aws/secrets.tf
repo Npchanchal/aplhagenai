@@ -4,6 +4,7 @@ locals {
   secret_payload = merge(
     var.fmp_api_key != "" ? { fmp_api_key = var.fmp_api_key } : {},
     var.openai_api_key != "" ? { openai_api_key = var.openai_api_key } : {},
+    var.gemini_api_key != "" ? { gemini_api_key = var.gemini_api_key } : {},
     var.oidc_client_secret != "" ? { oidc_client_secret = var.oidc_client_secret } : {},
     var.smtp_pass != "" ? { smtp_pass = var.smtp_pass } : {},
     var.alphahunter_api_key != "" ? { alphahunter_api_key = var.alphahunter_api_key } : {},
@@ -12,13 +13,14 @@ locals {
   )
   secrets_enabled = var.use_secrets_manager && length(local.secret_payload) > 0
   secret_key_map = {
-    fmp_api_key              = "INTELLENS_FMP_API_KEY"
-    openai_api_key           = "OPENAI_API_KEY"
-    oidc_client_secret       = "OIDC_CLIENT_SECRET"
-    smtp_pass                = "SMTP_PASS"
-    alphahunter_api_key      = "ALPHAHUNTER_API_KEY"
-    intellens_api_key        = "INTELLENS_API_KEY"
-    intellens_abuse_secret   = "INTELLENS_ABUSE_SECRET"
+    fmp_api_key            = "INTELLENS_FMP_API_KEY"
+    openai_api_key         = "OPENAI_API_KEY"
+    gemini_api_key         = "GEMINI_API_KEY"
+    oidc_client_secret     = "OIDC_CLIENT_SECRET"
+    smtp_pass              = "SMTP_PASS"
+    alphahunter_api_key    = "ALPHAHUNTER_API_KEY"
+    intellens_api_key      = "INTELLENS_API_KEY"
+    intellens_abuse_secret = "INTELLENS_ABUSE_SECRET"
   }
   api_secret_refs = [
     for key, env_name in local.secret_key_map : {

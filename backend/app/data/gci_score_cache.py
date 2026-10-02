@@ -92,6 +92,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
         label_counts,
     )
     from app.services.guidance_flags import score_meta
+    from app.services.coverage import coverage_status_for
     from app.services.provisional_gci import QUALITY, score_provisional
     from app.services.score_policy import is_scoreable
 
@@ -143,6 +144,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
                 outcomes,
                 scoreable=is_scoreable(seeded.get("data_quality")),
                 company_id=cid,
+                data_quality=seeded.get("data_quality"),
             )
             gci = meta["gci_score"]
             trend = gci_trend_series(outcomes)
@@ -150,6 +152,12 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
             horizons = _horizon_fields(cid, gci, True)
             scores[cid] = {
                 "gci_score": gci,
+                "coverage_status": coverage_status_for(
+                    cid,
+                    score=gci,
+                    outcomes=outcomes,
+                    data_quality=seeded.get("data_quality"),
+                ),
                 "data_quality": seeded.get("data_quality", "demo_structured"),
                 "ticker": ticker,
                 "sector": sector,
@@ -173,6 +181,9 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
             horizons = _horizon_fields(cid, gci, False)
             scores[cid] = {
                 "gci_score": gci,
+                "coverage_status": coverage_status_for(
+                    cid, score=gci, data_quality=QUALITY
+                ),
                 "data_quality": QUALITY,
                 "ticker": ticker,
                 "sector": sector,

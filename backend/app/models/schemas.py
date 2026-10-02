@@ -30,6 +30,10 @@ class CompanySummary(BaseModel):
     metrics_scored: int = 0
     as_of: Optional[str] = Field(default=None, description="Latest reviewed outcome date")
     algorithm_id: Optional[str] = None
+    coverage_status: Optional[str] = Field(
+        default=None,
+        description="scored | open_period | filing_in_review | no_quantified_guidance | listed_only",
+    )
 
 
 class AuthRegisterRequest(BaseModel):
@@ -292,6 +296,7 @@ class CompanyGCIDetail(BaseModel):
     metrics_scored: int = 0
     as_of: Optional[str] = None
     algorithm_id: Optional[str] = None
+    coverage_status: Optional[str] = None
     reviewed_at: Optional[str] = None
     gci_change_horizon: Optional[str] = None
     by_metric_changes: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
@@ -301,6 +306,10 @@ class CompanyGCIDetail(BaseModel):
     audit_badges: List[Dict[str, Any]] = Field(default_factory=list)
     red_alerts: List[Dict[str, Any]] = Field(default_factory=list)
     revision_timeline: List[Dict[str, Any]] = Field(default_factory=list)
+    revision_summaries: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="In-year revision count, direction, and average move. Not part of GCI.",
+    )
     audit_note: Optional[str] = None
 
 

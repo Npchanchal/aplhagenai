@@ -10,7 +10,7 @@
 | Filing Search (`/research`) | `ResearchPage.tsx` | Modes via `?tab=`; cite-only chat |
 | Package / Help | `PackagePage`, `HelpPage` | Commercial + operator hub (tours, glossary, source policy) |
 | About / Trust | `AboutPage`, `TrustPage` | Company story · procurement posture |
-| Nav | `NavMenu.tsx` | Top: GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · More (Package, Help, About, Public Snapshot, Trust) |
+| Nav | `NavMenu.tsx` | Top: GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer (overview, search, ask, boards, themes, street, field, grid, deep dive, fundamentals, agents, export) · More (products, plans, billing, tiers, desks, blog, methodology, changelog, about, help, Public Snapshot, Trust) |
 | Blog | `BlogIndexPage`, `BlogPostPage` | SEO research articles (`/blog`) |
 
 ## Design rules (institutional)

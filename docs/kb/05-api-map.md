@@ -7,7 +7,7 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | Liveness |
-| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (hand_labeled with a score only), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `filing_to_score` (W2.8 target + observed median) |
+| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median) |
 
 **Score policy:** only `hand_labeled` companies carry a public `gci_score`. Listings and demo companies return `score: null` with status `not_yet_scored` (see `services/score_policy.py`). Outcome rows may include `revisions[]`, `revision_direction` (raised/cut/unchanged), `final_guided_low/high` and a context-only `final_label`; the score always uses the opening band.
 | GET | `/api/ops/pending-depth` | Depth backlog + optional `?bootstrap=true` |
@@ -20,7 +20,7 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | GET | `/api/v1/index/digest` | Weekly ledger-move email preview (W9.6). Send via `python -m app.jobs.ledger_digest` |
 | GET | `/api/companies/count` | Pagination |
 | GET | `/api/entitlements/me` | Plan × role intersection (`features`, `limits`). Guest: `tracker` only |
-| GET | `/api/companies/{id}/gci` | Full dossier payload; guest sessions cap at 15 opens (`403` `guest_dossier_cap` — paywall modal, not GCI change). Carries `confidence_tier`, `closed_periods`, `metrics_scored`, `as_of`, `algorithm_id`, `by_metric` (composite) + `context_metrics` (< 2 closed periods). No `sentiment`. |
+| GET | `/api/companies/{id}/gci` | Full dossier payload; guest sessions cap at 15 opens (`403` `guest_dossier_cap` — paywall modal, not GCI change). Carries `coverage_status`, `confidence_tier`, `closed_periods`, `metrics_scored`, `as_of`, `algorithm_id`, `by_metric` (composite) + `context_metrics` (< 2 closed periods). No `sentiment`. |
 | GET | `/api/companies/{id}/gci/history` | PIT points + Δ (citeable outcome as-of only) |
 | GET | `/api/companies/{id}/changes` | WoW/MoM/QoQ/YoY — numeric only when `series_kind == "citeable_pit"` (≥ 4 reviewed dates); else `null` + `note` |
 | GET | `/api/companies/{id}/analytics` · `/api/stocks/{id}/history` | **Seat-only** (`analytics_experimental`). Experimental — synthetic inputs; `401`/`403` for guests |

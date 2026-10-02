@@ -29,6 +29,7 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 | [frontend-designer](.cursor/agents/frontend-designer.md) | Expert-grade UI/UX: homepage, dossier, Screener, Snapshot, Workbench chrome |
 | [research-terminal](.cursor/agents/research-terminal.md) | Search, cite-only chat, snapshots |
 | [labeling-analyst](.cursor/agents/labeling-analyst.md) | Hand-labeled Sensex outcomes |
+| [guidance-reviewer](.cursor/agents/guidance-reviewer.md) | Daily guidance-quote and later-filing review, one market per day |
 | [product-strategist](.cursor/agents/product-strategist.md) | Scope, GTM, user stories, pitch |
 | [qa-release](.cursor/agents/qa-release.md) | pytest, Playwright, docker verify |
 | [devops-aws](.cursor/agents/devops-aws.md) | ECS deploy, idle/wake, health checks |

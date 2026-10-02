@@ -1,7 +1,8 @@
 """Major markets → flagship indexes → top-1000 constituent scaffolding.
 
-India: real NSE + BSE equity masters (`india_listings`) for NSE_ALL / BSE_ALL / IN1000.
-SENSEX remains the deep hand_labeled GCI path. Other markets stay market_scaffold pads.
+India: one merged NSE + BSE equity master (`india_listings`). Every India index
+(SENSEX, NIFTY50, NIFTYBANK, NSE_ALL, BSE_ALL, IN1000) filters that single row
+set by membership tag. Other markets stay market_scaffold pads.
 """
 
 from __future__ import annotations
@@ -9,18 +10,12 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.data.universe import (
-    NIFTY50_BEYOND_SENSEX,
-    OFFICIAL_NIFTY50_TICKERS,
-    SENSEX_30,
-    deep_data_quality,
-)
+from app.data.india_listings import IN1000_CAP, INDIA_INDEX_IDS
 
 StockRow = Dict[str, Any]
 
 MARKET_TOP_N = 1000
 GCI_DEEP_MARKETS = ["IN"]
-IN1000_CAP = 1000
 
 MARKETS: List[Dict[str, str]] = [
     {"id": "IN", "name": "India", "currency": "INR", "timezone": "Asia/Kolkata"},
@@ -86,9 +81,6 @@ _SECONDARY_CAP: Dict[str, int] = {
     "SSEC": 500,
     "DAX": 40,
     "CAC40": 40,
-    "SENSEX": 30,
-    "NIFTY50": 50,
-    "NIFTYBANK": 12,
 }
 
 _SECTORS = [
@@ -187,9 +179,6 @@ _ANCHORS: List[StockRow] = [
     {"id": "ca_cnr", "market_id": "CA", "index_ids": ["TSX60"], "name": "Canadian National Railway", "ticker": "CNR", "sector": "Industrials"},
 ]
 
-_BANK_TICKERS = {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
-
-
 def _with_quality(row: StockRow, quality: str = "market_scaffold") -> StockRow:
     out = dict(row)
     out.setdefault("data_quality", quality)
@@ -234,47 +223,7 @@ def _index_ids_for(market_id: str, rank: int, sector: str) -> List[str]:
             ids.append("DAX")
         if rank < _SECONDARY_CAP["CAC40"] and rank % 2 == 1:
             ids.append("CAC40")
-    elif mid == "IN":
-        ids = ["IN1000"]
-        if rank < 30:
-            # first 30 slots reserved for Sensex overlap when generated after anchors
-            pass
     return ids
-
-
-def _india_deep_rows() -> List[StockRow]:
-    rows: List[StockRow] = []
-    for cid, name, ticker, sector in SENSEX_30:
-        index_ids = ["SENSEX", "IN1000"]
-        if ticker.upper() in OFFICIAL_NIFTY50_TICKERS:
-            index_ids.insert(1, "NIFTY50")
-        rows.append(
-            {
-                "id": cid,
-                "market_id": "IN",
-                "index_ids": index_ids,
-                "name": name,
-                "ticker": ticker,
-                "sector": sector,
-                "data_quality": deep_data_quality(cid),
-            }
-        )
-    for cid, name, ticker, sector in NIFTY50_BEYOND_SENSEX:
-        index_ids = ["IN1000"]
-        if ticker.upper() in OFFICIAL_NIFTY50_TICKERS:
-            index_ids.insert(0, "NIFTY50")
-        rows.append(
-            {
-                "id": cid,
-                "market_id": "IN",
-                "index_ids": index_ids,
-                "name": name,
-                "ticker": ticker,
-                "sector": sector,
-                "data_quality": deep_data_quality(cid),
-            }
-        )
-    return rows
 
 
 @lru_cache(maxsize=16)
@@ -390,24 +339,7 @@ def get_index(index_id: str) -> Optional[Dict[str, Any]]:
 
 
 def constituent_count(index_id: str) -> int:
-    """Fast membership count — avoid materializing thousands of rows."""
-    iid = index_id.upper()
-    if iid == "NSE_ALL":
-        from app.data.india_listings import listing_counts
-
-        return int(listing_counts().get("nse") or 0)
-    if iid == "BSE_ALL":
-        from app.data.india_listings import listing_counts
-
-        return int(listing_counts().get("bse") or 0)
-    if iid == "IN1000":
-        from app.data.india_listings import listing_counts
-
-        return min(IN1000_CAP, int(listing_counts().get("merged") or 0))
-    if iid in _SECONDARY_CAP:
-        # deep / capped indexes — small, safe to materialize once
-        return len(_constituents_cached(iid))
-    return len(_constituents_cached(iid))
+    return len(_constituents_cached(index_id.upper()))
 
 
 @lru_cache(maxsize=32)
@@ -418,18 +350,10 @@ def _constituents_cached(index_id: str) -> Tuple[StockRow, ...]:
         return tuple()
     mid = ix["market_id"]
 
-    if iid == "SENSEX":
-        return tuple(r for r in _india_deep_rows() if "SENSEX" in r["index_ids"])
-    if iid == "NIFTY50":
-        return tuple(r for r in _india_deep_rows() if "NIFTY50" in r["index_ids"])
-    if iid == "NIFTYBANK":
-        return tuple(r for r in _market_universe(mid) if "NIFTYBANK" in r.get("index_ids", []))
+    if iid in INDIA_INDEX_IDS:
+        from app.data.india_listings import india_index_members
 
-    if iid in {"NSE_ALL", "BSE_ALL"}:
-        return tuple(r for r in _market_universe(mid) if iid in r.get("index_ids", []))
-
-    if iid == "IN1000":
-        return tuple(_market_universe(mid)[:IN1000_CAP])
+        return india_index_members(iid)
 
     if iid == _PRIMARY_INDEX.get(mid):
         return _market_universe(mid)
@@ -489,7 +413,7 @@ def markets_meta() -> Dict[str, Any]:
             f"Coverage is India-first. Other markets are constituent lists for navigation, "
             f"not scored delivery records. India listings: NSE {counts['nse']}, "
             f"BSE {counts['bse']} (merged {counts['merged']}). "
-            "A published GCI requires analyst-reviewed guidance and the later filing. "
-            "Cite only companies with a hand-reviewed record."
+            "A published GCI requires both quotes on the cited filings. "
+            "Cite only companies that have passed that check."
         ),
     }

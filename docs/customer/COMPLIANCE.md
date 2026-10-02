@@ -114,8 +114,13 @@ Use **factual research / disclosure / evidence** language. This reduces tipster 
 | Badge | Meaning |
 |---|---|
 | `hand_labeled` | Preferred for client-facing citation |
+| `extracted_verified` | Dual-cited machine extract; provisional, not ranked |
 | `demo_structured` | Provisional / demo — do not over-claim |
 | `listing_provisional` / scaffold | Navigable listing — not deep GCI coverage |
+
+Filing text is stored for quote checks. Do not republish full exchange PDFs.
+
+Filing fetches are rate-limited (one request per 1.5 s, 200 filings and 500 discovery calls per day, shared across jobs). Requests identify as CiteAlphaBot first. BSE and NSE refuse that agent, so for those two hosts only the fetcher retries with a standard browser user agent. Owner decision 2026-10-02; review against exchange terms of use. Switch it off with `INTELLENS_FILING_BROWSER_UA_FALLBACK=0`. Bot-protected endpoints (BSE announcement API) are not used.
 
 Always show the disclaimer on GCI and vernacular surfaces (`Disclaimer` / `/api/compliance/sebi-note`).
 

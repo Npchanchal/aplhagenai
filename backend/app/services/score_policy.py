@@ -1,8 +1,9 @@
 """Which companies may carry a public GCI number, and how confident that number is.
 
-Only analyst-reviewed, source-cited outcomes (``hand_labeled``) are scored.
+Analyst-reviewed ``hand_labeled`` rows and machine-extracted rows that passed
+quote-in-document verification (``extracted_verified``) may carry a number.
 Demo seed and provisional listing outcomes are placeholders; companies built on
-them show "Not yet scored" instead of a number.
+them show a coverage status instead of a number.
 
 Confidence tiers (plan W1.3, rule `index-integrity`) — every published score
 carries one, and only *established* / *deep* scores are ranked publicly:
@@ -21,7 +22,9 @@ from __future__ import annotations
 
 from typing import Iterable, Optional
 
-SCOREABLE_QUALITIES = frozenset({"hand_labeled"})
+HAND_LABELED = "hand_labeled"
+EXTRACTED_VERIFIED = "extracted_verified"
+SCOREABLE_QUALITIES = frozenset({HAND_LABELED, EXTRACTED_VERIFIED})
 NOT_SCORED_STATUS = "not_yet_scored"
 
 TIER_PROVISIONAL = "provisional"
@@ -48,10 +51,21 @@ def publishable_score(score: Optional[float], data_quality: Optional[str]) -> Op
     return score if is_scoreable(data_quality) else None
 
 
-def confidence_tier(*, closed_periods: int, metrics_scored: int) -> Optional[str]:
-    """Tier for a published score; ``None`` when there is nothing to score."""
+def confidence_tier(
+    *,
+    closed_periods: int,
+    metrics_scored: int,
+    data_quality: Optional[str] = None,
+) -> Optional[str]:
+    """Tier for a published score; ``None`` when there is nothing to score.
+
+    Machine-extracted (``extracted_verified``) names stay provisional so they
+    cannot enter the Public Snapshot until a human upgrades the quality flag.
+    """
     if closed_periods <= 0 or metrics_scored <= 0:
         return None
+    if (data_quality or "").strip().lower() == EXTRACTED_VERIFIED:
+        return TIER_PROVISIONAL
     if metrics_scored < MIN_METRICS_FOR_ESTABLISHED or closed_periods < ESTABLISHED_MIN_PERIODS:
         return TIER_PROVISIONAL
     if closed_periods >= DEEP_MIN_PERIODS:

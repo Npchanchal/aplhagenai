@@ -42,7 +42,7 @@ NSE/BSE filings, company IR releases, and earnings transcripts. Each scored row 
 
 ## 7. Review process
 
-Scores published today were reviewed by one analyst. `reviewed_by` + `reviewed_at` are required to score. A second reviewer is required when a new row is submitted and then accepted by a different person; an account admin may accept their own submission. A monthly sample audit and its pass rate are not yet published. Until that audit is running, the published index is single-analyst review. Source-verification fetches every URL and checks the recorded quote.
+A closed row counts when a fetch of the guidance filing and the results filing both contain the recorded quotes. The company page shows the date of that check (`reviewed_by` is the verifier job, `reviewed_at` is the check date). A quote that is not on the filing keeps the row out of the score. Nothing is queued for a person.
 
 ## 8. Latency
 
@@ -58,4 +58,4 @@ Change control: methodology edits require an `algorithm_id` bump, ledger rows, a
 
 ## 11. External readers
 
-W9.1 acceptance: one quant and one compliance reader sign off. Until then this is an engineering draft, not a licensed benchmark statement.
+Publication does not wait on an outside reader. This remains an engineering draft until the index is licensed; it is not a licensed benchmark statement.
