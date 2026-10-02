@@ -872,6 +872,13 @@ def ingest_company_urls(
                 discovered += [r for r in discover_via_web_search(company_id) if r["url"] not in have]
             except Exception as exc:  # noqa: BLE001 — a search lead must not stop the cohort
                 results.append({"ok": False, "reason": f"web_search_{type(exc).__name__}"})
+            try:
+                from app.services.ir_discovery import discover_from_issuer_site
+
+                have = {d["url"] for d in discovered}
+                discovered += [r for r in discover_from_issuer_site(company_id) if r["url"] not in have]
+            except Exception as exc:  # noqa: BLE001 — the site walk must not stop the cohort
+                results.append({"ok": False, "reason": f"ir_crawl_{type(exc).__name__}"})
         targets.extend(discovered)
     stored = _stored_texts(company_id)
     queued = {t["url"] for t in targets}
@@ -901,7 +908,7 @@ def ingest_company_urls(
                 date=target.get("date"),
                 category=target.get("category") or "filing",
                 dry_run=dry_run,
-                undated=target.get("found_by") == "web_search",
+                undated=target.get("found_by") in ("web_search", "ir_crawl"),
             )
             if target.get("linked_from"):
                 out["linked_from"] = target["linked_from"]
