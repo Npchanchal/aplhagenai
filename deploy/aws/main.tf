@@ -728,6 +728,7 @@ resource "aws_ecs_task_definition" "app" {
           { name = "INTELLENS_FILING_DISCOVERY_DAILY_CAP", value = "10000" },
           { name = "INTELLENS_INDIA_COVERAGE_COHORT", value = "nifty50" },
           { name = "INTELLENS_EXTRACT_LLM_DAILY_CAP", value = "10000" },
+          { name = "INTELLENS_LLM_RATE_PER_MIN", value = "4" },
           { name = "INTELLENS_WEB_SEARCH_DISCOVERY", value = "1" },
           { name = "INTELLENS_IR_CRAWL_DISCOVERY", value = "1" }
         ] : [],

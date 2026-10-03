@@ -149,6 +149,7 @@ def extract_with_llm_prompt(
                 company_id=company_id,
                 period=period,
                 source_ref=source_ref,
+                wait=False,
             )
             if rows:
                 return rows

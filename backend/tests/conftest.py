@@ -7,6 +7,7 @@ os.environ.setdefault("AUTH_RATE_LIMIT_RPM", "5000")
 os.environ.setdefault("RATE_LIMIT_RPM", "5000")
 os.environ.setdefault("INTELLENS_AUTH_DEV_TOKENS", "1")
 os.environ.setdefault("INTELLENS_ABUSE_OFF", "1")
+os.environ.setdefault("INTELLENS_LLM_RATE_PER_MIN", "0")
 # Exercise SQL auth backend (SQLite) in CI without requiring Postgres.
 os.environ.setdefault("USE_DB_AUTH", "1")
 os.environ.setdefault(

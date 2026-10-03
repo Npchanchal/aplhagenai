@@ -9,8 +9,11 @@ import json
 import math
 import os
 import re
+import threading
+import time
 import urllib.error
 import urllib.request
+from collections import deque
 from typing import Any, Dict, List, Optional, Sequence
 
 
@@ -48,10 +51,50 @@ def llm_configured() -> bool:
     return llm_api_key() is not None
 
 
-def _post_json(path: str, payload: Dict[str, Any], *, timeout: float = 45.0) -> Dict[str, Any]:
+class LLMRateLimited(RuntimeError):
+    pass
+
+
+_RATE_LOCK = threading.Lock()
+_CALL_TIMES: "deque[float]" = deque()
+
+
+def llm_rate_per_min() -> int:
+    """Calls per rolling minute across the process; 0 disables the limit."""
+    return int(os.environ.get("INTELLENS_LLM_RATE_PER_MIN", "4"))
+
+
+def _acquire_slot(*, wait: bool, clock=time.monotonic, sleep=time.sleep) -> None:
+    """Background jobs wait for a slot; a user-facing call fails fast and falls back."""
+    limit = llm_rate_per_min()
+    if limit <= 0:
+        return
+    while True:
+        with _RATE_LOCK:
+            now = clock()
+            while _CALL_TIMES and now - _CALL_TIMES[0] >= 60.0:
+                _CALL_TIMES.popleft()
+            if len(_CALL_TIMES) < limit:
+                _CALL_TIMES.append(now)
+                return
+            delay = 60.0 - (now - _CALL_TIMES[0])
+        if not wait:
+            raise LLMRateLimited(f"LLM rate limit {limit}/min reached")
+        sleep(max(delay, 0.05))
+
+
+def reset_rate_limit() -> None:
+    with _RATE_LOCK:
+        _CALL_TIMES.clear()
+
+
+def _post_json(
+    path: str, payload: Dict[str, Any], *, timeout: float = 45.0, wait: bool = True
+) -> Dict[str, Any]:
     key = llm_api_key()
     if not key:
         raise RuntimeError("LLM API key not configured")
+    _acquire_slot(wait=wait)
     url = f"{llm_base_url()}{path}"
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -77,6 +120,7 @@ def chat_completion(
     *,
     temperature: float = 0.0,
     max_tokens: int = 1200,
+    wait: bool = True,
 ) -> str:
     doc = _post_json(
         "/chat/completions",
@@ -86,6 +130,7 @@ def chat_completion(
             "max_tokens": max_tokens,
             "messages": list(messages),
         },
+        wait=wait,
     )
     choices = doc.get("choices") or []
     if not choices:
@@ -127,6 +172,7 @@ def _gemini_search(prompt: str, timeout: float) -> Dict[str, Any]:
     if not key:
         raise RuntimeError("LLM API key not configured")
     root = re.sub(r"/openai$", "", llm_base_url())
+    _acquire_slot(wait=True)
     req = urllib.request.Request(
         f"{root}/models/{search_model()}:generateContent",
         data=json.dumps(
@@ -198,6 +244,7 @@ def embed_texts(texts: Sequence[str]) -> List[List[float]]:
         "/embeddings",
         {"model": embed_model(), "input": list(texts)},
         timeout=60.0,
+        wait=False,
     )
     data = sorted(doc.get("data") or [], key=lambda r: int(r.get("index", 0)))
     return [list(r.get("embedding") or []) for r in data]
@@ -226,6 +273,7 @@ def extract_guidance_via_llm(
     company_id: str,
     period: str,
     source_ref: str,
+    wait: bool = True,
 ) -> List[Dict[str, Any]]:
     """Call chat model; parse JSON array of statements. Raises on transport/parse failure."""
     excerpt = (text or "")[:12000]
@@ -236,7 +284,8 @@ def extract_guidance_via_llm(
                 "role": "user",
                 "content": f"company_id={company_id} period={period}\n\n{excerpt}",
             },
-        ]
+        ],
+        wait=wait,
     )
     # Strip optional ```json fences
     cleaned = raw.strip()
@@ -307,5 +356,6 @@ def rewrite_cite_only_answer(
             },
         ],
         max_tokens=400,
+        wait=False,
     )
     return raw
