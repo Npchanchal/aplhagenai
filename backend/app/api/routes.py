@@ -3106,6 +3106,13 @@ def ops_corpus_coverage(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     return sensex_corpus_coverage()
 
 
+@router.get("/api/ops/coverage-progress")
+def ops_coverage_progress(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+    from app.services.india_coverage import coverage_progress
+
+    return coverage_progress()
+
+
 @router.get("/api/ops/throughput")
 def ops_throughput(auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.throughput import desk_throughput

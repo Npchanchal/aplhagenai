@@ -9,6 +9,7 @@ a metric+number promise stamps ``no_quantified_guidance``. Unsearched names stay
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -33,6 +34,7 @@ from app.services.exchange_filings import (
 from app.services.extract_pipeline import (
     _accepted_docs,
     extract_company,
+    llm_budget_used,
     maybe_promote_extracted,
 )
 
@@ -216,24 +218,37 @@ def roll_daily(
     ids.sort(key=lambda cid: (str((seen.get(cid) or {}).get("last_discovery") or ""), order[cid]))
     processed: List[Dict[str, Any]] = []
     stopped = "walked_all"
-    for cid in ids:
-        if max_companies is not None and len(processed) >= max_companies:
-            stopped = "max_companies"
-            break
-        if budget_remaining("fetch") <= 0 or budget_remaining("discovery") <= 0:
-            stopped = "daily_budget"
-            break
-        out = process_company(cid, live=True, extract=extract, discover=True)
-        note_discovery(cid)
-        processed.append(
-            {
+    _PROGRESS.update(
+        running=True, cohort=cohort, started_at=_now(), total=len(ids), done=0,
+        current=None, current_started_at=None, recent=[],
+    )
+    try:
+        for cid in ids:
+            if max_companies is not None and len(processed) >= max_companies:
+                stopped = "max_companies"
+                break
+            if budget_remaining("fetch") <= 0 or budget_remaining("discovery") <= 0:
+                stopped = "daily_budget"
+                break
+            _PROGRESS.update(current=cid, current_started_at=_now())
+            calls_before = llm_budget_used()
+            out = process_company(cid, live=True, extract=extract, discover=True)
+            note_discovery(cid)
+            row = {
                 "company_id": cid,
                 "coverage_status": out["coverage_status"],
                 "new_filings": sum(
                     1 for r in out["ingest"].get("results") or [] if r.get("action") == "upserted"
                 ),
             }
-        )
+            processed.append(row)
+            step = {**row, "llm_calls": llm_budget_used() - calls_before, "finished_at": _now()}
+            _PROGRESS["done"] = len(processed)
+            _PROGRESS["recent"] = ([step] + _PROGRESS["recent"])[:10]
+            print(json.dumps({"india_coverage_step": {**step, "n": len(processed), "of": len(ids)}}), flush=True)
+    finally:
+        _PROGRESS.update(running=False, current=None, current_started_at=None, finished_at=_now(),
+                         stopped=stopped)
     counts = coverage_counts([p["company_id"] for p in processed])
     return {
         "ok": True,
@@ -244,6 +259,48 @@ def roll_daily(
         "coverage": counts,
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "results": processed,
+    }
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+_PROGRESS: Dict[str, Any] = {"running": False, "recent": []}
+
+
+def coverage_progress() -> Dict[str, Any]:
+    """Where today's roll is, and how much of each daily budget is spent."""
+    import os
+
+    from app.services import exchange_filings as ef
+    from app.services import ir_discovery
+    from app.services.extract_pipeline import llm_daily_cap
+    from app.services.llm_client import llm_rate_per_min
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cohort = _PROGRESS.get("cohort") or os.environ.get("INTELLENS_INDIA_COVERAGE_COHORT", "all")
+    ids = _nse_ids(cohort)
+    seen = load_coverage().get("companies") or {}
+    searched_today = sum(1 for cid in ids if (seen.get(cid) or {}).get("last_discovery") == today)
+
+    def spent(cap: int, remaining: int) -> Dict[str, int]:
+        return {"used": cap - remaining, "cap": cap}
+
+    return {
+        "as_of": _now(),
+        "roll": {k: v for k, v in _PROGRESS.items()},
+        "cohort": cohort,
+        "cohort_size": len(ids),
+        "searched_today": searched_today,
+        "budgets_today": {
+            "filing_fetch": spent(ef.daily_fetch_cap(), budget_remaining("fetch")),
+            "filing_discovery": spent(ef.daily_discovery_cap(), budget_remaining("discovery")),
+            "ai_extraction_calls": {"used": llm_budget_used(), "cap": llm_daily_cap()},
+            "web_searches": {"used": int(ef._web_ledger()["used"]), "cap": ef.web_search_daily_cap()},
+            "issuer_site_crawls": {"used": int(ir_discovery._ledger()["used"]), "cap": ir_discovery.ir_crawl_daily_cap()},
+        },
+        "ai_rate_per_min": llm_rate_per_min(),
     }
 
 

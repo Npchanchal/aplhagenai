@@ -864,6 +864,27 @@ def test_roll_daily_stops_when_budget_spent(monkeypatch):
     assert report["processed"] == 0 and report["stopped"] == "daily_budget"
 
 
+def test_coverage_progress_reports_roll_and_budgets(monkeypatch, capsys):
+    from app.services import india_coverage as ic
+
+    monkeypatch.setattr(ic, "_nse_ids", lambda cohort: ["tcs", "wipro"])
+    seen_mid_roll = []
+
+    def fake_process(cid, **kw):
+        seen_mid_roll.append(ic.coverage_progress()["roll"]["current"])
+        return {"coverage_status": LISTED_ONLY, "ingest": {"results": []}}
+
+    monkeypatch.setattr(ic, "process_company", fake_process)
+    ic.roll_daily("nifty50")
+    assert seen_mid_roll == ["tcs", "wipro"]
+    progress = ic.coverage_progress()
+    assert progress["roll"]["running"] is False and progress["roll"]["done"] == 2
+    assert progress["searched_today"] == 2 and progress["cohort_size"] == 2
+    assert [s["company_id"] for s in progress["roll"]["recent"]] == ["wipro", "tcs"]
+    assert set(progress["budgets_today"]) >= {"ai_extraction_calls", "filing_fetch", "web_searches"}
+    assert '"india_coverage_step"' in capsys.readouterr().out
+
+
 def test_stamp_keeps_last_discovery():
     from app.services.coverage import load_coverage, note_discovery
 
