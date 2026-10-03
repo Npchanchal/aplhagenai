@@ -37,6 +37,8 @@ _LINK_CUES = (
 )
 
 _LEDGER: Optional[Dict[str, Any]] = None
+# Bumping this re-crawls every issuer: crawls before llm_v2 ran on keyword fallback.
+CHOOSER_VERSION = "llm_v2"
 
 
 def ir_crawl_enabled() -> bool:
@@ -71,6 +73,9 @@ def _ledger() -> Dict[str, Any]:
                     _LEDGER.update(json.load(fh))
             except (OSError, json.JSONDecodeError):
                 pass
+        if _LEDGER.get("chooser") != CHOOSER_VERSION:
+            _LEDGER["last"] = {}
+            _LEDGER["chooser"] = CHOOSER_VERSION
     if _LEDGER.get("day") != _today():
         _LEDGER["day"] = _today()
         _LEDGER["used"] = 0
@@ -219,14 +224,17 @@ def _default_chooser() -> Callable[[str, str, List[Dict[str, str]]], Dict[str, A
     from app.services.extract_pipeline import _llm_budget_ok, note_llm_use
 
     def choose(company: str, page_url: str, links: List[Dict[str, str]]) -> Dict[str, Any]:
-        if llm_client.llm_configured() and _llm_budget_ok():
-            note_llm_use()
-            try:
-                return _llm_choose(company, page_url, links)
-            except Exception:  # noqa: BLE001 — fall back to keywords for this page
-                pass
+        if llm_client.llm_configured():
+            if _llm_budget_ok():
+                note_llm_use()
+                try:
+                    return _llm_choose(company, page_url, links)
+                except Exception:  # noqa: BLE001 — fall back to keywords for this page
+                    pass
+            choose.fell_back = True  # type: ignore[attr-defined]
         return _keyword_choose(company, page_url, links)
 
+    choose.fell_back = False  # type: ignore[attr-defined]
     return choose
 
 
@@ -343,7 +351,7 @@ def discover_from_issuer_site(
                 and not _is_language_copy(links[n]["url"])
             ):
                 queue.append((links[n]["url"], depth + 1))
-    if fetched_any and _LEDGER is not None:
+    if fetched_any and _LEDGER is not None and not getattr(choose, "fell_back", False):
         _ledger().setdefault("last", {})[company_id] = _today()
         _save_ledger()
     return rank_documents(list(docs.values()), max_docs=max_docs)

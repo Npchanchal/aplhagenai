@@ -130,3 +130,27 @@ def test_start_urls_prefer_curated_investor_page():
         "https://www.maxhealthcare.in/investors/",
     ]
     assert ir.start_urls("no_such_company") == []
+
+
+def test_crawl_is_retried_when_the_model_failed(monkeypatch):
+    from app.services import llm_client
+
+    monkeypatch.setenv("INTELLENS_IR_CRAWL_DISCOVERY", "1")
+    monkeypatch.setenv("INTELLENS_LLM_API_KEY", "k")
+    monkeypatch.setattr(ir, "fetch_bytes", lambda u, cid=None, **kw: SITE.get(u, b"<html></html>"))
+    monkeypatch.setattr(ir, "_llm_choose", lambda *a: (_ for _ in ()).throw(RuntimeError("429")))
+    assert llm_client.llm_configured()
+    ir.discover_from_issuer_site("tatasteel")
+    assert ir._due("tatasteel")
+    monkeypatch.setattr(ir, "_llm_choose", lambda *a: {"documents": [], "pages": []})
+    ir.discover_from_issuer_site("tatasteel")
+    assert not ir._due("tatasteel")
+
+
+def test_ledger_from_older_chooser_forgets_crawl_dates(tmp_path):
+    import json
+
+    (tmp_path / "ir_crawl_ledger.json").write_text(json.dumps({"day": "2000-01-01", "used": 3, "last": {"tatasteel": ir._today()}}))
+    ir.reset_ir_crawl()
+    assert ir._due("tatasteel")
+    assert ir._ledger()["chooser"] == ir.CHOOSER_VERSION

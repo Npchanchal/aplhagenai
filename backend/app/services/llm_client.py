@@ -29,6 +29,10 @@ def is_gemini() -> bool:
     return "generativelanguage.googleapis.com" in llm_base_url()
 
 
+# Gemini 3.x counts hidden reasoning against max_tokens; ~1.1k-5k tokens on a 12k-char chunk.
+GEMINI_THINKING_HEADROOM = 8192
+
+
 def llm_api_key() -> Optional[str]:
     key = (
         os.environ.get("INTELLENS_LLM_API_KEY")
@@ -121,20 +125,26 @@ def chat_completion(
     temperature: float = 0.0,
     max_tokens: int = 1200,
     wait: bool = True,
+    reasoning: Optional[str] = None,
 ) -> str:
-    doc = _post_json(
-        "/chat/completions",
-        {
-            "model": llm_chat_model(),
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "messages": list(messages),
-        },
-        wait=wait,
-    )
+    """``max_tokens`` budgets the answer; Gemini's hidden reasoning gets its own headroom."""
+    payload: Dict[str, Any] = {
+        "model": llm_chat_model(),
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "messages": list(messages),
+    }
+    if is_gemini():
+        if reasoning:
+            payload["reasoning_effort"] = reasoning
+        if reasoning not in ("none", "minimal", "low"):
+            payload["max_tokens"] = max_tokens + GEMINI_THINKING_HEADROOM
+    doc = _post_json("/chat/completions", payload, wait=wait)
     choices = doc.get("choices") or []
     if not choices:
         raise RuntimeError("LLM returned no choices")
+    if choices[0].get("finish_reason") == "length":
+        raise RuntimeError("LLM answer cut off at max_tokens")
     content = (choices[0].get("message") or {}).get("content") or ""
     return str(content).strip()
 
@@ -261,10 +271,18 @@ def cosine(a: Sequence[float], b: Sequence[float]) -> float:
 
 _GUIDANCE_JSON_HINT = """Extract quantified management guidance from the transcript.
 Return ONLY a JSON array. Each object keys:
-metric (snake_id e.g. revenue_growth_pct, ebitda_margin_pct, capex_inr_cr),
-guided_value (number), guided_low, guided_high, guided_text, quote_span,
+metric (one of: {metric_ids}; skip guidance that fits none),
+guided_value (number in the metric's unit: pct = percent e.g. 12.5, inr_cr = INR crore e.g. 26000, mmt = million tonnes),
+guided_low, guided_high, guided_text, quote_span,
 speaker (CFO|CEO|Management), confidence (0.5-0.95).
 If none found return []. No markdown fences."""
+
+
+def _guidance_prompt() -> str:
+    from app.data.metric_catalog import METRICS
+
+    ids = ", ".join(f"{m['id']} [{m.get('unit')}]" for m in METRICS)
+    return _GUIDANCE_JSON_HINT.replace("{metric_ids}", ids)
 
 
 def extract_guidance_via_llm(
@@ -279,12 +297,13 @@ def extract_guidance_via_llm(
     excerpt = (text or "")[:12000]
     raw = chat_completion(
         [
-            {"role": "system", "content": _GUIDANCE_JSON_HINT},
+            {"role": "system", "content": _guidance_prompt()},
             {
                 "role": "user",
                 "content": f"company_id={company_id} period={period}\n\n{excerpt}",
             },
         ],
+        max_tokens=4096,
         wait=wait,
     )
     # Strip optional ```json fences
@@ -295,9 +314,11 @@ def extract_guidance_via_llm(
     parsed = json.loads(cleaned)
     if not isinstance(parsed, list):
         raise RuntimeError("LLM extract did not return a JSON array")
+    from app.data.metric_catalog import normalize_metric, normalize_statement_metrics
+
     out: List[Dict[str, Any]] = []
     for row in parsed:
-        if not isinstance(row, dict) or not row.get("metric"):
+        if not isinstance(row, dict) or not normalize_metric(row.get("metric")):
             continue
         mid = float(row.get("guided_value") or 0)
         low = row.get("guided_low")
@@ -328,8 +349,6 @@ def extract_guidance_via_llm(
                 "extract_engine": "llm_v1",
             }
         )
-    from app.data.metric_catalog import normalize_statement_metrics
-
     return normalize_statement_metrics(out)
 
 
@@ -357,5 +376,6 @@ def rewrite_cite_only_answer(
         ],
         max_tokens=400,
         wait=False,
+        reasoning="low",
     )
     return raw
