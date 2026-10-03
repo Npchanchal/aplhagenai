@@ -92,7 +92,7 @@ services:
       INTELLENS_INDIA_COVERAGE_COHORT: "nifty50"
       INTELLENS_FILING_FETCH_DAILY_CAP: "200"
       INTELLENS_EXTRACT_LLM_DAILY_CAP: "50"
-      INTELLENS_LLM_RATE_PER_MIN: "4"
+      INTELLENS_LLM_RATE_PER_MIN: "8"
     depends_on:
       api:
         condition: service_healthy
