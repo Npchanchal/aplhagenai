@@ -813,11 +813,11 @@ def discover_via_web_search(
     return picked[:max_docs]
 
 
-def _stored_texts(company_id: str) -> Dict[str, str]:
-    """URL → stored text. Long documents keep only a preview inline; they map to ""."""
+def _stored_texts() -> Dict[str, str]:
+    """URL key → stored text, every company. Long documents keep only a preview inline; they map to ""."""
     return {
-        str(d.get("url")): "" if d.get("text_file") else str(d.get("text") or "")
-        for d in doc_store.list_documents(company_id=company_id, include_rejected=True, hydrate=False)
+        doc_store.url_key(d["url"]): "" if d.get("text_file") else str(d.get("text") or "")
+        for d in doc_store.list_documents(include_rejected=True, hydrate=False)
         if d.get("url")
     }
 
@@ -880,22 +880,23 @@ def ingest_company_urls(
             except Exception as exc:  # noqa: BLE001 — the site walk must not stop the cohort
                 results.append({"ok": False, "reason": f"ir_crawl_{type(exc).__name__}"})
         targets.extend(discovered)
-    stored = _stored_texts(company_id)
-    queued = {t["url"] for t in targets}
+    stored = _stored_texts()
+    queued = {doc_store.url_key(t["url"]) for t in targets}
 
     def follow(target: Dict[str, Any], linked: List[str]) -> None:
         if target.get("linked_from"):
             return
         for link in linked:
-            if link not in queued:
-                queued.add(link)
+            if doc_store.url_key(link) not in queued:
+                queued.add(doc_store.url_key(link))
                 targets.append({**target, "url": link, "linked_from": target["url"]})
 
     for target in targets:
         url = target["url"]
-        if url in stored:
+        key = doc_store.url_key(url)
+        if key in stored:
             results.append({"ok": True, "url": url, "action": "already_stored"})
-            follow(target, linked_filing_urls(stored[url], company_id, exclude=url))
+            follow(target, linked_filing_urls(stored[key], company_id, exclude=url))
             continue
         if not host_allowed(url, company_id):
             results.append({"ok": False, "url": url, "reason": "host_not_allowlisted"})

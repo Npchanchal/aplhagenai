@@ -179,6 +179,41 @@ def get_document(doc_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+_HOST_ALIASES = {
+    "nsearchives.nseindia.com": "archives.nseindia.com",
+    "beta.bseindia.com": "bseindia.com",
+}
+
+
+def url_key(url: Optional[str]) -> str:
+    """One key per document: ignores scheme, www., archive-host aliases, #fragments, utm_ params."""
+    from urllib.parse import urlparse
+
+    raw = (url or "").strip()
+    if not raw:
+        return ""
+    parts = urlparse(raw if "://" in raw else f"https://{raw}")
+    host = (parts.hostname or "").lower()
+    host = host[4:] if host.startswith("www.") else host
+    host = _HOST_ALIASES.get(host, host)
+    query = "&".join(
+        sorted(q for q in parts.query.split("&") if q and not q.lower().startswith("utm_"))
+    )
+    path = parts.path.rstrip("/") or "/"
+    return f"{host}{path}" + (f"?{query}" if query else "")
+
+
+def find_by_url(url: Optional[str]) -> Optional[Dict[str, Any]]:
+    """The stored document for this URL (any company), with full text, or None."""
+    key = url_key(url)
+    if not key:
+        return None
+    for d in _load()["documents"]:
+        if d.get("url") and url_key(d["url"]) == key:
+            return _hydrate(d)
+    return None
+
+
 def list_documents(
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,

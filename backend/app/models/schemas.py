@@ -433,6 +433,13 @@ class DocReviewRequest(BaseModel):
     action: str  # accept | reject
 
 
+class DocDateRequest(BaseModel):
+    as_of: str  # YYYY-MM-DD
+    evidence: str  # verbatim snippet of the stored text, title or URL
+    basis: str  # call_or_meeting_date | document_date | board_signing_date | cover_letter_date
+    reviewer: str
+
+
 class CrawlRequest(BaseModel):
     limit: int = 30
     dry_run: bool = False

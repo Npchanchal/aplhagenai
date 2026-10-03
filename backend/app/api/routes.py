@@ -23,6 +23,7 @@ from app.models.schemas import (
     CompanySummary,
     ConsensusImportRequest,
     CrawlRequest,
+    DocDateRequest,
     DocReviewRequest,
     ExtractRequest,
     FeedbackCreate,
@@ -1871,6 +1872,39 @@ def documents_review(body: DocReviewRequest, auth=Depends(require_feature("desk_
         detail={"doc_id": body.doc_id, "status": status},
     )
     return {"ok": True, "document": doc}
+
+
+@router.get("/api/documents/undated")
+def documents_undated(company_id: Optional[str] = None) -> Dict[str, Any]:
+    from app.services.document_dating import undated_documents
+
+    rows = undated_documents(company_id)
+    return {"count": len(rows), "documents": rows}
+
+
+@router.post("/api/documents/{doc_id}/date")
+def documents_date(
+    doc_id: str, body: DocDateRequest, auth=Depends(require_feature("desk_write"))
+) -> Dict[str, Any]:
+    from app.data import audit_log
+    from app.services.document_dating import date_document
+
+    try:
+        out = date_document(
+            doc_id, as_of=body.as_of, evidence=body.evidence, basis=body.basis, reviewer=body.reviewer
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Document not found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+    audit_log.record(
+        "doc_dated",
+        org=auth.get("org", "demo"),
+        actor=auth.get("key", "unknown"),
+        role=auth.get("role", "analyst"),
+        detail={**out, "basis": body.basis, "evidence": body.evidence[:300], "reviewer": body.reviewer},
+    )
+    return {"ok": True, **out}
 
 
 @router.get("/api/documents")

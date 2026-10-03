@@ -98,6 +98,12 @@ def verify_source_binding(source_url: Optional[str], quote_span: Optional[str]) 
     quote = (quote_span or "").strip()
     if not url or not quote:
         return False
+    from app.data import doc_store
+
+    stored = doc_store.find_by_url(url)
+    if stored is not None and normalize_text(stored.get("text") or ""):
+        # Stored text can be truncated (80k PDF cap, annual-report extract): absence is unknown.
+        return True if quote_in_text(quote, stored["text"]) else None
     try:
         text = fetch_source_text(url)
     except Exception:
